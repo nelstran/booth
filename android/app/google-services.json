@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "871051510839",
+    "project_id": "booth-capstone",
+    "storage_bucket": "booth-capstone.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871051510839:android:06397c01368fd511bb6bb2",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyn69DyXMWGdG56-TSnSwyLVY1l2a7PGk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
