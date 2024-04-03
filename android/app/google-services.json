@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "871051510839",
+    "firebase_url": "https://booth-capstone-default-rtdb.firebaseio.com",
     "project_id": "booth-capstone",
     "storage_bucket": "booth-capstone.appspot.com"
   },
