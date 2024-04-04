@@ -1,5 +1,5 @@
 // import 'dart:ui';
-// import 'dart:math';
+import 'dart:math';
 
 class Session{
   final String field;
@@ -20,8 +20,8 @@ class Session{
     int? maxNum,
     }) 
     : 
-    dist = dist ?? 0,
-    // dist = dist ?? 10 + Random().nextInt(100 - 10 + 1),
+    // dist = dist ?? 0,
+    dist = dist ?? 10 + Random().nextInt(100 - 10 + 1),
     currNum = currNum ?? 1,
     maxNum = maxNum ?? 0;
     // color = colorLibrary.addField(field); // Group sessions by the Field they're in

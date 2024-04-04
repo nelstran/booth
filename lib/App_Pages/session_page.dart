@@ -3,10 +3,13 @@ import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/MVVM/session_model.dart';
+import 'package:flutter_application_1/MVVM/student_model.dart';
+
 
 /// This is the home page - where Booth Sessions appear in list view
 class SessionPage extends StatelessWidget {
-  SessionPage({super.key});
+  SessionPage(this.user, {super.key});
+  final User? user;
   final DatabaseReference _ref = FirebaseDatabase.instance.ref().child("sessions");
 
   // This method logs the user out
@@ -22,6 +25,8 @@ class SessionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<Student> student = fetchStudentInfo(user);
+
     return Scaffold(
       appBar: AppBar(
         // This is the top banner 
@@ -55,6 +60,20 @@ class SessionPage extends StatelessWidget {
       ),
     );
   }
+}
+
+// Get user info from database
+Future<Student> fetchStudentInfo(User? user) async {
+  final DatabaseReference ref = FirebaseDatabase.instance.ref().child("users");
+  final event = await ref.once(DatabaseEventType.value);
+  for (final child in event.snapshot.children){
+    Map value = child.value as Map;
+    if(value['uid'] == user!.uid){
+      var username = (value['name'] as String).split(" ");
+      return Student(username.first, username.last);
+    }
+  }
+  return Student("", "");
 }
 
 
