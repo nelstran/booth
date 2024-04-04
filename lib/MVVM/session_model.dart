@@ -2,6 +2,7 @@
 import 'dart:math';
 
 class Session{
+  final String key; // Helpful for finding its location in the database
   final String field;
   final int level;
   final String topic;
@@ -12,6 +13,7 @@ class Session{
 
 
   Session({
+    required this.key,
     required this.field,
     required this.level,
     required this.topic,

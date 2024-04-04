@@ -2,15 +2,18 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/Database/SessionDatabase.dart';
+import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
 import 'package:flutter_application_1/MVVM/session_model.dart';
 import 'package:flutter_application_1/MVVM/student_model.dart';
+import 'package:flutter_application_1/UI_components/button.dart';
 
 
 /// This is the home page - where Booth Sessions appear in list view
 class SessionPage extends StatelessWidget {
   SessionPage(this.user, {super.key});
   final User? user;
-  final DatabaseReference _ref = FirebaseDatabase.instance.ref().child("sessions");
+  final DatabaseReference _ref = FirebaseDatabase.instance.ref();
 
   // This method logs the user out
   void logout() {
@@ -25,8 +28,11 @@ class SessionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future<Student> student = fetchStudentInfo(user);
+    Student student;
+    final SessionDatabase db = SessionDatabase(ref: _ref);
 
+    fetchStudentInfo(user).then((value) => student = value, onError: (error) => displayMessageToUser(error, context));
+    
     return Scaffold(
       appBar: AppBar(
         // This is the top banner 
@@ -42,11 +48,12 @@ class SessionPage extends StatelessWidget {
       ),
       // FirebaseAnimatedlist listens for any changes from the database reference
       body: FirebaseAnimatedList(
-        query: _ref,
+        query: _ref.child("sessions"),
         itemBuilder: (BuildContext context, DataSnapshot snapshot, Animation<double> animation, int index) {
           // Extract data from the snapshot and convert it to a Session object
           Map data = snapshot.value as Map;
           Session session = Session(
+            key: snapshot.key!,
             field: data['field'],
             level: data['level'],
             topic: data['topic'],
@@ -55,7 +62,7 @@ class SessionPage extends StatelessWidget {
           if(data.containsKey('maxNum')) session.maxNum = data['maxNum'];
 
           // Create a UI element with the converted session
-          return sessionTile(context, session);
+          return sessionTile(context, session,);
         }
       ),
     );
@@ -70,10 +77,10 @@ Future<Student> fetchStudentInfo(User? user) async {
     Map value = child.value as Map;
     if(value['uid'] == user!.uid){
       var username = (value['name'] as String).split(" ");
-      return Student(username.first, username.last);
+      return Student(child.key!, user.uid, username.first, username.last);
     }
   }
-  return Student("", "");
+  return Future.error('Error fetching user info');
 }
 
 
