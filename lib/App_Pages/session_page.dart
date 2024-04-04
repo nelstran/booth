@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/Database/SessionDatabase.dart';
 import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
+import 'package:flutter_application_1/MVVM/booth_controller.dart';
 import 'package:flutter_application_1/MVVM/session_model.dart';
 import 'package:flutter_application_1/MVVM/student_model.dart';
-import 'package:flutter_application_1/UI_components/button.dart';
 
 
 /// This is the home page - where Booth Sessions appear in list view
@@ -28,21 +28,21 @@ class SessionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Student student;
-    final SessionDatabase db = SessionDatabase(ref: _ref);
-
-    fetchStudentInfo(user).then((value) => student = value, onError: (error) => displayMessageToUser(error, context));
+    // Student student;
+    // final SessionDatabase db = SessionDatabase(_ref);
+    
+    // fetchStudentInfo(user).then((value) => student = value, onError: (error) => displayMessageToUser(error, context));
     
     return Scaffold(
       appBar: AppBar(
         // This is the top banner 
-        title: Text("Booth"),
+        title: const Text("Booth"),
         backgroundColor: Colors.blue,
         actions: [
           // This button is linked to the logout method
           IconButton(
             onPressed: logout, 
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
@@ -68,21 +68,6 @@ class SessionPage extends StatelessWidget {
     );
   }
 }
-
-// Get user info from database
-Future<Student> fetchStudentInfo(User? user) async {
-  final DatabaseReference ref = FirebaseDatabase.instance.ref().child("users");
-  final event = await ref.once(DatabaseEventType.value);
-  for (final child in event.snapshot.children){
-    Map value = child.value as Map;
-    if(value['uid'] == user!.uid){
-      var username = (value['name'] as String).split(" ");
-      return Student(child.key!, user.uid, username.first, username.last);
-    }
-  }
-  return Future.error('Error fetching user info');
-}
-
 
 /*
 THIS WAS COPY AND PASTED FROM THE BOOTH MOCKUP, FEEL FREE TO CHANGE/REMOVE IT

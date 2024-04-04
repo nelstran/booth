@@ -9,6 +9,7 @@ class Session{
   int dist;
   int currNum;
   int maxNum;
+  List<Map<String, String>> users;
   // Color color;
 
 
@@ -25,6 +26,13 @@ class Session{
     // dist = dist ?? 0,
     dist = dist ?? 10 + Random().nextInt(100 - 10 + 1),
     currNum = currNum ?? 1,
-    maxNum = maxNum ?? 0;
+    maxNum = maxNum ?? 0,
+    users = [];
     // color = colorLibrary.addField(field); // Group sessions by the Field they're in
+
+  void addStudent(String name, String uid){
+    Map<String, String> user = {"name": name, "uid": uid};
+    users.add(user);
+
+  }
 }
