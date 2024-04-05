@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/UI_components/button.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
@@ -49,6 +50,14 @@ class _RegisterPageState extends State<RegisterPage> {
           email: emailController.text, 
           password: passwordController.text
         );
+
+        // Create profile in realtime database using 
+        final DatabaseReference ref = FirebaseDatabase.instance.ref();
+        final newRef = ref.child('users').push();
+        await newRef.set({
+          "name": "Booth User", //<-- For debugging, change this 
+          "uid": userCredential.user?.uid
+        });
 
         // pop loading circle
         Navigator.pop(context);
