@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/create_session_page.dart';
 import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:flutter_application_1/firebase_options.dart';
 import 'package:flutter_application_1/App_Theme/dark_mode.dart';
@@ -21,6 +22,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Show authentication page first (auth.dart)
       home: const AuthPage(),
+      routes: {
+        '/create_session': (context) => CreateSessionPage(),
+      },
       // Change the theme of the app to light or dark mode depending on system settings
       theme: lightMode,
       darkTheme: darkMode,

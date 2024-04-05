@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/session_page.dart';
 import 'package:flutter_application_1/UI_components/button.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
 import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
@@ -49,9 +50,11 @@ class _RegisterPageState extends State<RegisterPage> {
           email: emailController.text, 
           password: passwordController.text
         );
-
-        // pop loading circle
-        Navigator.pop(context);
+      // Navigate to the session page after successful registration
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const SessionPage()),
+      );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/App_Pages/session_page.dart';
 import 'package:flutter_application_1/UI_components/button.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
 import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
@@ -32,6 +33,12 @@ class _LoginPageState extends State<LoginPage> {
     // Try to sign the user in with the credentials they have typed
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+
+       // Navigate to the session page after successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SessionPage()),
+    );
 
       // pop loading circle
       if (context.mounted) Navigator.pop(context);
