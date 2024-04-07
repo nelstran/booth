@@ -54,6 +54,7 @@ class DefaultFirebaseOptions {
     appId: '1:871051510839:android:06397c01368fd511bb6bb2',
     messagingSenderId: '871051510839',
     projectId: 'booth-capstone',
+    databaseURL: 'https://booth-capstone-default-rtdb.firebaseio.com',
     storageBucket: 'booth-capstone.appspot.com',
   );
 
@@ -62,6 +63,7 @@ class DefaultFirebaseOptions {
     appId: '1:871051510839:ios:cc4fd7c92f255ef0bb6bb2',
     messagingSenderId: '871051510839',
     projectId: 'booth-capstone',
+    databaseURL: 'https://booth-capstone-default-rtdb.firebaseio.com',
     storageBucket: 'booth-capstone.appspot.com',
     iosBundleId: 'com.example.flutterApplication1',
   );

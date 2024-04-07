@@ -11,6 +11,8 @@
 // Once this button is pressed, go to the session home page
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/session_model.dart';
 
 class CreateSessionPage extends StatefulWidget {
   const CreateSessionPage({super.key});
@@ -20,6 +22,7 @@ class CreateSessionPage extends StatefulWidget {
 }
 
 class _CreateSessionPageState extends State<CreateSessionPage> {
+  
   final _formKey = GlobalKey<FormState>();
   String? _title;
   String? _description;
@@ -31,6 +34,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -142,7 +146,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    final boothSession = BoothSession(
+                    final boothSession = Session(
                       title: _title!,
                       description: _description!,
                       time: _time!,
@@ -150,9 +154,15 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                       seatsAvailable: _seatsAvailable!,
                       subject: _subject!,
                       isPublic: _isPublic,
+                      field: "field",
+                      level: 1000,
                     );
-                    final databaseReference = FirebaseDatabase.instance.reference();
-                    databaseReference.child('booth_sessions').push().set(boothSession.toJson());
+                    BoothController controller = BoothController(
+                      FirebaseDatabase.instance.ref()
+                    );
+                    controller.addSession(boothSession, arguments['user']);
+                    // final databaseReference = FirebaseDatabase.instance.reference();
+                    // databaseReference.child('booth_sessions').push().set(boothSession.toJson());
                     Navigator.pop(context);
                   }
                 },

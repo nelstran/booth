@@ -32,12 +32,13 @@ class _LoginPageState extends State<LoginPage> {
 
     // Try to sign the user in with the credentials they have typed
     try {
+      UserCredential? userCredential =
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
 
        // Navigate to the session page after successful login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SessionPage()),
+        MaterialPageRoute(builder: (context) => SessionPage(userCredential.user)),
     );
 
       // pop loading circle

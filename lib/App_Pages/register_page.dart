@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/session_page.dart';
+import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/student_model.dart';
 import 'package:flutter_application_1/UI_components/button.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
 import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
@@ -50,11 +53,25 @@ class _RegisterPageState extends State<RegisterPage> {
           email: emailController.text, 
           password: passwordController.text
         );
-      // Navigate to the session page after successful registration
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SessionPage()),
-      );
+
+        // Create profile in realtime database using 
+        final DatabaseReference ref = FirebaseDatabase.instance.ref();
+        final BoothController controller = BoothController(ref);
+
+        Student newUser = Student(
+          uid: userCredential.user!.uid,
+          // firstName: firstNameController.text,
+          // lastName: lastNameController.text,
+          firstName: "Booth",
+          lastName: "Test",
+        );
+        controller.addUser(newUser);
+
+        // Navigate to the session page after successful registration
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => SessionPage(userCredential.user)),
+        );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);
