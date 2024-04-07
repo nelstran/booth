@@ -10,10 +10,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-
 // Trying out map to pass values to database, thinking it will make it easier
 // to modify fields from each class
-class SessionDatabase{
+class SessionDatabase {
   final DatabaseReference ref;
 
   SessionDatabase(this.ref);
@@ -30,14 +29,14 @@ class SessionDatabase{
 
   /// Change field values of existing user
   void updateUser(String key, Map<String, Object?> values) async {
-    if(key == "") return;
+    if (key == "") return;
     final newRef = ref.child("users/$key");
     await newRef.update(values);
   }
 
   /// Remove user by its key
-  void removeUser(String key){
-    if(key == "") return; //Prevent removing all students
+  void removeUser(String key) {
+    if (key == "") return; //Prevent removing all students
     ref.child('users/$key').remove();
   }
 
@@ -68,26 +67,27 @@ class SessionDatabase{
 
   /// Change field values of existing session
   void updateSession(String key, Map<String, Object?> values) async {
-    if(key == "") return;
+    if (key == "") return;
     final newRef = ref.child("sessions/$key");
     await newRef.update(values);
   }
 
   /// Remove session by key
-  void removeSession(String key){
-    if(key == "") return; // Prevent removing all sessions
+  void removeSession(String key) {
+    if (key == "") return; // Prevent removing all sessions
     ref.child('sessions/$key').remove();
   }
 
   /// Add user to existing session
   void addStudentToSession(String key, Map student) {
-    // NOT YET IMPLEMENTED
     // Thinking about getting session by the given key and adding student values to 'users'
+    ref.child('sessions/$key/users').push().set(student);
   }
 
   /// Remove current user from existing session
-  void removeStudentFromSession(String sessionKey, String studentKey){
-    // NOT YET IMPLEMENTED
+  void removeStudentFromSession(String sessionKey, String studentKey) {
+    if (sessionKey == "" || studentKey == "") return;
+    ref.child('sessions/$sessionKey/users/$studentKey').remove();
   }
 
   /// Get the key of logged in user's
@@ -96,9 +96,9 @@ class SessionDatabase{
     final event = await newRef.once(DatabaseEventType.value);
 
     // Iterate through the list of users until we find a match (Probably will be slow af when there's a lot of users)
-    for (final child in event.snapshot.children){
+    for (final child in event.snapshot.children) {
       Map value = child.value as Map;
-      if(value['uid'] == user.uid){
+      if (value['uid'] == user.uid) {
         return child.key!;
       }
     }
