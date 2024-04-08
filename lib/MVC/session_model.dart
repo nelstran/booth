@@ -1,8 +1,6 @@
 // import 'dart:ui';
 import 'dart:math';
 
-import 'package:flutter_application_1/MVC/student_model.dart';
-
 class Session {
   String key; // Helpful for finding its location in the database
   // final List<Student> memberIds; // List of members in the session

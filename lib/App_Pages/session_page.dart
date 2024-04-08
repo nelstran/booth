@@ -1,7 +1,3 @@
-// import 'dart:js';
-import 'dart:async';
-// import 'dart:js_interop';
-// import 'dart:js_interop';
 import 'dart:math';
 
 import 'package:firebase_database/firebase_database.dart';
@@ -25,22 +21,19 @@ class SessionPage extends StatefulWidget {
   const SessionPage(this.user, {super.key});
 
   @override
-  _SessionPageState createState() => _SessionPageState(user);
+  State<SessionPage> createState() => _SessionPageState();
 }
 
 class _SessionPageState extends State<SessionPage> {
   // Reference to the Firebase Database sessions node
-  late final User? user;
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   late final BoothController controller = BoothController(_ref);
-
-  _SessionPageState(this.user);
 
   @override
   Widget build(BuildContext context) {
     // Get user profile before loading everything
     return FutureBuilder(
-        future: controller.fetchAccountInfo(user!),
+        future: controller.fetchAccountInfo(widget.user!),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return createUI();
@@ -52,8 +45,8 @@ class _SessionPageState extends State<SessionPage> {
 
   Scaffold createUI() {
     // Go to firebase console to see effects
-    Student testStudent =
-        Student(uid: "000", firstName: "Jane", lastName: "Doe");
+    // Student testStudent =
+    //     Student(uid: "000", firstName: "Jane", lastName: "Doe");
     // Session testSession =
     //     Session(field: "TEST", level: 1234, subject: "DEBUGGING"
     //     // , memberIds: []
@@ -78,9 +71,19 @@ class _SessionPageState extends State<SessionPage> {
         itemBuilder: (BuildContext context, DataSnapshot snapshot, Animation<double> animation, int index) {
           // Convert the snapshot to a Map
           Map<dynamic, dynamic> session = snapshot.value as Map<dynamic, dynamic>;
+          
+          List<String> memberNames = [];
+          List<String> memberUIDs = [];
+
+          Map<String, dynamic> usersInFS = Map<String, dynamic>.from(session['users']);
+          usersInFS.forEach((key, value) {
+            memberNames.add(value['name']);
+            memberUIDs.add(value['uid']);
+          });
           // Extract title and description from the session map
           String title = session['title']?? '';
-          String description = session['description']?? '';
+          // String description = session['description']?? '';
+          String description = session['description'] + '\n•' + memberNames.join("\n•");
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -94,12 +97,12 @@ class _SessionPageState extends State<SessionPage> {
                 ),
                 subtitle: Text(description),
                 onTap: () => {
-                  // if(){
-                  //   controller.removeUserFromSession(snapshot.key!, controller.student.key)
-                  // }
-                  // else{
-                  //   controller.addUserToSession(snapshot.key!, controller.student)
-                  // }
+                  if(memberUIDs.contains(controller.student.uid)){
+                    // controller.removeUserFromSession(snapshot.key!, controller.student.key)
+                  }
+                  else{
+                    controller.addUserToSession(snapshot.key!, controller.student)
+                  }
                 },
               ),
             ),
