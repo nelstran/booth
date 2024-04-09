@@ -94,17 +94,5 @@ class SessionDatabase {
     return Future.error('Error fetching user info');
   }
 
-  Future<bool> isUserInSession(String uid) async {
-    DatabaseEvent dataSnapshot = await ref
-        .child('sessions')
-        .orderByChild('users/$uid/uid')
-        .equalTo(uid)
-        .once();
-    print(uid);
-    print(dataSnapshot.snapshot.value);
-    if (dataSnapshot.snapshot.value != null) {
-      return true;
-    }
-    return false;
-  }
+  isUserInSession(String uid) {}
 }
