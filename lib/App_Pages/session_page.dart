@@ -54,7 +54,7 @@ class _SessionPageState extends State<SessionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Booth"),
+        title: Text("Booth | Welcome ${controller.student.fullname}!"),
         backgroundColor: Colors.blue,
         actions: const [
           // This button is linked to the logout method
@@ -83,7 +83,7 @@ class _SessionPageState extends State<SessionPage> {
           // Extract title and description from the session map
           String title = session['title']?? '';
           // String description = session['description']?? '';
-          String description = session['description'] + '\n•' + memberNames.join("\n•");
+          String description = session['description'] + '\n• ' + memberNames.join("\n• ");
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
