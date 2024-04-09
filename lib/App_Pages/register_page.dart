@@ -84,42 +84,43 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       // This changes the color of the page to match which mode is selected (light/dark)
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
+          reverse:true,
           padding: const EdgeInsets.all(25.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // This is where the logo is to be displayed - for now, an icon of a person
-              Icon(
-                Icons.person,
-                size: 80,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
+              // Icon(
+              //   Icons.person,
+              //   size: 40,
+              //   color: Theme.of(context).colorScheme.inversePrimary,
+              // ),
 
               // Creates a space between the logo and the app name
-              const SizedBox(height: 25),
+              //const SizedBox(height: 15),
               
               const Text(
-                "BOOTH",
+                "Create an Account",
                 style: TextStyle(fontSize: 20),
               ),
 
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
 
               // Username textfield
-              TextBox(
-                hintText: "Username",
-                obscureText: false,
-                controller: usernameController,
-              ),
+              // TextBox(
+              //   hintText: "Username",
+              //   obscureText: false,
+              //   controller: usernameController,
+              // ),
 
-              const SizedBox(height: 10),
+             // const SizedBox(height: 10),
 
               // Email textfield
               TextBox(

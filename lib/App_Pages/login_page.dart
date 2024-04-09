@@ -60,7 +60,8 @@ class _LoginPageState extends State<LoginPage> {
       // This changes the color of the page to match which mode is selected (light/dark)
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
+          reverse:true,
           padding: const EdgeInsets.all(25.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -68,12 +69,12 @@ class _LoginPageState extends State<LoginPage> {
               // This is where the logo is to be displayed - for now, an icon of a person
               Icon(
                 Icons.person,
-                size: 80,
+                size: 50,
                 color: Theme.of(context).colorScheme.inversePrimary,
               ),
 
               // Creates a space between the logo and the app name
-              const SizedBox(height: 25),
+              const SizedBox(height: 15),
               
 
               const Text(
@@ -81,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(fontSize: 20),
               ),
 
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
 
               // Email textfield
               TextBox(
