@@ -59,7 +59,7 @@ class _SessionPageState extends State<SessionPage> {
         actions: const [
           // This button is linked to the logout method
           IconButton(
-            onPressed: logout, 
+            onPressed: logout,
             icon: Icon(Icons.logout),
           ),
         ],
@@ -68,22 +68,26 @@ class _SessionPageState extends State<SessionPage> {
       body: FirebaseAnimatedList(
         query: _ref.child("sessions"),
         // Build each item in the list view
-        itemBuilder: (BuildContext context, DataSnapshot snapshot, Animation<double> animation, int index) {
+        itemBuilder: (BuildContext context, DataSnapshot snapshot,
+            Animation<double> animation, int index) {
           // Convert the snapshot to a Map
-          Map<dynamic, dynamic> session = snapshot.value as Map<dynamic, dynamic>;
-          
+          Map<dynamic, dynamic> session =
+              snapshot.value as Map<dynamic, dynamic>;
+
           List<String> memberNames = [];
           List<String> memberUIDs = [];
 
-          Map<String, dynamic> usersInFS = Map<String, dynamic>.from(session['users']);
+          Map<String, dynamic> usersInFS =
+              Map<String, dynamic>.from(session['users']);
           usersInFS.forEach((key, value) {
             memberNames.add(value['name']);
             memberUIDs.add(value['uid']);
           });
           // Extract title and description from the session map
-          String title = session['title']?? '';
+          String title = session['title'] ?? '';
           // String description = session['description']?? '';
-          String description = session['description'] + '\n• ' + memberNames.join("\n• ");
+          String description =
+              session['description'] + '\n• ' + memberNames.join("\n• ");
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -97,12 +101,16 @@ class _SessionPageState extends State<SessionPage> {
                 ),
                 subtitle: Text(description),
                 onTap: () => {
-                  if(memberUIDs.contains(controller.student.uid)){
-                    // controller.removeUserFromSession(snapshot.key!, controller.student.key)
-                  }
-                  else{
-                    controller.addUserToSession(snapshot.key!, controller.student)
-                  }
+                  if (memberUIDs.contains(controller.student.uid))
+                    {
+                      controller.removeUserFromSession(
+                          snapshot.key!, controller.student.sessionKey),
+                    }
+                  else
+                    {
+                      controller.addUserToSession(
+                          snapshot.key!, controller.student)
+                    }
                 },
               ),
             ),
@@ -113,7 +121,8 @@ class _SessionPageState extends State<SessionPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigate to the create session page
-          Navigator.pushNamed(context, '/create_session', arguments: {'user': controller.student});
+          Navigator.pushNamed(context, '/create_session',
+              arguments: {'user': controller.student});
         },
         child: const Icon(Icons.add),
       ),

@@ -1,6 +1,7 @@
-class Student{
+class Student {
   String key; // Helpful for finding its location in the user database
-  // String sessionKey; // Could be use for finding its location in the session database
+  String
+      sessionKey; // Could be use for finding its location in the session database
   final String uid;
   final String firstName;
   final String lastName;
@@ -12,9 +13,7 @@ class Student{
     required this.firstName,
     required this.lastName,
     String? key,
-  }
-  ):
-  key = key ?? "NaN",
-  _fullname = "$firstName $lastName";
-  // sessionKey = "";
+  })  : key = key ?? "NaN",
+        _fullname = "$firstName $lastName",
+        sessionKey = "";
 }

@@ -65,14 +65,17 @@ class SessionDatabase {
   }
 
   /// Add user to existing session
-  void addStudentToSession(String key, Map student) {
+  Future<String?> addStudentToSession(String key, Map student) async {
     // Thinking about getting session by the given key and adding student values to 'users'
-    ref.child('sessions/$key/users').push().set(student);
+    final newRef = ref.child('sessions/$key/users').push();
+    await newRef.set(student);
+    return newRef.key;
   }
 
   /// Remove current user from existing session
   void removeStudentFromSession(String sessionKey, String studentKey) {
     if (sessionKey == "" || studentKey == "") return;
+
     ref.child('sessions/$sessionKey/users/$studentKey').remove();
   }
 
@@ -90,9 +93,18 @@ class SessionDatabase {
     }
     return Future.error('Error fetching user info');
   }
-  // TODO:
-  // get the current logged in user - done
-  // get collection of all sessions from firebase - done
-  // write a session to firebase - done
-  // read sessions from firebase - done
+
+  Future<bool> isUserInSession(String uid) async {
+    DatabaseEvent dataSnapshot = await ref
+        .child('sessions')
+        .orderByChild('users/$uid/uid')
+        .equalTo(uid)
+        .once();
+    print(uid);
+    print(dataSnapshot.snapshot.value);
+    if (dataSnapshot.snapshot.value != null) {
+      return true;
+    }
+    return false;
+  }
 }

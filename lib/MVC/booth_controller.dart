@@ -60,7 +60,8 @@ class BoothController {
         lastName: fullname.last);
 
     // Maybe have session key to know what session they're in if any???
-    // if(value.containsKey('sessionKey')) student.sessionKey = value['sessionKey'];
+    if (value.containsKey('sessionKey'))
+      student.sessionKey = value['sessionKey'];
   }
 
   /// Add the given student to the database
@@ -74,14 +75,18 @@ class BoothController {
     db.removeUser(key);
   }
 
+  String? previousKey = "";
+
   /// Add the logged in user (student) to a session
-  void addUserToSession(String sessionKey, Student user) {
+  void addUserToSession(String sessionKey, Student user) async {
     Map studentValues = {
       "name": user.fullname,
       "uid": user.uid,
     };
 
-    db.addStudentToSession(sessionKey, studentValues);
+    String? key = await db.addStudentToSession(sessionKey, studentValues);
+
+    db.updateUser(user.key, {'sessionKey': key});
   }
 
   /// Remove the logged in user (student) from the session
@@ -92,8 +97,6 @@ class BoothController {
   /// Add the session to the database, the user who made it
   /// automatically joins the session
   void addSession(Session session, Student owner) {
-    
-
     Map studentValues = {
       "name": owner.fullname,
       "uid": owner.uid,
@@ -104,5 +107,19 @@ class BoothController {
   /// Given a key, remove the session from the database
   void removeSession(String key) {
     db.removeSession(key);
+  }
+
+  Future<bool> isUserAlreadyInSession(String uid) async {
+// Query the sessions node to find if the user is a member of any session
+
+    bool inSession = await db.isUserInSession(uid);
+    // Check if the snapshot has any data
+    if (inSession == true) {
+      // User is already in a session
+      return true;
+    } else {
+      // User is not in any session
+      return false;
+    }
   }
 }
