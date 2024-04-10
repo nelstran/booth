@@ -8,27 +8,16 @@ import 'student_model.dart';
 /// Controller will act as a bridge from front end to back end.
 /// Anything needed to modify the logged in user or sessions should
 /// go through controller.
-///
-/// MAYBE NOT NEEDED I PROBABLY MADE THIS MORE COMPLICATED THAN
-/// IT SHOULD BE
 class BoothController {
   final DatabaseReference ref;
   SessionDatabase db;
-  Map sessions = {};
   Student student;
 
+  // Constructor
   BoothController(
     this.ref,
   )   : db = SessionDatabase(ref),
-        student = Student(uid: "", firstName: "", lastName: "") {
-    // Modify session on change
-    DatabaseReference sessionRef = ref.child('sessions');
-    sessionRef.onValue.listen((event) {
-      final data = event.snapshot.value;
-      if (data == null) return;
-      sessions = data as Map;
-    });
-  }
+        student = Student(uid: "", firstName: "", lastName: "");
 
   /// Get logged in user's account information
   Future<String> fetchAccountInfo(User user) async {
@@ -37,10 +26,13 @@ class BoothController {
       DatabaseReference studentRef = ref.child("users/$key");
       final snapshot = await studentRef.get();
       var value = snapshot.value as Map;
-
+      value['key'] = snapshot.key;
       // Modify student on change
       studentRef.onValue.listen((event) {
-        setStudent(key, event.snapshot.value as Map);
+        var value = event.snapshot.value as Map;
+        value['key'] = event.snapshot.key;
+
+        setStudent(key, value);
       });
 
       setStudent(key, value);
@@ -52,22 +44,18 @@ class BoothController {
 
   /// Set student of the controller
   void setStudent(String key, Map value) {
-    final fullname = value['name'].toString().split(" ");
-    student = Student(
-        key: key,
-        uid: value['uid'],
-        firstName: fullname.first,
-        lastName: fullname.last);
-
-    // Maybe have session key to know what session they're in if any???
-    if (value.containsKey('sessionKey'))
-      student.sessionKey = value['sessionKey'];
+    student = Student.fromJson(value);
+    // student = Student(
+    //   key: key,
+    //   uid: value['uid'],
+    //   firstName: fullname.first,
+    //   lastName: fullname.last
+    // );
   }
 
   /// Add the given student to the database
   void addUser(Student student) {
-    Map values = {"uid": student.uid, "name": student.fullname};
-    db.addUser(values);
+    db.addUser(student.toJson());
   }
 
   /// Given its key, remove the user from the database
@@ -79,25 +67,27 @@ class BoothController {
 
   /// Add the logged in user (student) to a session
   void addUserToSession(String sessionKey, Student user) async {
+    // If user is in a session, remove them from it before adding them to a new one
+    if(user.session != "") removeUserFromSession(user.session, user.sessionKey);
     Map studentValues = {
       "name": user.fullname,
       "uid": user.uid,
     };
 
     String? key = await db.addStudentToSession(sessionKey, studentValues);
-
-    db.updateUser(user.key, {'sessionKey': key});
+    db.updateUser(user.key, {'session': sessionKey, 'sessionKey': key});
   }
 
   /// Remove the logged in user (student) from the session
-  void removeUserFromSession(String sessionKey, String userKey) {
-    db.removeStudentFromSession(sessionKey, userKey);
+  void removeUserFromSession(String sessionKey, String userSessionKey) {
+    db.removeStudentFromSession(sessionKey, userSessionKey);
   }
 
   /// Add the session to the database, the user who made it
   /// automatically joins the session
   void addSession(Session session, Student owner) {
-    Map studentValues = {
+    // We just want name and uid instead all of its fields
+    Map studentValues = { 
       "name": owner.fullname,
       "uid": owner.uid,
     };
