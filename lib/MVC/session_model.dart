@@ -2,26 +2,24 @@
 import 'dart:math';
 
 class Session {
-  String key; // Helpful for finding its location in the database
-  // final List<Student> memberIds; // List of members in the session
-  final String field;
-  final int level;
-  final String subject;
+  late String key; // Session key in database
 
-  final String title;
-  final String description;
-  final String time;
-  final String locationDescription;
-  final int seatsAvailable;
-  final bool isPublic;
-  int dist;
-  int currNum;
-  int maxNum;
+  late final String field;
+  late final int level;
+  late final String subject;
 
-  // Color color;
+  late final String title;
+  late final String description;
+  late final String time;
+  late final String locationDescription;
+  late final int seatsAvailable;
+  late final bool isPublic;
+  late int dist;
+  late int seatsTaken;
 
+  /// Constructor
   Session({
-    // required this.memberIds,
+    String? key,
     required this.field,
     required this.level,
     required this.subject,
@@ -31,29 +29,38 @@ class Session {
     required this.locationDescription,
     required this.seatsAvailable,
     required this.isPublic,
-    String? key,
-    int? dist,
-    int? currNum,
-    int? maxNum,
   })  : key = key ?? "NaN",
-        // dist = dist ?? 0,
-        dist = dist ?? 10 + Random().nextInt(100 - 10 + 1),
-        currNum = currNum ?? 1,
-        maxNum = maxNum ?? 0;
-  // color = colorLibrary.addField(field); // Group sessions by the Field they're in
+        dist = 10 + Random().nextInt(100 - 10 + 1), //Random for now
+        seatsTaken = 1;
+
+  /// Json Constructor (Maybe not required/used)
+  Session.fromJson(Map json){
+    field = json['field'];
+    level = json['level'];
+    subject = json['subject'];
+    title = json['title'];
+    description = json['description'];
+    time = json['time'];
+    locationDescription = json['locationDescription'];
+    seatsAvailable = json['seatsAvailable'];
+    isPublic = json['isPublic'];
+    dist = 10 + Random().nextInt(100 - 10 + 1);
+    seatsTaken = seatsAvailable - (json['users'] as List).length;
+  }
+
   /// Converts the booth session to a JSON format
-    Map<String, dynamic> toJson() {
-      return {
-        'title' : title,
-        'description': description,
-        'time': time,
-        'locationDescription': locationDescription,
-        'seatsAvailable': seatsAvailable,
-        'subject': subject,
-        'isPublic': isPublic,
-        'field': field,
-        'level': level,
-        'key': key
-      };
-    }
+  Map<String, dynamic> toJson() {
+    return {
+      'title' : title,
+      'description': description,
+      'time': time,
+      'locationDescription': locationDescription,
+      'seatsAvailable': seatsAvailable,
+      'subject': subject,
+      'isPublic': isPublic,
+      'field': field,
+      'level': level,
+      'key': key
+    };
+  }
 }
