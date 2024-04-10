@@ -161,8 +161,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                       FirebaseDatabase.instance.ref()
                     );
                     controller.addSession(boothSession, arguments['user']);
-                    // final databaseReference = FirebaseDatabase.instance.reference();
-                    // databaseReference.child('booth_sessions').push().set(boothSession.toJson());
                     Navigator.pop(context);
                   }
                 },
@@ -176,39 +174,5 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         ),
       ),
     );
-  }
-}
-
-/// Represents a booth session
-class BoothSession {
-  final String title;
-  final String description;
-  final String time;
-  final String locationDescription;
-  final int seatsAvailable;
-  final String subject;
-  final bool isPublic;
-
-  BoothSession({
-    required this.title,
-    required this.description,
-    required this.time,
-    required this.locationDescription,
-    required this.seatsAvailable,
-    required this.subject,
-    required this.isPublic,
-  });
-
-  /// Converts the booth session to a JSON format
-  Map<String, dynamic> toJson() {
-    return {
-      'title' : title,
-      'description': description,
-      'time': time,
-      'locationDescription': locationDescription,
-      'seatsAvailable': seatsAvailable,
-      'subject': subject,
-      'isPublic': isPublic,
-    };
   }
 }

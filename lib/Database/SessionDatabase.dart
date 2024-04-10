@@ -21,10 +21,6 @@ class SessionDatabase {
   void addUser(Map values) {
     final newRef = ref.child('users').push();
     newRef.set(values);
-    // newRef.set({
-    //   "name": student.fullname
-    //   // More values to be added later
-    // });
   }
 
   /// Change field values of existing user
