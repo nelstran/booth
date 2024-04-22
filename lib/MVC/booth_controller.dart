@@ -17,7 +17,8 @@ class BoothController {
   BoothController(
     this.ref,
   )   : db = SessionDatabase(ref),
-        student = Student(uid: "", firstName: "", lastName: "");
+        student =
+            Student(uid: "", firstName: "", lastName: "", ownedSessionKey: "");
 
   /// Get logged in user's account information
   Future<String> fetchAccountInfo(User user) async {
@@ -68,7 +69,10 @@ class BoothController {
   /// Add the logged in user (student) to a session
   void addUserToSession(String sessionKey, Student user) async {
     // If user is in a session, remove them from it before adding them to a new one
-    if(user.session != "") removeUserFromSession(user.session, user.sessionKey);
+    if (user.session != "") {
+      removeUserFromSession(user.session, user.sessionKey);
+    }
+
     Map studentValues = {
       "name": user.fullname,
       "uid": user.uid,
@@ -76,6 +80,10 @@ class BoothController {
 
     String? key = await db.addStudentToSession(sessionKey, studentValues);
     db.updateUser(user.key, {'session': sessionKey, 'sessionKey': key});
+    // Check to see if user has a session that they own
+    // if (user.session != user.ownedSessionKey) {
+    //   db.removeSession(user.ownedSessionKey);
+    // }
   }
 
   /// Remove the logged in user (student) from the session
@@ -85,13 +93,31 @@ class BoothController {
 
   /// Add the session to the database, the user who made it
   /// automatically joins the session
-  void addSession(Session session, Student owner) {
+  void addSession(Session session, Student owner) async {
     // We just want name and uid instead all of its fields
-    Map studentValues = { 
+    Map studentValues = {
       "name": owner.fullname,
       "uid": owner.uid,
     };
-    db.addSession(session.toJson(), studentValues);
+
+    Map sessionValues = {
+      "field": session.field,
+      "level": session.level,
+      "subject": session.subject,
+      "title": session.title,
+      "description": session.description,
+      "time": session.time,
+      "locationDescription": session.locationDescription,
+      "seatsAvailable": session.seatsAvailable,
+      "isPublic": session.isPublic,
+      "dist": session.dist,
+      "seatsTaken": session.seatsTaken,
+      "ownerKey": owner.key,
+    };
+
+    String? seshKey = await db.addSession(sessionValues, studentValues);
+    //Sets the owner's session key to the session key
+    db.updateUser(owner.key, {"ownedSessionKey": seshKey, "session": seshKey});
   }
 
   /// Given a key, remove the session from the database

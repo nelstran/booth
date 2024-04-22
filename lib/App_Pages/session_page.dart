@@ -101,6 +101,11 @@ class _SessionPageState extends State<SessionPage> {
                 ),
                 subtitle: Text(description),
                 onTap: () => {
+                  if (controller.student.ownedSessionKey != "")
+                    {
+                      controller
+                          .removeSession(controller.student.ownedSessionKey)
+                    },
                   if (memberUIDs.contains(controller.student.uid))
                     {
                       controller.removeUserFromSession(
@@ -319,5 +324,6 @@ Student createRandomStudent() {
   String firstName = firstNames[random.nextInt(firstNames.length)];
   String lastName = lastNames[random.nextInt(lastNames.length)];
 
-  return Student(uid: uid, firstName: firstName, lastName: lastName);
+  return Student(
+      uid: uid, firstName: firstName, lastName: lastName, ownedSessionKey: "");
 }

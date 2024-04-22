@@ -43,18 +43,16 @@ class _RegisterPageState extends State<RegisterPage> {
       // Show error message to user
       displayMessageToUser("Passwords do not match", context);
     }
-    
-    // If the passwords do match, try creating a user
-    else{
-      // Create the user in firebase with their email and password
-      try{
-        UserCredential? userCredential =
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text, 
-          password: passwordController.text
-        );
 
-        // Create profile in realtime database using 
+    // If the passwords do match, try creating a user
+    else {
+      // Create the user in firebase with their email and password
+      try {
+        UserCredential? userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+                email: emailController.text, password: passwordController.text);
+
+        // Create profile in realtime database using
         final DatabaseReference ref = FirebaseDatabase.instance.ref();
         final BoothController controller = BoothController(ref);
 
@@ -64,13 +62,15 @@ class _RegisterPageState extends State<RegisterPage> {
           // lastName: lastNameController.text,
           firstName: "Booth",
           lastName: "Test",
+          ownedSessionKey: "",
         );
         controller.addUser(newUser);
 
         // Navigate to the session page after successful registration
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => SessionPage(userCredential.user)),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => SessionPage(userCredential.user)),
         );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
@@ -79,19 +79,16 @@ class _RegisterPageState extends State<RegisterPage> {
         displayMessageToUser(e.code, context);
       }
     }
-
-
   }
 
-
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // This changes the color of the page to match which mode is selected (light/dark)
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
         child: SingleChildScrollView(
-          reverse:true,
+          reverse: true,
           padding: const EdgeInsets.all(25.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -105,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
               // Creates a space between the logo and the app name
               //const SizedBox(height: 15),
-              
+
               const Text(
                 "Create an Account",
                 style: TextStyle(fontSize: 20),
@@ -120,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
               //   controller: usernameController,
               // ),
 
-             // const SizedBox(height: 10),
+              // const SizedBox(height: 10),
 
               // Email textfield
               TextBox(
@@ -165,7 +162,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
               // Register button
               Button(
-                text: "Register", 
+                text: "Register",
                 onTap: registerUser,
               ),
 
@@ -178,13 +175,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   Text(
                     "Already have an account?",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary
-                    ),
+                        color: Theme.of(context).colorScheme.inversePrimary),
                   ),
                   GestureDetector(
                     onTap: widget.onTap,
                     child: const Text(
-                      "Login Here", 
+                      "Login Here",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
