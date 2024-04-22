@@ -45,7 +45,7 @@ class Session {
     seatsAvailable = json['seatsAvailable'];
     isPublic = json['isPublic'];
     dist = 10 + Random().nextInt(100 - 10 + 1);
-    seatsTaken = seatsAvailable - (json['users'] as List).length;
+    seatsTaken = (json['users'] as Map).length;
   }
 
   /// Converts the booth session to a JSON format

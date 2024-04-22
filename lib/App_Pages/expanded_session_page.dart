@@ -1,6 +1,9 @@
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+
+import '../MVC/session_model.dart';
 
 class ExpandedSessionPage extends StatefulWidget {
   final BoothController controller;
@@ -8,7 +11,7 @@ class ExpandedSessionPage extends StatefulWidget {
   const ExpandedSessionPage(this.sessionKey, this.controller, {super.key});
 
   @override
-  _ExpandedSessionPageState createState() => _ExpandedSessionPageState();
+  State<ExpandedSessionPage> createState() { return  _ExpandedSessionPageState();}
 }
 
 class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
@@ -26,8 +29,11 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   updateState(){
     buttonColor = (isInThisSession ? Colors.red[900] : Colors.green[800])!;
   }
+
   @override
   Widget build(BuildContext context) {
+  final DatabaseReference _ref = FirebaseDatabase.instance.ref();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -39,10 +45,22 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
           // Session Info
           // TODO: Display the information that was not previously in the main page
           Expanded(
-            flex: 8, // Dictates how much space they take
+            flex: 8, // Dictates how much space this will take
+            child: StreamBuilder(
+              stream: _ref.child("sessions/${widget.sessionKey}").onValue,
+              builder: (context, snapshot) {
+                if(snapshot.hasData && snapshot.data!.snapshot.value != null){
+                  Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                  Session session = Session.fromJson(json);
 
-            // Replace container with your UI
-            child: Container(color: Colors.grey.shade800, child: const Text("Details Placeholder"))
+                  // Replace container with your UI
+                  return Container(color: Colors.grey.shade800, child: const Text("Details Placeholder"));
+                }
+                else{
+                  return const CircularProgressIndicator();
+                }
+              },
+            )
           ),
 
           // Show students in the session
@@ -91,7 +109,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 }
                 isInThisSession = !isInThisSession; // Janky way to update state UI
                 updateState();
-                // isInThisSession = controller.student.session == widget.sessionKey;
+                // isInThisSession = controller.student.session == widget.sessionKey; // This does not work on first click
               });
             },
           )
