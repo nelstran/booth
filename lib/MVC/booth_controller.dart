@@ -45,12 +45,6 @@ class BoothController {
   /// Set student of the controller
   void setStudent(String key, Map value) {
     student = Student.fromJson(value);
-    // student = Student(
-    //   key: key,
-    //   uid: value['uid'],
-    //   firstName: fullname.first,
-    //   lastName: fullname.last
-    // );
   }
 
   /// Add the given student to the database
@@ -81,6 +75,7 @@ class BoothController {
   /// Remove the logged in user (student) from the session
   void removeUserFromSession(String sessionKey, String userSessionKey) {
     db.removeStudentFromSession(sessionKey, userSessionKey);
+    db.updateUser(student.key, {"session": "", "sessionKey": ""});
   }
 
   /// Add the session to the database, the user who made it

@@ -4,6 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/session_model.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
@@ -101,16 +102,21 @@ class _SessionPageState extends State<SessionPage> {
                 ),
                 subtitle: Text(description),
                 onTap: () => {
-                  if (memberUIDs.contains(controller.student.uid))
-                    {
-                      controller.removeUserFromSession(
-                          snapshot.key!, controller.student.sessionKey),
-                    }
-                  else
-                    {
-                      controller.addUserToSession(
-                          snapshot.key!, controller.student)
-                    }
+                  // Expand session
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ExpandedSessionPage(snapshot.key!, controller),
+                    ),)
+                  // if (memberUIDs.contains(controller.student.uid))
+                  //   {
+                  //     controller.removeUserFromSession(
+                  //         snapshot.key!, controller.student.sessionKey),
+                  //   }
+                  // else
+                  //   {
+                  //     controller.addUserToSession(
+                  //         snapshot.key!, controller.student)
+                  //   }
                 },
               ),
             ),
