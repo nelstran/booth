@@ -17,6 +17,8 @@ class Session {
   late int dist;
   late int seatsTaken;
 
+  late String ownerKey; // User key of the session owner
+
   /// Constructor
   Session({
     String? key,
@@ -31,10 +33,11 @@ class Session {
     required this.isPublic,
   })  : key = key ?? "NaN",
         dist = 10 + Random().nextInt(100 - 10 + 1), //Random for now
-        seatsTaken = 1;
+        seatsTaken = 1,
+        ownerKey = "";
 
   /// Json Constructor (Maybe not required/used)
-  Session.fromJson(Map json){
+  Session.fromJson(Map json) {
     field = json['field'];
     level = json['level'];
     subject = json['subject'];
@@ -46,12 +49,13 @@ class Session {
     isPublic = json['isPublic'];
     dist = 10 + Random().nextInt(100 - 10 + 1);
     seatsTaken = (json['users'] as Map).length;
+    if (json.containsKey('ownerKey')) ownerKey = json['ownerKey'];
   }
 
   /// Converts the booth session to a JSON format
   Map<String, dynamic> toJson() {
     return {
-      'title' : title,
+      'title': title,
       'description': description,
       'time': time,
       'locationDescription': locationDescription,
@@ -60,7 +64,8 @@ class Session {
       'isPublic': isPublic,
       'field': field,
       'level': level,
-      'key': key
+      'key': key,
+      'ownerKey': ownerKey,
     };
   }
 }
