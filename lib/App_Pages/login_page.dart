@@ -69,12 +69,13 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // This is where the logo is to be displayed - for now, an icon of a person
-              Icon(
-                Icons.person,
-                size: 50,
-                color: Theme.of(context).colorScheme.inversePrimary,
-              ),
+              // Icon(
+              //   Icons.person,
+              //   size: 50,
+              //   color: Theme.of(context).colorScheme.inversePrimary,
+              // ),
 
+              Image.asset('assets/images/lamp_logo.png'),
               // Creates a space between the logo and the app name
               const SizedBox(height: 15),
               
