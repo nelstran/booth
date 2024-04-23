@@ -37,7 +37,7 @@ class Student {
     if (json.containsKey('session')) session = json['session'];
     if (json.containsKey('sessionKey')) sessionKey = json['sessionKey'];
     if (json.containsKey('ownedSessionKey')) {
-      sessionKey = json['ownedSessionKey'];
+      ownedSessionKey = json['ownedSessionKey'];
     }
   }
 
