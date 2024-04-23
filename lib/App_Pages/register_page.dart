@@ -20,7 +20,8 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   // Controllers for the textboxes
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController firstNameController= TextEditingController();
+  final TextEditingController lastNameController= TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPwController = TextEditingController();
@@ -58,10 +59,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
         Student newUser = Student(
           uid: userCredential.user!.uid,
-          // firstName: firstNameController.text,
-          // lastName: lastNameController.text,
-          firstName: "Booth",
-          lastName: "Test",
+          firstName: firstNameController.text,
+          lastName: lastNameController.text,
+          // firstName: "Booth",
+          // lastName: "Test",
         );
         controller.addUser(newUser);
 
@@ -109,14 +110,23 @@ class _RegisterPageState extends State<RegisterPage> {
 
               const SizedBox(height: 20),
 
-              // Username textfield
-              // TextBox(
-              //   hintText: "Username",
-              //   obscureText: false,
-              //   controller: usernameController,
-              // ),
+              // First name textfield
+              TextBox(
+                hintText: "First Name",
+                obscureText: false,
+                controller: firstNameController,
+              ),
 
-              // const SizedBox(height: 10),
+              const SizedBox(height: 10),
+
+              // Last name textfield
+              TextBox(
+                hintText: "Last Name",
+                obscureText: false,
+                controller: lastNameController,
+              ),
+
+              const SizedBox(height: 10),
 
               // Email textfield
               TextBox(

@@ -29,6 +29,7 @@ class _SessionPageState extends State<SessionPage> {
   // Reference to the Firebase Database sessions node
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   late final BoothController controller = BoothController(_ref);
+  int currPageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +118,38 @@ class _SessionPageState extends State<SessionPage> {
               arguments: {'user': controller.student});
         },
         child: const Icon(Icons.add),
+      ),
+      
+      // Navigation bar placeholder
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: (int i){
+          setState(() {
+            currPageIndex = i;
+          });
+        },
+        currentIndex: currPageIndex,
+        type: BottomNavigationBarType.fixed, // Need this to change background color
+        selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        unselectedIconTheme: Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: "Map",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.data_thresholding),
+            label: "Usage",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
+        ],
       ),
     );
   }
