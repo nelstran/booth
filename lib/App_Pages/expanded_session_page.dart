@@ -23,7 +23,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   void initState() {
     super.initState();
     isInThisSession = controller.student.session == widget.sessionKey;
-    updateState(); 
+    updateState();
   }
 
   updateState(){
@@ -32,51 +32,127 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-  final DatabaseReference _ref = FirebaseDatabase.instance.ref();
+    final DatabaseReference _ref = FirebaseDatabase.instance.ref();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
         backgroundColor: Colors.blue,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Session Info
-          // TODO: Display the information that was not previously in the main page
-          Expanded(
-            flex: 8, // Dictates how much space this will take
-            child: StreamBuilder(
-              stream: _ref.child("sessions/${widget.sessionKey}").onValue,
-              builder: (context, snapshot) {
-                if(snapshot.hasData && snapshot.data!.snapshot.value != null){
-                  Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-                  Session session = Session.fromJson(json);
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 4,
+              child: StreamBuilder(
+                stream: _ref.child("sessions/${widget.sessionKey}").onValue,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+                    Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                    Session session = Session.fromJson(json);
 
-                  // Replace container with your UI
-                  return Container(color: Colors.grey.shade800, child: const Text("Details Placeholder"));
-                }
-                else{
-                  return const CircularProgressIndicator();
-                }
-              },
-            )
-          ),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          session.title,
+                          style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 20.0),
+                        Text(
+                          'Description: ${session.description}',
+                          style: const TextStyle(fontSize: 18.0),
+                        ),
+                        const SizedBox(height: 20.0),
+                        Text(
+                          'Location Description: ${session.locationDescription}',
+                          style: const TextStyle(fontSize: 18.0),
+                        ),
+                        const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.access_time, size: 18.0),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'Time: ${session.time}',
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.people, size: 18.0),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'Seats Available: ${session.seatsAvailable}',
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.subject, size: 18.0),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'Subject: ${session.subject}',
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20.0),
+                      ],
+                    );
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 20.0),
+            const Text(
+              'Students in Session:',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10.0),
+            Expanded(
+              flex: 3,
+              child: StreamBuilder(
+                stream: _ref.child("sessions/${widget.sessionKey}/users").onValue,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+                    Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                    List<String> memberNames = json.values.map((value) => value['name'] as String).toList();
 
-          // Show students in the session
-          // TODO (Optional??): Show a scrollable list of students currently in the session
-          // Expanded(
-          //   flex: 2,
-          //   child: Container(color: Colors.grey.shade700, child: Text("Lobby Placeholder"))
-          // ),
-
-          // Button to join and leave the session
-          Expanded(
-            flex: 1,
+                    return ListView.builder(
+                      itemCount: memberNames.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            memberNames[index],
+                            style: const TextStyle(fontSize: 16.0),
+                          ),
+                        );
+                      },
+                    );
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                },
+              ),
+            ),
+            // Button to join and leave the session
+            Expanded(
+              flex: 1,
             child: joinLeaveButton() // Extracted UI to method to keep things simple
           )
-        ],
-      )
+          ],
+        ),
+      ),
     );
   }
 

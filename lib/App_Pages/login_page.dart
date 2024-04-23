@@ -36,9 +36,11 @@ class _LoginPageState extends State<LoginPage> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
 
       // Navigate to the session page after successful login
-      Navigator.pushReplacement( // <----- The next page shows a back button for some reason
-        context,
-        MaterialPageRoute(builder: (context) => SessionPage(userCredential.user)),
+      // Clear all routes and push SessionPage route
+      Navigator.pushNamedAndRemoveUntil(
+        context, '/session_page',
+        (_) => false, // This clears all routes in the stack
+        arguments: {'user': userCredential.user},
       );
 
       // pop loading circle
