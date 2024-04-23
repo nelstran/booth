@@ -177,10 +177,12 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
             child:Text(isInThisSession ? "Leave" : "Join"),
             onPressed: (){
               setState(() {
-                if (controller.student.ownedSessionKey != "")
-                {
-                  controller.removeSession(controller.student.ownedSessionKey);
-                }
+                // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
+                //  if (controller.student.ownedSessionKey != "")
+                // {
+                //   controller.removeSession(controller.student.ownedSessionKey);
+                // }
+                // -------------------------------------------------------
                 if (isInThisSession) {
                   controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
                 }
