@@ -13,6 +13,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/session_model.dart';
+import 'package:flutter_application_1/MVC/student_model.dart';
 
 class CreateSessionPage extends StatefulWidget {
   const CreateSessionPage({super.key});
@@ -160,6 +161,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                     BoothController controller = BoothController(
                       FirebaseDatabase.instance.ref()
                     );
+                    Student student = arguments['user'];
+                    if (student.session != "") {
+                      controller.removeUserFromSession(student.session, student.sessionKey);
+                    }
                     controller.addSession(boothSession, arguments['user']);
                     Navigator.pop(context);
                   }

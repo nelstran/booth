@@ -37,7 +37,7 @@ class SessionDatabase {
   }
 
   /// Add a session and include the user who made it into that session
-  void addSession(Map sessionValues, Map studentValues) async {
+  Future<Map<String, String?>> addSession(Map sessionValues, Map studentValues) async {
     // Adding the session given a map
     final newRef = ref.child('sessions').push();
     await newRef.set(sessionValues);
@@ -45,6 +45,8 @@ class SessionDatabase {
     // Adding the user to the session we just made
     final userRef = newRef.child("users").push();
     await userRef.set(studentValues);
+
+    return {"sessionKey": newRef.key, "userKey": userRef.key};
   }
 
   /// Change field values of existing session
