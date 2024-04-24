@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
         '/create_session': (context) => CreateSessionPage(),
       },
       // Change the theme of the app to light or dark mode depending on system settings
-      theme: lightMode,
-      darkTheme: darkMode,
+      theme: darkMode,
+      // darkTheme: darkMode,
     );
   }
 

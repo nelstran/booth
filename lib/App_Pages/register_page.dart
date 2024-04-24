@@ -66,12 +66,12 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         controller.addUser(newUser);
 
-        // Navigate to the session page after successful registration
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => SessionPage(userCredential.user)),
-        );
+        Navigator.pop(context);
+      Navigator.pushNamedAndRemoveUntil(
+        context, '/session_page',
+        (_) => false, // This clears all routes in the stack
+        arguments: {'user': userCredential.user},
+      );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);

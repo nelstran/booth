@@ -37,6 +37,8 @@ class _LoginPageState extends State<LoginPage> {
 
       // Navigate to the session page after successful login
       // Clear all routes and push SessionPage route
+      
+      Navigator.pop(context);
       Navigator.pushNamedAndRemoveUntil(
         context, '/session_page',
         (_) => false, // This clears all routes in the stack
