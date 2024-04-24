@@ -65,25 +65,28 @@ class _SessionPageState extends State<SessionPage> {
         itemBuilder: (BuildContext context, DataSnapshot snapshot,
             Animation<double> animation, int index) {
           // Convert the snapshot to a Map
-          Map<dynamic, dynamic> session =
+          Map<dynamic, dynamic> json =
               snapshot.value as Map<dynamic, dynamic>;
 
+          // Here to avoid exception while debugging
+          if(!json.containsKey("users")) return const SizedBox.shrink();
+
+          Session session = Session.fromJson(json);
+          
           List<String> memberNames = [];
           List<String> memberUIDs = [];
 
-          // Here to avoid exception while debugging
-          if(!session.containsKey("users")) return const SizedBox.shrink();
           Map<String, dynamic> usersInFS =
-              Map<String, dynamic>.from(session['users']);
+              Map<String, dynamic>.from(json['users']);
           usersInFS.forEach((key, value) {
             memberNames.add(value['name']);
             memberUIDs.add(value['uid']);
           });
           // Extract title and description from the session map
-          String title = session['title'] ?? '';
+          String title = json['title'] ?? '';
           // String description = session['description']?? '';
           String description =
-              session['description'] + '\n• ' + memberNames.join("\n• ");
+              json['description'] + '\n• ' + memberNames.join("\n• ");
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -96,6 +99,9 @@ class _SessionPageState extends State<SessionPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(description),
+                trailing: Text(
+                  "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                  textAlign: TextAlign.center,),
                 onTap: () => {
                   // Expand session
                   Navigator.of(context).push(

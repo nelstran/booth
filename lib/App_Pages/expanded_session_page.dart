@@ -180,7 +180,12 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
                 if (controller.student.ownedSessionKey != "")
                 {
+                  controller.removeUserFromSession(controller.student.session, controller.student.sessionKey);
                   controller.removeSession(controller.student.ownedSessionKey);
+
+                  if(controller.student.ownedSessionKey == widget.sessionKey){
+                    Navigator.pop(context);
+                  }
                 }
                 // -------------------------------------------------------
                 if (isInThisSession) {
