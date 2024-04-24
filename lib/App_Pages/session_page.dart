@@ -1,13 +1,11 @@
-import 'dart:math';
-
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/session_model.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
+
+import '../MVC/session_model.dart';
 
 // TODO:
 // Add a button that goes to the create a session page (can use Button from UI components or
@@ -67,12 +65,13 @@ class _SessionPageState extends State<SessionPage> {
           // Convert the snapshot to a Map
           Map<dynamic, dynamic> session =
               snapshot.value as Map<dynamic, dynamic>;
+          // Here to avoid exception while debugging
+          if(!session.containsKey("users")) return const SizedBox.shrink();
+          Session sesh = Session.fromJson(session);
 
           List<String> memberNames = [];
           List<String> memberUIDs = [];
 
-          // Here to avoid exception while debugging
-          if(!session.containsKey("users")) return const SizedBox.shrink();
           Map<String, dynamic> usersInFS =
               Map<String, dynamic>.from(session['users']);
           usersInFS.forEach((key, value) {
@@ -95,6 +94,9 @@ class _SessionPageState extends State<SessionPage> {
                   title,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
+                trailing: Text(
+                  "${sesh.dist}m \n[${sesh.seatsTaken}/${sesh.seatsAvailable}]",
+                  textAlign: TextAlign.center,),
                 subtitle: Text(description),
                 onTap: () => {
                   // Expand session

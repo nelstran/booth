@@ -83,7 +83,7 @@ class BoothController {
   /// Remove the logged in user (student) from the session
   void removeUserFromSession(String sessionKey, String userSessionKey) {
     db.removeStudentFromSession(sessionKey, userSessionKey);
-    db.updateUser(student.key, {"session": "", "sessionKey": ""});
+    db.updateUser(student.key, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
   }
 
   /// Add the session to the database, the user who made it
