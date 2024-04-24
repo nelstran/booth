@@ -75,7 +75,10 @@ class _LoginPageState extends State<LoginPage> {
               //   color: Theme.of(context).colorScheme.inversePrimary,
               // ),
 
-              Image.asset('assets/images/lamp_logo.png'),
+              Image.asset(
+                'assets/images/lamp_logo.png',
+                width: 100,
+                height: 100),
               // Creates a space between the logo and the app name
               const SizedBox(height: 15),
               

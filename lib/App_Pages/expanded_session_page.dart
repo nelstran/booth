@@ -87,7 +87,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                             const Icon(Icons.people, size: 18.0),
                             const SizedBox(width: 5.0),
                             Text(
-                              'Seats Available: ${session.seatsAvailable}',
+                              'Seats Available: ${session.seatsAvailable - session.seatsTaken}',
                               style: const TextStyle(fontSize: 16.0),
                             ),
                           ],
@@ -178,10 +178,10 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
             onPressed: (){
               setState(() {
                 // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
-                //  if (controller.student.ownedSessionKey != "")
-                // {
-                //   controller.removeSession(controller.student.ownedSessionKey);
-                // }
+                if (controller.student.ownedSessionKey != "")
+                {
+                  controller.removeSession(controller.student.ownedSessionKey);
+                }
                 // -------------------------------------------------------
                 if (isInThisSession) {
                   controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
