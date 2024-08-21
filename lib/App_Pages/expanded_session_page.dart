@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 
 import '../MVC/session_model.dart';
@@ -41,20 +42,27 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 4,
-              child: StreamBuilder(
-                stream: _ref.child("sessions/${widget.sessionKey}").onValue,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-                    Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-                    Session session = Session.fromJson(json);
+        child: StreamBuilder(
+          stream: _ref.child("sessions/${widget.sessionKey}").onValue,
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+              Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
 
-                    return Column(
+              // Here to avoid exception while debugging
+              if(!json.containsKey("users")) return const SizedBox.shrink();
+
+              Session session = Session.fromJson(json);
+              List<String> memberNames = json["users"].values.map<String>((value) => value['name'] as String).toList();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Details of session
+                  Expanded(
+                    flex:4,
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+
                       children: [
                         Text(
                           session.title,
@@ -103,103 +111,99 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20.0),
-                      ],
-                    );
-                  } else {
-                    return const CircularProgressIndicator();
-                  }
-                },
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            const Text(
-              'Students in Session:',
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10.0),
-            Expanded(
-              flex: 3,
-              child: StreamBuilder(
-                stream: _ref.child("sessions/${widget.sessionKey}/users").onValue,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-                    Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-                    List<String> memberNames = json.values.map((value) => value['name'] as String).toList();
-
-                    return ListView.builder(
-                      itemCount: memberNames.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Text(
-                            memberNames[index],
-                            style: const TextStyle(fontSize: 16.0),
+                      ]
+                    ),
+                  ),
+                  // List of students in the session
+                  Expanded(
+                    flex:3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Students in Session:',
+                          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10.0),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: memberNames.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Text(
+                                  memberNames[index],
+                                  style: const TextStyle(fontSize: 16.0),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    );
-                  } else {
-                    return const CircularProgressIndicator();
-                  }
-                },
-              ),
-            ),
-            // Button to join and leave the session
-            Expanded(
-              flex: 1,
-            child: joinLeaveButton() // Extracted UI to method to keep things simple
-          )
-          ],
+                        ),
+                      ]
+                    )
+                  ),
+                  // Button to join and leave the session
+                  Expanded(
+                    flex: 1,
+                    child: joinLeaveButton(snapshot.data!.snapshot.key!, session) // Extracted UI to method to keep things simple
+                  ),
+                ],
+              );
+            } else {
+              return const CircularProgressIndicator();
+            }
+          },
         ),
       ),
     );
   }
 
-  Padding joinLeaveButton() {
+  Padding joinLeaveButton(String key, Session session) {
+    int seatsLeft = session.seatsAvailable - session.seatsTaken;
+    String buttonText = isInThisSession ? "Leave" : "Join";
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         decoration: BoxDecoration(
-          color: buttonColor,
+          color: seatsLeft == 0 && !isInThisSession ? Colors.grey[800] : buttonColor,
           borderRadius: const BorderRadius.all(Radius.circular(10))
         ),
         child: Center(
-          child: TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              minimumSize: const Size.fromWidth(double.infinity),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)
+          child: seatsLeft == 0 && !isInThisSession ? 
+            const Text("Full") 
+          : 
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromWidth(double.infinity),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)
+                ),
               ),
-            ),
-            child:Text(isInThisSession ? "Leave" : "Join"),
-            onPressed: (){
-              setState(() {
-                // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
-                if (controller.student.ownedSessionKey != "")
-                {
-                  controller.removeUserFromSession(controller.student.session, controller.student.sessionKey);
-                  controller.removeSession(controller.student.ownedSessionKey);
-
-                  if(controller.student.ownedSessionKey == widget.sessionKey){
+              child:Text(key == controller.student.ownedSessionKey ? "Delete" : buttonText),
+              onPressed: (){
+                setState(() {
+                  // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
+                  if (controller.student.ownedSessionKey != "")
+                  {
+                    controller.removeUserFromSession(controller.student.session, controller.student.sessionKey);
+                    controller.removeSession(controller.student.ownedSessionKey);
                     Navigator.pop(context);
                   }
-                }
-                // -------------------------------------------------------
-                if (isInThisSession) {
-                  controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
-                }
-                else {
-                  controller.addUserToSession(widget.sessionKey, controller.student);
-                }
-                isInThisSession = !isInThisSession; // Janky way to update state UI
-                updateState();
-                // isInThisSession = controller.student.session == widget.sessionKey; // This does not work on first click
-              });
-            },
-          )
+                  // -------------------------------------------------------
+                  if (isInThisSession) {
+                    controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
+                  }
+                  else {
+                    controller.addUserToSession(widget.sessionKey, controller.student);
+                  }
+                  isInThisSession = !isInThisSession; // Janky way to update state UI
+                  updateState();
+                  // isInThisSession = controller.student.session == widget.sessionKey; // This does not work on first click
+                });
+              },
+            )
         )
       ),
     );

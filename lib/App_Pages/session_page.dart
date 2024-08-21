@@ -1,13 +1,11 @@
-import 'dart:math';
-
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/session_model.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
+
+import '../MVC/session_model.dart';
 
 // TODO:
 // Add a button that goes to the create a session page (can use Button from UI components or
@@ -124,6 +122,7 @@ class _SessionPageState extends State<SessionPage> {
         children: [
           //Test Button to delete the Profile.
           FloatingActionButton(
+            heroTag: "Delete",
             onPressed: () {
               showDialog(
                 context: context,
@@ -171,6 +170,7 @@ If you proceed, you will lose access to your account and all associated content.
             child: const Text(style: TextStyle(fontSize: 13), "Delete Account"),
           ),
           FloatingActionButton(
+            heroTag: "Create",
             onPressed: () {
               // Navigate to the create session page
               Navigator.pushNamed(context, '/create_session',

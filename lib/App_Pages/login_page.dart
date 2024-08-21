@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1/App_Pages/session_page.dart';
 import 'package:flutter_application_1/UI_components/button.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
 import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
