@@ -65,14 +65,13 @@ class _SessionPageState extends State<SessionPage> {
         itemBuilder: (BuildContext context, DataSnapshot snapshot,
             Animation<double> animation, int index) {
           // Convert the snapshot to a Map
-          Map<dynamic, dynamic> json =
-              snapshot.value as Map<dynamic, dynamic>;
+          Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
 
           // Here to avoid exception while debugging
-          if(!json.containsKey("users")) return const SizedBox.shrink();
+          if (!json.containsKey("users")) return const SizedBox.shrink();
 
           Session session = Session.fromJson(json);
-          
+
           List<String> memberNames = [];
           List<String> memberUIDs = [];
 
@@ -101,7 +100,8 @@ class _SessionPageState extends State<SessionPage> {
                 subtitle: Text(description),
                 trailing: Text(
                   "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
-                  textAlign: TextAlign.center,),
+                  textAlign: TextAlign.center,
+                ),
                 onTap: () => {
                   // Expand session
                   Navigator.of(context).push(
@@ -116,28 +116,98 @@ class _SessionPageState extends State<SessionPage> {
           );
         },
       ),
-      // Floating Action Button
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to the create session page
-          Navigator.pushNamed(context, '/create_session',
-              arguments: {'user': controller.student});
-        },
-        child: const Icon(Icons.add),
+/**
+ * CODE TO DELETE YOUR ACCOUNT - Will put somewhere else
+ */
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          //Test Button to delete the Profile.
+          FloatingActionButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Confirm Account Deletion"),
+                    content: const Text(
+                        '''Are you sure you want to delete your account? 
+
+This action is permanent and cannot be undone. All your data, settings, and history will be permanently deleted. 
+                        
+If you proceed, you will lose access to your account and all associated content.'''),
+                    actions: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black,
+                        ),
+                        child: const Text("Cancel"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // Deletes the account from FireBase
+                          // Also checks to see if it needs to get rid
+                          // of the dialog. (If needs fresh Cert, yes.)
+                          deleteUserAccountFB(context);
+                          Navigator.of(context).pop();
+                          // Deletes the user from Database - TODO
+                          deleteUserAccountDB();
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                        child: const Text(
+                          "Delete My Account",
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Text(style: TextStyle(fontSize: 13), "Delete Account"),
+          ),
+          FloatingActionButton(
+            onPressed: () {
+              // Navigate to the create session page
+              Navigator.pushNamed(context, '/create_session',
+                  arguments: {'user': controller.student});
+            },
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
-      
+
+      // PUT BACK ONCE PROFILE PAGE IS SET UP - bfn
+      // Floating Action Button
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     // Navigate to the create session page
+      //     Navigator.pushNamed(context, '/create_session',
+      //         arguments: {'user': controller.student});
+      //   },
+      //   child: const Icon(Icons.add),
+      // ),
+
       // Navigation bar placeholder
       bottomNavigationBar: BottomNavigationBar(
-        onTap: (int i){
+        onTap: (int i) {
           setState(() {
             currPageIndex = i;
           });
         },
         currentIndex: currPageIndex,
-        type: BottomNavigationBarType.fixed, // Need this to change background color
-        selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
-        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-        unselectedIconTheme: Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
+        type: BottomNavigationBarType
+            .fixed, // Need this to change background color
+        selectedItemColor:
+            Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        backgroundColor:
+            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        unselectedIconTheme:
+            Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
