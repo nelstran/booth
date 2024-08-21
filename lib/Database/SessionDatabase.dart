@@ -30,6 +30,13 @@ class SessionDatabase {
     await newRef.update(values);
   }
 
+  /// Change field values of User's profile
+  void updateProfile(String key, Map<String, Object?> values) async {
+    if (key == "") return;
+    final newRef = ref.child("users/$key/profile");
+    await newRef.update(values);
+  }
+
   /// Remove user by its key
   void removeUser(String key) {
     if (key == "") return; //Prevent removing all students

@@ -61,6 +61,9 @@ class BoothController {
     db.removeUser(key);
   }
 
+  void updateUserProfile(String key, Map<String, Object?> value) {
+    db.updateProfile(key, value);
+  }
   String? previousKey = "";
 
   /// Add the logged in user (student) to a session
