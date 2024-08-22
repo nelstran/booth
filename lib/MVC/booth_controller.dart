@@ -64,6 +64,7 @@ class BoothController {
   void updateUserProfile(String key, Map<String, Object?> value) {
     db.updateProfile(key, value);
   }
+
   String? previousKey = "";
 
   /// Add the logged in user (student) to a session
@@ -164,17 +165,18 @@ Future<void> deleteUserAccountFB(BuildContext context) async {
   // Logs Exceptions
   var logger = Logger();
   // Checks if context is mounted so no crash happens
-  if (!context.mounted) return;
+  //if (!context.mounted) return;
   try {
     // This Deletes the user from Firebase
     await FirebaseAuth.instance.currentUser!.delete();
+    Navigator.of(context).pop();
   } on FirebaseAuthException catch (e) {
     logger.e(e);
     // This means that Firebase wants them to re-authenticate before Axing the account
     if (e.code == "requires-recent-login") {
       print("Requires Recent login.");
 
-      reauthenticateThenDelete(context);
+      return reauthenticateThenDelete(context);
     } else {
       logger.e(e);
     }
@@ -189,7 +191,7 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
   // Used for Logging exceptions
   Logger logger = Logger();
   // Checks if context is mounted so no crash happens
-  if (!context.mounted) return;
+  //if (!context.mounted) return;
   try {
     String email = FirebaseAuth.instance.currentUser!.email!;
     // Runs helper function to get the password
@@ -201,6 +203,7 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
         .reauthenticateWithCredential(credential);
     // After fresh credential is gained, Firebase Deletes the account
     await FirebaseAuth.instance.currentUser!.delete();
+    Navigator.of(context).pop();
   } on FirebaseAuthException catch (e) {
     logger.e(e);
     // Handles Firebase exceptions during reauthentication

@@ -146,12 +146,12 @@ If you proceed, you will lose access to your account and all associated content.
                         },
                       ),
                       TextButton(
-                        onPressed: () async {
+                        onPressed: () {
                           // Deletes the account from FireBase
                           // Also checks to see if it needs to get rid
                           // of the dialog. (If needs fresh Cert, yes.)
                           deleteUserAccountFB(context);
-                          Navigator.of(context).pop();
+
                           // Deletes the user from Database - TODO
                           deleteUserAccountDB();
                         },
