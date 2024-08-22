@@ -147,13 +147,11 @@ If you proceed, you will lose access to your account and all associated content.
                       ),
                       TextButton(
                         onPressed: () {
-                          // Deletes the account from FireBase
-                          // Also checks to see if it needs to get rid
-                          // of the dialog. (If needs fresh Cert, yes.)
+                          // Deletes the account from FireBase (In Controller)
                           deleteUserAccountFB(context);
 
-                          // Deletes the user from Database - TODO
-                          deleteUserAccountDB();
+                          // Deletes the user from everywhere on our app
+                          deleteUserAccountEverywhere(controller);
                         },
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.red,
@@ -235,4 +233,26 @@ If you proceed, you will lose access to your account and all associated content.
 // This method logs the user out
 void logout() {
   FirebaseAuth.instance.signOut();
+}
+
+/// THIS SHOULD EVENTUALLY GO IN THE PROFILE PAGE
+/// Deletes the user everywhere in our app;
+/// - Any Sessions they are apart of
+/// - Any Sessions that they currently own
+/// - The list of users that are recorded in the DB
+void deleteUserAccountEverywhere(BoothController controller) {
+  // First Check to see if the user is apart of any study sessions
+  // If so, remove from study session
+  if (controller.student.session != "") {
+    controller.removeUserFromSession(
+        controller.student.session, controller.student.sessionKey);
+  }
+  // Check is their are any sessions that they OWN and remove the session
+  if (controller.student.ownedSessionKey != "") {
+    controller.removeUserFromSession(
+        controller.student.session, controller.student.sessionKey);
+    controller.removeSession(controller.student.ownedSessionKey);
+  }
+  // Then, remove from the "users" list in the Database
+  controller.removeUser(controller.student.key);
 }

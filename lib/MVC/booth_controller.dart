@@ -150,16 +150,6 @@ class BoothController {
   }
 }
 
-/// Deletes the User account from Booth Sessions and
-/// then removes completly from the Database all together.
-Future<void> deleteUserAccountDB() async {
-  // First Check to see if the user is apart of any study sessions
-
-  // If so, remove from study session
-
-  // Then, remove from the "users" list in the Database
-}
-
 ///  Deletes the User account in FireBase
 Future<void> deleteUserAccountFB(BuildContext context) async {
   // Logs Exceptions
