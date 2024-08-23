@@ -1,3 +1,4 @@
+import 'package:amplitude_flutter/amplitude.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,9 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     super.initState();
     isInThisSession = controller.student.session == widget.sessionKey;
     updateState();
+    // Log an event when the widget is initialized
+    Amplitude.getInstance().logEvent("Session Page Reached");
+
   }
 
   updateState(){
