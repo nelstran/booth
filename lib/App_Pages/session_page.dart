@@ -148,9 +148,11 @@ If you proceed, you will lose access to your account and all associated content.
                         },
                       ),
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           // Deletes the account from FireBase (In Controller)
-                          deleteUserAccountFB(context);
+                          // Await is used so that the user is deleted on FB Auth before the app
+                          // tries to delete the user from our realtime database
+                          await deleteUserAccountFB(context);
 
                           // Deletes the user from everywhere on our app
                           deleteUserAccountEverywhere(controller);

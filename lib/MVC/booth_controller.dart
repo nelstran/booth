@@ -158,8 +158,9 @@ Future<void> deleteUserAccountFB(BuildContext context) async {
   //if (!context.mounted) return;
   try {
     // This Deletes the user from Firebase
-    await FirebaseAuth.instance.currentUser!.delete();
-    Navigator.of(context).pop();
+    return reauthenticateThenDelete(context);
+    //await FirebaseAuth.instance.currentUser!.delete();
+    //Navigator.of(context).pop();
   } on FirebaseAuthException catch (e) {
     logger.e(e);
     // This means that Firebase wants them to re-authenticate before Axing the account
