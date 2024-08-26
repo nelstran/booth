@@ -168,10 +168,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
               const SizedBox(height: 25),
 
-              // Register button
-              Button(
-                text: "Register",
-                onTap: registerUser,
+              // // Register button
+              // Button(
+              //   text: "Register",
+              //   onTap: registerUser,
+              // ),
+              FloatingActionButton(
+                heroTag: "Register",
+                onPressed: () {
+                  // Navigate to the create profile page
+                  registerUser;
+                  Navigator.pushNamed(context, '/create_profile');
+                },
+                child: Text("Register"),
               ),
 
               const SizedBox(height: 25),
