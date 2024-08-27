@@ -61,8 +61,9 @@ class BoothController {
     db.removeUser(key);
   }
 
-  void updateUserProfile(String key, Map<String, Object?> value) {
-    db.updateProfile(key, value);
+  /// Update the current user's profile
+  void updateUserProfile(Map<String, Object?> value) {
+    db.updateProfile(student.key, value);
   }
 
   String? previousKey = "";

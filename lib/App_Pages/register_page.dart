@@ -60,17 +60,20 @@ class _RegisterPageState extends State<RegisterPage> {
           uid: userCredential.user!.uid,
           firstName: firstNameController.text,
           lastName: lastNameController.text,
-          // firstName: "Booth",
-          // lastName: "Test",
         );
         controller.addUser(newUser);
 
         Navigator.pop(context);
-      Navigator.pushNamedAndRemoveUntil(
-        context, '/session_page',
-        (_) => false, // This clears all routes in the stack
-        arguments: {'user': userCredential.user},
-      );
+        Navigator.pushNamed(
+          context, '/create_profile',
+          arguments: {'user': userCredential.user}
+        );
+
+      // Navigator.pushNamedAndRemoveUntil(
+      //   context, '/session_page',
+      //   (_) => false, // This clears all routes in the stack
+      //   arguments: {'user': userCredential.user},
+      // );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);
@@ -176,9 +179,8 @@ class _RegisterPageState extends State<RegisterPage> {
               FloatingActionButton(
                 heroTag: "Register",
                 onPressed: () {
-                  // Navigate to the create profile page
-                  registerUser;
-                  Navigator.pushNamed(context, '/create_profile');
+                  // Register user and navigate to the create profile page
+                  registerUser();
                 },
                 child: Text("Register"),
               ),

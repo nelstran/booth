@@ -41,7 +41,6 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushNamedAndRemoveUntil(
         context, '/session_page',
         (_) => false, // This clears all routes in the stack
-        arguments: {'user': userCredential.user},
       );
 
       // pop loading circle
