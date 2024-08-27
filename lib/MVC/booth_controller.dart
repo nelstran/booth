@@ -33,6 +33,10 @@ class BoothController {
       value['key'] = snapshot.key;
       // Modify student on change
       studentRef.onValue.listen((event) {
+        // In an event the user deletes their account
+        if (!event.snapshot.exists){
+          return;
+        }
         var value = event.snapshot.value as Map;
         value['key'] = event.snapshot.key;
 

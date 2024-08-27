@@ -43,7 +43,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
         if (snapshot.hasData){
           return createUI();
         } else {
-          return const CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         }
       });
   }
@@ -60,6 +60,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            
             children: [
               const Text(
                 'Create Profile',
@@ -232,6 +233,17 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {return Colors.blue;}),
                 ),
                 child: const Text('Save'),
+              ),
+              const SizedBox(height: 16.0),
+              Center(
+                child: GestureDetector(
+                  onTap: (){
+                      Navigator.pop(context);
+                    },
+                  child: const Text(
+                    "Skip for now", 
+                  ),
+                ),
               ),
             ],
           ),
