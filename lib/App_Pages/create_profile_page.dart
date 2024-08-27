@@ -24,7 +24,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
   // TESTING
   List<String?> _courses = <String>[];
-  List<Object?> listOfCourses = <Object?>[null, "CS 2420", "CS 3500", "CS 3550"];
+  List<Object?> listOfCourses = <Object?>[null, "CS 2420", "CS 3500", "CS 3550", "CS 1410", "MATH 1000", "ENG 1010"];
 
   // Study Preferences
   String? _study_pref;
@@ -155,8 +155,10 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
               // FOR TESTING
               DropdownButtonFormField(
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Courses'),
                 value: listOfCourses[0],
+                menuMaxHeight: 250,
                 
                 icon: const Icon(Icons.add),
                 validator: (value) {
@@ -170,18 +172,19 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 .map((String value){
                   if (listOfCourses.indexOf(value) == 0){
                     return DropdownMenuItem<String>(
+                      
+                      enabled: false,
                       value: value,
-                      child: Text(
-                        value,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold)
-                      )
+                      child: Text(value)
                     );
                   }
                   else{
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value)
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.center,
+                        )
                     );
                   }
                 }).toList(),
