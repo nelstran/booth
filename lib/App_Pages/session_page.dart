@@ -39,12 +39,20 @@ class _SessionPageState extends State<SessionPage> {
           if (snapshot.hasData) {
             return createUI();
           } else {
-            return const CircularProgressIndicator(); // This isn't centered idk how to fix this
+            return const Center(
+              child: CircularProgressIndicator()
+            );
           }
         });
   }
 
   Scaffold createUI() {
+    List<Widget> destinations = [
+      SessionDestination(ref: _ref, controller: controller),
+      MapDestination(),
+      UsageDestination(),
+      ProfileDestination(),
+    ];
     return Scaffold(
       appBar: AppBar(
         title: Text("Booth | Welcome ${controller.student.fullname}!"),
@@ -58,64 +66,7 @@ class _SessionPageState extends State<SessionPage> {
         ],
       ),
       // Body
-      body: FirebaseAnimatedList(
-        query: _ref.child("sessions"),
-        // Build each item in the list view
-        itemBuilder: (BuildContext context, DataSnapshot snapshot,
-            Animation<double> animation, int index) {
-          // Convert the snapshot to a Map
-          Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
-
-          // Here to avoid exception while debugging
-          if (!json.containsKey("users")) return const SizedBox.shrink();
-
-          Session session = Session.fromJson(json);
-
-          List<String> memberNames = [];
-          List<String> memberUIDs = [];
-
-          Map<String, dynamic> usersInFS =
-              Map<String, dynamic>.from(json['users']);
-          usersInFS.forEach((key, value) {
-            memberNames.add(value['name']);
-            memberUIDs.add(value['uid']);
-          });
-          // Extract title and description from the session map
-          String title = json['title'] ?? '';
-          // String description = session['description']?? '';
-          String description =
-              json['description'] + '\n• ' + memberNames.join("\n• ");
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              elevation: 3,
-              child: ListTile(
-                // Display title and description
-                title: Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(description),
-                trailing: Text(
-                  "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
-                  textAlign: TextAlign.center,
-                ),
-                onTap: () {
-                  Amplitude.getInstance().logEvent("Session Clicked");
-                  // Expand session
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ExpandedSessionPage(snapshot.key!, controller),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-        },
-      ),
+      body: destinations[currPageIndex],
 /**
  * CODE TO DELETE YOUR ACCOUNT - Will put somewhere else
  */
@@ -195,44 +146,170 @@ If you proceed, you will lose access to your account and all associated content.
       // ),
 
       // Navigation bar placeholder
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (int i) {
+      // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int i) {
           setState(() {
             currPageIndex = i;
           });
         },
-        currentIndex: currPageIndex,
-        type: BottomNavigationBarType
-            .fixed, // Need this to change background color
-        selectedItemColor:
-            Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
-        backgroundColor:
-            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-        unselectedIconTheme:
-            Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+        selectedIndex: currPageIndex,
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.home),
             label: "Home",
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.map),
             label: "Map",
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.data_thresholding),
             label: "Usage",
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.person),
             label: "Profile",
           ),
         ],
-      ),
+        ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   onTap: (int i) {
+      //     setState(() {
+      //       currPageIndex = i;
+      //     });
+      //   },
+      //   currentIndex: currPageIndex,
+      //   type: BottomNavigationBarType
+      //       .fixed, // Need this to change background color
+      //   selectedItemColor:
+      //       Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+      //   backgroundColor:
+      //       Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+      //   unselectedIconTheme:
+      //       Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
+      //   items: const <BottomNavigationBarItem>[
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.home),
+      //       label: "Home",
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.map),
+      //       label: "Map",
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.data_thresholding),
+      //       label: "Usage",
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.person),
+      //       label: "Profile",
+      //     ),
+      //   ],
+      // ),
     );
   }
 }
 
+class SessionDestination extends StatelessWidget {
+  const SessionDestination({
+    super.key,
+    required DatabaseReference ref,
+    required this.controller,
+  }) : _ref = ref;
+
+  final DatabaseReference _ref;
+  final BoothController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return FirebaseAnimatedList(
+      query: _ref.child("sessions"),
+      // Build each item in the list view
+      itemBuilder: (BuildContext context, DataSnapshot snapshot,
+          Animation<double> animation, int index) {
+        // Convert the snapshot to a Map
+        Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
+    
+        // Here to avoid exception while debugging
+        if (!json.containsKey("users")) return const SizedBox.shrink();
+    
+        Session session = Session.fromJson(json);
+    
+        List<String> memberNames = [];
+        List<String> memberUIDs = [];
+    
+        Map<String, dynamic> usersInFS =
+            Map<String, dynamic>.from(json['users']);
+        usersInFS.forEach((key, value) {
+          memberNames.add(value['name']);
+          memberUIDs.add(value['uid']);
+        });
+        // Extract title and description from the session map
+        String title = json['title'] ?? '';
+        // String description = session['description']?? '';
+        String description =
+            json['description'] + '\n• ' + memberNames.join("\n• ");
+    
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+            elevation: 3,
+            child: ListTile(
+              // Display title and description
+              title: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(description),
+              trailing: Text(
+                "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                textAlign: TextAlign.center,
+              ),
+              onTap: () {
+                Amplitude.getInstance().logEvent("Session Clicked");
+                // Expand session
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ExpandedSessionPage(snapshot.key!, controller),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class MapDestination extends StatelessWidget{
+  const MapDestination({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text("Map Placeholder");
+  }
+}
+
+class UsageDestination extends StatelessWidget{
+  const UsageDestination({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text("Usage Placeholder");
+  }
+}
+
+class ProfileDestination extends StatelessWidget{
+  const ProfileDestination({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text("Profile Placeholder");
+  }
+}
 /// *********  HELPER METHODS  *****************
 // This method logs the user out
 void logout() {
