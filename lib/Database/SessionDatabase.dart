@@ -37,6 +37,17 @@ class SessionDatabase {
     await newRef.update(values);
   }
 
+  Future<Object?> getProfile(String key) async {
+    final newRef = ref.child("users/$key/profile");
+    final snapshot = await newRef.get();
+    if (snapshot.exists){
+      return snapshot.value;
+    }
+    else{
+      return null;
+    }
+  }
+
   /// Remove user by its key
   void removeUser(String key) {
     if (key == "") return; //Prevent removing all students

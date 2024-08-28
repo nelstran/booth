@@ -51,7 +51,7 @@ class _SessionPageState extends State<SessionPage> {
       SessionDestination(ref: _ref, controller: controller),
       MapDestination(),
       UsageDestination(),
-      ProfileDestination(),
+      ProfileDestination(controller: controller),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -303,11 +303,38 @@ class UsageDestination extends StatelessWidget{
 }
 
 class ProfileDestination extends StatelessWidget{
-  const ProfileDestination({super.key});
+  const ProfileDestination({
+    super.key,
+    required this.controller
+    });
 
+  final BoothController controller;
+  
   @override
   Widget build(BuildContext context) {
-    return const Text("Profile Placeholder");
+    // INSERT PROPER UI HERE, THIS IS FOR TESTING -- Nelson
+    return FutureBuilder(
+      future: controller.getUserProfile(), 
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        if(snapshot.connectionState == ConnectionState.waiting){
+          return const CircularProgressIndicator();
+        }
+        if (snapshot.hasData){
+          Map<dynamic, dynamic> json = snapshot.data;
+          var keys = json.keys.toList();
+          return Container(
+            child: ListView.builder(
+              itemCount: keys.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Text("${keys[index]}: ${json[keys[index]]}");
+                },
+              ),
+          );
+          }
+          return const Text("Profile Placeholder");
+        },  
+    );
+    // return const Text("Profile Placeholder");
   }
 }
 /// *********  HELPER METHODS  *****************
