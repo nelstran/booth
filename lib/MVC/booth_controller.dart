@@ -70,7 +70,13 @@ class BoothController {
     db.updateProfile(student.key, value);
   }
 
-  String? previousKey = "";
+  Future<Map<dynamic, dynamic>> getUserProfile() async {
+    Object? json = await db.getProfile(student.key);
+    if (json == null){
+      return {};
+    }
+    return json as Map<dynamic, dynamic>; 
+  }
 
   /// Add the logged in user (student) to a session
   void addUserToSession(String sessionKey, Student user) async {
