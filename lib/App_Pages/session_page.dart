@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/student_model.dart';
 
 import '../MVC/session_model.dart';
 
@@ -48,100 +49,66 @@ class _SessionPageState extends State<SessionPage> {
   }
 
   Scaffold createUI() {
+    // SUPER INSECURE DELETE WHEN DONE
+    // TODO: (For testing) Delete
+    var adminMode = controller.student.uid == 'MkqlxL5l30WnuiTKM3O7bpmbxGx1';
+
     List<AppBar> appBars = [
       mainAppBar(), // Session
       mainAppBar(), // Map
       mainAppBar(), // Usage
       profileAppBar(), // Profile
     ];
-    var profile = ProfileDisplayPage(user: widget.user!, controller: controller);
-    List<Widget> destinations = [
-      SessionDestination(ref: _ref, controller: controller),
-      MapDestination(),
-      UsageDestination(),
-      profile,
+    var profilePage = ProfileDisplayPage(user: widget.user!, controller: controller);
+    var sessionPage = SessionDestination(ref: _ref, controller: controller);
+    List<Widget> pages = [
+      sessionPage,
+      const MapDestination(),
+      const UsageDestination(),
+      profilePage,
     ];
+    List<Widget> destinations = [
+          const NavigationDestination(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.map),
+            label: "Map",
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.data_thresholding),
+            label: "Usage",
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.person),
+            label: "Profile",
+          ),
+        ];
+
+    // TODO: (For testing) Delete
+    if (adminMode){
+      appBars.add(adminAppBar());
+      pages.add(const AdminDestination());
+      destinations.add(const NavigationDestination(
+            icon: Icon(Icons.settings),
+            label: "Admin",
+          ));
+    }
+
     return Scaffold(
       appBar: appBars[currPageIndex],
       // Body
-      body: destinations[currPageIndex],
-/**
- * CODE TO DELETE YOUR ACCOUNT - Will put somewhere else
- */
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          //Test Button to delete the Profile.
-          FloatingActionButton(
-            heroTag: "Delete",
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text("Confirm Account Deletion"),
-                    content: const Text(
-                        '''Are you sure you want to delete your account? 
-
-This action is permanent and cannot be undone. All your data, settings, and history will be permanently deleted. 
-                        
-If you proceed, you will lose access to your account and all associated content.'''),
-                    actions: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.black,
-                        ),
-                        child: const Text("Cancel"),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          // Deletes the account from FireBase (In Controller)
-                          // Await is used so that the user is deleted on FB Auth before the app
-                          // tries to delete the user from our realtime database
-                          await deleteUserAccountFB(context);
-
-                          // Deletes the user from everywhere on our app
-                          deleteUserAccountEverywhere(controller);
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                        ),
-                        child: const Text(
-                          "Delete My Account",
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text(style: TextStyle(fontSize: 13), "Delete Account"),
-          ),
-          FloatingActionButton(
-            heroTag: "Create",
-            onPressed: () {
-              // Navigate to the create session page
-              Navigator.pushNamed(context, '/create_session',
-                  arguments: {'user': controller.student});
-            },
-            child: const Icon(Icons.add),
-          ),
-        ],
-      ),
-
-      // PUT BACK ONCE PROFILE PAGE IS SET UP - bfn
+      body: pages[currPageIndex],
       // Floating Action Button
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     // Navigate to the create session page
-      //     Navigator.pushNamed(context, '/create_session',
-      //         arguments: {'user': controller.student});
-      //   },
-      //   child: const Icon(Icons.add),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigate to the create session page
+          Navigator.pushNamed(context, '/create_session',
+              arguments: {'user': controller.student});
+        },
+        child: const Icon(Icons.add),
+      ),
 
       // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(
@@ -151,60 +118,8 @@ If you proceed, you will lose access to your account and all associated content.
           });
         },
         selectedIndex: currPageIndex,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map),
-            label: "Map",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.data_thresholding),
-            label: "Usage",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person),
-            label: "Profile",
-          ),
-        ],
-        
+        destinations: destinations,
         ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   onTap: (int i) {
-      //     setState(() {
-      //       currPageIndex = i;
-      //     });
-      //   },
-      //   currentIndex: currPageIndex,
-      //   type: BottomNavigationBarType
-      //       .fixed, // Need this to change background color
-      //   selectedItemColor:
-      //       Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
-      //   backgroundColor:
-      //       Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-      //   unselectedIconTheme:
-      //       Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
-      //   items: const <BottomNavigationBarItem>[
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: "Home",
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.map),
-      //       label: "Map",
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.data_thresholding),
-      //       label: "Usage",
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.person),
-      //       label: "Profile",
-      //     ),
-      //   ],
-      // ),
     );
   }
 
@@ -297,6 +212,20 @@ If you proceed, you will lose access to your account and all associated content.
       },
     );
   }
+
+  AppBar adminAppBar() {
+    return AppBar(
+      title: Text("Admin Page"),
+      backgroundColor: Colors.blue,
+      actions: const [
+        // This button is linked to the logout method
+        IconButton(
+          onPressed: logout,
+          icon: Icon(Icons.logout),
+        ),
+      ],
+    );
+  }
 }
 
 class SessionDestination extends StatelessWidget {
@@ -387,6 +316,15 @@ class UsageDestination extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return const Text("Usage Placeholder");
+  }
+}
+
+class AdminDestination extends StatelessWidget{
+  const AdminDestination({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Text("Place backend stuff here to test");
   }
 }
 
