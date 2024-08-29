@@ -4,6 +4,7 @@ import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
+import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 
 import '../MVC/session_model.dart';
@@ -47,24 +48,21 @@ class _SessionPageState extends State<SessionPage> {
   }
 
   Scaffold createUI() {
+    List<AppBar> appBars = [
+      mainAppBar(), // Session
+      mainAppBar(), // Map
+      mainAppBar(), // Usage
+      profileAppBar(), // Profile
+    ];
+    var profile = ProfileDisplayPage(controller: controller);
     List<Widget> destinations = [
       SessionDestination(ref: _ref, controller: controller),
       MapDestination(),
       UsageDestination(),
-      ProfileDestination(controller: controller),
+      profile,
     ];
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Booth | Welcome ${controller.student.fullname}!"),
-        backgroundColor: Colors.blue,
-        actions: const [
-          // This button is linked to the logout method
-          IconButton(
-            onPressed: logout,
-            icon: Icon(Icons.logout),
-          ),
-        ],
-      ),
+      appBar: appBars[currPageIndex],
       // Body
       body: destinations[currPageIndex],
 /**
@@ -172,6 +170,7 @@ If you proceed, you will lose access to your account and all associated content.
             label: "Profile",
           ),
         ],
+        
         ),
       // bottomNavigationBar: BottomNavigationBar(
       //   onTap: (int i) {
@@ -208,6 +207,47 @@ If you proceed, you will lose access to your account and all associated content.
       //   ],
       // ),
     );
+  }
+
+  AppBar mainAppBar() {
+    return AppBar(
+      title: Text("Booth | Welcome ${controller.student.fullname}!"),
+      backgroundColor: Colors.blue,
+      actions: const [
+        // This button is linked to the logout method
+        IconButton(
+          onPressed: logout,
+          icon: Icon(Icons.logout),
+        ),
+      ],
+    );
+  }
+
+  AppBar profileAppBar() {
+    return AppBar(
+          title: const Text('Profile'),
+          backgroundColor: Colors.blue,
+          actions: [
+            // Edit Button
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/create_profile',
+                  arguments: {"user" : widget.user},
+                );
+              },
+            ),
+            // Delete Button
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                // Implement delete profile here if desired
+              },
+            ),
+          ],
+        );
   }
 }
 
@@ -302,41 +342,6 @@ class UsageDestination extends StatelessWidget{
   }
 }
 
-class ProfileDestination extends StatelessWidget{
-  const ProfileDestination({
-    super.key,
-    required this.controller
-    });
-
-  final BoothController controller;
-  
-  @override
-  Widget build(BuildContext context) {
-    // INSERT PROPER UI HERE, THIS IS FOR TESTING -- Nelson
-    return FutureBuilder(
-      future: controller.getUserProfile(), 
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting){
-          return const CircularProgressIndicator();
-        }
-        if (snapshot.hasData){
-          Map<dynamic, dynamic> json = snapshot.data;
-          var keys = json.keys.toList();
-          return Container(
-            child: ListView.builder(
-              itemCount: keys.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Text("${keys[index]}: ${json[keys[index]]}");
-                },
-              ),
-          );
-          }
-          return const Text("Profile Placeholder");
-        },  
-    );
-    // return const Text("Profile Placeholder");
-  }
-}
 /// *********  HELPER METHODS  *****************
 // This method logs the user out
 void logout() {

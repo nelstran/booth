@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         '/session_page': (context) => AuthPage(),
         '/create_session': (context) => CreateSessionPage(),
         '/create_profile': (context) => CreateProfilePage(),
-        '/profile_display': (context) => ProfileDisplayPage(),
+        // '/profile_display': (context) => ProfileDisplayPage(),
       },
       // Change the theme of the app to light or dark mode depending on system settings
       theme: darkMode,
