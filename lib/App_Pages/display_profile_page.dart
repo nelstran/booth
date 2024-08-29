@@ -2,13 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/UI_components/button.dart';
 
 class ProfileDisplayPage extends StatelessWidget {
   const ProfileDisplayPage({
     super.key,
+    required this.user,
     required this.controller,
   });
   final BoothController controller;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -21,21 +24,40 @@ class ProfileDisplayPage extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Profile'),
-              backgroundColor: Colors.blue,
-            ),
-            body: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('User not found.', style: TextStyle(fontSize: 18)),
-                  SizedBox(height: 16.0),
-                 ],
-              ),
-            ),
-          );
+          return Center(
+              child: ElevatedButton(
+                onPressed: (){
+                  Navigator.pushNamed(
+                    context, '/create_profile',
+                    arguments: {'user': user}
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  
+                ),
+                child: const Text(
+                  "Create Profile",
+                  style: TextStyle(color: Colors.black),
+                  ),
+                )
+
+            );
+          // return Scaffold(
+          //   appBar: AppBar(
+          //     title: const Text('Profile'),
+          //     backgroundColor: Colors.blue,
+          //   ),
+          //   body: const Center(
+          //     child: Column(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: [
+          //         Text('User not found.', style: TextStyle(fontSize: 18)),
+          //         SizedBox(height: 16.0),
+          //        ],
+          //     ),
+          //   ),
+          // );
         }
 
         Map<dynamic, dynamic> data = snapshot.data;
@@ -113,17 +135,6 @@ class ProfileDisplayPage extends StatelessWidget {
         //   );
       },
     );
-  }
-
-  // Fetches the profile data from the firebase realtime database
-  Future<Map<String, dynamic>> fetchAdditionalProfileData(User user) async {
-    final snapshot = await FirebaseDatabase.instance.ref('users/${user.uid}/profile').get();
-    if (snapshot.exists) {
-      final data = Map<String, dynamic>.from(snapshot.value as Map);
-      return data;
-    } else {
-      return {};
-    }
   }
 }
 

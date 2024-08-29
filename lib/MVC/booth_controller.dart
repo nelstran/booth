@@ -70,8 +70,14 @@ class BoothController {
     db.updateProfile(student.key, value);
   }
 
-  Future<Map<dynamic, dynamic>> getUserProfile() async {
-    Object? json = await db.getProfile(student.key);
+  Future<Map<dynamic, dynamic>> getUserProfile([key]) async {
+    String studentKey;
+    if (key != null){
+      studentKey = key;
+    } else {
+      studentKey = student.key;
+    }
+    Object? json = await db.getProfile(studentKey);
     if (json == null){
       return {};
     }

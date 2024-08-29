@@ -31,24 +31,39 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   String? _availability;
 
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
-  late final BoothController controller = BoothController(_ref);
+  late BoothController controller = BoothController(_ref);
+  Map<dynamic, dynamic> profile = {};
 
   @override
   Widget build(BuildContext context) {
     // Fetch user profile to start updating it
     final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+    if (arguments.containsKey("controller")){
+      controller = arguments['controller'] as BoothController;
+    }
     return FutureBuilder(
-      future: controller.fetchAccountInfo(arguments["user"]), 
+      future: arguments.containsKey("controller")? 
+      controller.getUserProfile()
+       : controller.fetchAccountInfo(arguments["user"]),
       builder: (context, snapshot){
         if (snapshot.hasData){
-          return createUI();
+          if (snapshot.data is Map<dynamic, dynamic>){
+            return createUI(snapshot.data);
+          } else {
+            return createUI();
+          }
         } else {
           return const Center(child: CircularProgressIndicator());
         }
       });
   }
 
-  Scaffold createUI() {
+  Scaffold createUI([profile]) {
+    var edit = profile != null; // Page will change depending on if its a new profile or existing
+    if (edit){
+      edit = (profile as Map).isNotEmpty;
+    }
+    listOfCourses[0] = '${_courses.join(", ")} '; 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -62,12 +77,13 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             
             children: [
-              const Text(
-                'Create Profile',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                edit ? 'Edit Profile' : 'Create Profile',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
+                initialValue: edit ? profile['name'] : '',
                 decoration: const InputDecoration(labelText: 'Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -91,6 +107,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
               // FOR TESTING
               DropdownButtonFormField(
+                value: edit ? profile['institution'] as String : null,
                 decoration: const InputDecoration(labelText: 'Institution'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -104,11 +121,13 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                     child: Text(value)
                     );
                 }).toList(),
+                onSaved: (value) => _institution = value,
                 onChanged: (value) => _institution = value,
               ),
 
               const SizedBox(height: 8.0),
               TextFormField(
+                initialValue: edit ? profile['major'] : '',
                 decoration: const InputDecoration(labelText: 'Major'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -120,6 +139,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               ),
               const SizedBox(height: 8.0),
               DropdownButtonFormField(
+                value: edit ? profile['year'] as String : null,
                 decoration: const InputDecoration(labelText: 'Year'),
                 items:const [
                   DropdownMenuItem(
@@ -146,6 +166,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   return null;
                 },
                 onChanged: (value) => _year = value,
+                onSaved: (value) => _year = value,
               ),
               const SizedBox(height: 8.0),
               // TextFormField(
@@ -181,10 +202,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   else{
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(
-                        value,
-                        textAlign: TextAlign.center,
-                        )
+                      child: Text(value)
                     );
                   }
                 }).toList(),
@@ -206,10 +224,12 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
               const SizedBox(height: 8.0),
               TextFormField(
+                initialValue: edit ? profile['studyPref'] : '',
                 decoration: const InputDecoration(labelText: 'Study Preferences'),
                 onSaved: (value) => _study_pref = value,
               ),
               TextFormField(
+                initialValue: edit ? profile['availability'] : '',
                 decoration: const InputDecoration(labelText: 'Availability'),
                 onSaved: (value) => _availability = value,
               ),
@@ -238,7 +258,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 child: const Text('Save'),
               ),
               const SizedBox(height: 16.0),
-              Center(
+              edit ? const SizedBox.shrink() : Center(
                 child: GestureDetector(
                   onTap: (){
                       Navigator.pop(context);

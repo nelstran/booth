@@ -54,7 +54,7 @@ class _SessionPageState extends State<SessionPage> {
       mainAppBar(), // Usage
       profileAppBar(), // Profile
     ];
-    var profile = ProfileDisplayPage(controller: controller);
+    var profile = ProfileDisplayPage(user: widget.user!, controller: controller);
     List<Widget> destinations = [
       SessionDestination(ref: _ref, controller: controller),
       MapDestination(),
@@ -143,7 +143,6 @@ If you proceed, you will lose access to your account and all associated content.
       //   child: const Icon(Icons.add),
       // ),
 
-      // Navigation bar placeholder
       // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int i) {
@@ -231,23 +230,72 @@ If you proceed, you will lose access to your account and all associated content.
             // Edit Button
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                Navigator.pushNamed(
+              onPressed: () async {
+                final value = await Navigator.pushNamed(
                   context,
                   '/create_profile',
-                  arguments: {"user" : widget.user},
+                  arguments: {"user" : widget.user, "controller": controller},
                 );
+                // Causes the page to update when user is done
+                setState(() {
+                  currPageIndex = currPageIndex;
+                });
               },
             ),
             // Delete Button
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
-                // Implement delete profile here if desired
+                deletionDialog();
               },
             ),
           ],
         );
+  }
+
+  Future<dynamic> deletionDialog() {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm Account Deletion"),
+          content: const Text(
+              '''Are you sure you want to delete your account? 
+
+This action is permanent and cannot be undone. All your data, settings, and history will be permanently deleted. 
+              
+If you proceed, you will lose access to your account and all associated content.'''),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              onPressed: () async {
+                // Deletes the account from FireBase (In Controller)
+                // Await is used so that the user is deleted on FB Auth before the app
+                // tries to delete the user from our realtime database
+                await deleteUserAccountFB(context);
+
+                // Deletes the user from everywhere on our app
+                deleteUserAccountEverywhere(controller);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text(
+                "Delete My Account",
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
