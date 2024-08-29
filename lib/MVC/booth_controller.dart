@@ -211,6 +211,8 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
         .reauthenticateWithCredential(credential);
     // After fresh credential is gained, Firebase Deletes the account
     await FirebaseAuth.instance.currentUser!.delete();
+
+    if(!context.mounted) return;
     Navigator.of(context).pop();
   } on FirebaseAuthException catch (e) {
     logger.e(e);

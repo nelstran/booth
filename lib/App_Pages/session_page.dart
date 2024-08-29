@@ -101,14 +101,14 @@ class _SessionPageState extends State<SessionPage> {
       // Body
       body: pages[currPageIndex],
       // Floating Action Button
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: currPageIndex == 0 ? FloatingActionButton(
         onPressed: () {
           // Navigate to the create session page
           Navigator.pushNamed(context, '/create_session',
               arguments: {'user': controller.student});
         },
         child: const Icon(Icons.add),
-      ),
+      ) : const SizedBox.shrink(),
 
       // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(

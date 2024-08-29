@@ -63,7 +63,8 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         controller.addUser(newUser);
 
-        if (context.mounted) Navigator.pop(context);
+        if (!mounted) return;
+        Navigator.of(context).pop();
         Navigator.pushNamed(
           context, '/create_profile',
           arguments: {'user': userCredential.user}
