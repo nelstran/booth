@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/UI_components/button.dart';
 
 class ProfileDisplayPage extends StatelessWidget {
   const ProfileDisplayPage({
@@ -34,7 +32,6 @@ class ProfileDisplayPage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  
                 ),
                 child: const Text(
                   "Create Profile",
@@ -43,96 +40,10 @@ class ProfileDisplayPage extends StatelessWidget {
                 )
 
             );
-          // return Scaffold(
-          //   appBar: AppBar(
-          //     title: const Text('Profile'),
-          //     backgroundColor: Colors.blue,
-          //   ),
-          //   body: const Center(
-          //     child: Column(
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       children: [
-          //         Text('User not found.', style: TextStyle(fontSize: 18)),
-          //         SizedBox(height: 16.0),
-          //        ],
-          //     ),
-          //   ),
-          // );
         }
 
         Map<dynamic, dynamic> data = snapshot.data;
         return ProfilePage(data: data);
-        // final fullName = snapshot.data!;
-        // Fetch additional profile data if profile exists
-        //   return Scaffold(
-        //     appBar: AppBar(
-        //       title: const Text('Profile'),
-        //       backgroundColor: Colors.blue,
-        //       actions: [
-        //         // Edit Button
-        //         IconButton(
-        //           icon: const Icon(Icons.edit),
-        //           onPressed: () {
-        //             Navigator.pushNamed(
-        //               context,
-        //               '/create_profile',
-        //               arguments: {"user" :user},
-        //             );
-        //           },
-        //         ),
-        //         // Delete Button
-        //         IconButton(
-        //           icon: const Icon(Icons.delete),
-        //           onPressed: () {
-        //             // Implement delete profile here if desired
-        //           },
-        //         ),
-        //       ],
-        //     ),
-        //     body: ProfilePage(data: data),
-        //     // Navigation logic (modify as needed)
-        //     bottomNavigationBar: BottomNavigationBar(
-        //       onTap: (int index) {
-        //         switch (index) {
-        //           case 0:
-        //             Navigator.pushNamed(context, '/');
-        //             break;
-        //           case 1:
-        //             Navigator.pushNamed(context, '/map');
-        //             break;
-        //           case 2:
-        //             Navigator.pushNamed(context, '/usage');
-        //             break;
-        //           case 3:
-        //             // Do nothing as we're already on the Profile page
-        //             break;
-        //         }
-        //       },
-        //       currentIndex: 3, // Highlight the Profile tab
-        //       type: BottomNavigationBarType.fixed,
-        //       selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
-        //       backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-        //       unselectedIconTheme: Theme.of(context).bottomNavigationBarTheme.unselectedIconTheme,
-        //       items: const <BottomNavigationBarItem>[
-        //         BottomNavigationBarItem(
-        //           icon: Icon(Icons.home),
-        //           label: "Home",
-        //         ),
-        //         BottomNavigationBarItem(
-        //           icon: Icon(Icons.map),
-        //           label: "Map",
-        //         ),
-        //         BottomNavigationBarItem(
-        //           icon: Icon(Icons.data_thresholding),
-        //           label: "Usage",
-        //         ),
-        //         BottomNavigationBarItem(
-        //           icon: Icon(Icons.person),
-        //           label: "Profile",
-        //         ),
-        //       ],
-        //     ),
-        //   );
       },
     );
   }
@@ -145,7 +56,6 @@ class ProfilePage extends StatelessWidget {
   });
 
   final Map data;
-
   @override
   Widget build(BuildContext context) {
     return Padding(

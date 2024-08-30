@@ -1,9 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-
-import '../MVC/student_model.dart';
 
 class CreateProfilePage extends StatefulWidget {
   const CreateProfilePage({super.key});
@@ -258,7 +255,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 child: const Text('Save'),
               ),
               const SizedBox(height: 16.0),
-              edit ? const SizedBox.shrink() : Center(
+              if (!edit) Center(
                 child: GestureDetector(
                   onTap: (){
                       Navigator.pop(context);

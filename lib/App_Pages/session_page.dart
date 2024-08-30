@@ -6,15 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
-
 import '../MVC/session_model.dart';
 
-// TODO:
-// Add a button that goes to the create a session page (can use Button from UI components or
-// flutter's IconButton with plus symbol)
-// Design the list view of sessions once a session has been created
-// Get the data of a booth session and display it in each tile - done
 
 /// This is the home page - where Booth Sessions appear in list view
 class SessionPage extends StatefulWidget {
@@ -268,36 +261,84 @@ class SessionDestination extends StatelessWidget {
         String description =
             json['description'] + '\n• ' + memberNames.join("\n• ");
     
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Card(
-            elevation: 3,
-            child: ListTile(
-              // Display title and description
-              title: Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(description),
-              trailing: Text(
-                "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
-                textAlign: TextAlign.center,
-              ),
-              onTap: () {
-                Amplitude.getInstance().logEvent("Session Clicked");
-                // Expand session
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ExpandedSessionPage(snapshot.key!, controller),
+        return Column(
+          children: [
+            if (index == 0) const BoothSearchBar(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Card(
+                elevation: 3,
+                child: ListTile(
+                  // Display title and description
+                  title: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                );
-              },
+                  subtitle: Text(description),
+                  trailing: Text(
+                    "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                    textAlign: TextAlign.center,
+                  ),
+                  onTap: () {
+                    Amplitude.getInstance().logEvent("Session Clicked");
+                    // Expand session
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ExpandedSessionPage(snapshot.key!, controller),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
+          ],
         );
       },
     );
+  }
+}
+
+class BoothSearchBar extends StatelessWidget {
+  const BoothSearchBar({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SearchBar(
+        leading: const IntrinsicHeight(
+          child: Row(
+            children: [
+              Icon(Icons.search),
+              VerticalDivider(color: Colors.black,)
+            ],
+          ),
+        ),
+        trailing: [
+          ElevatedButton(
+            onPressed: (){},
+            style: ButtonStyle(
+              backgroundColor: WidgetStateColor.transparent
+            ),
+            child: const Icon(
+              Icons.filter_list_rounded,
+              color: Colors.white
+            ),
+          )
+        ],
+        shadowColor: const WidgetStatePropertyAll(
+          Colors.transparent
+        ),
+        backgroundColor: const WidgetStatePropertyAll(
+          Color.fromARGB(106, 78, 78, 78),
+        ),
+        shape: const WidgetStatePropertyAll(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.zero)
+          )
+        )
+      );
   }
 }
 

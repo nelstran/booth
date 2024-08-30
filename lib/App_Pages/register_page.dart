@@ -3,7 +3,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
-import 'package:flutter_application_1/UI_components/button.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
 import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
 
@@ -155,23 +154,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
                 controller: confirmPwController,
               ),
-
-              const SizedBox(height: 10),
-
-              // Forgot password
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 25),
-
               // // Register button
               // Button(
               //   text: "Register",
