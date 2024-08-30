@@ -111,4 +111,25 @@ class SessionDatabase {
   }
 
   isUserInSession(String uid) {}
+
+  //----- FRIEND SYSTEM ---- //
+  void addFriend(){
+    
+  }
+
+  void removeFriend(){
+
+  }
+
+  void sendFriendRequest(){
+
+  }
+
+  void declineFriendRequest(){
+
+  }
+
+  void acceptFriendRequest(){
+
+  }
 }

@@ -82,7 +82,7 @@ class _SessionPageState extends State<SessionPage> {
     // TODO: (For testing) Delete
     if (adminMode){
       appBars.add(adminAppBar());
-      pages.add(const AdminDestination());
+      pages.add(AdminDestination(ref: _ref, controller: controller));
       destinations.add(const NavigationDestination(
             icon: Icon(Icons.settings),
             label: "Admin",
@@ -263,7 +263,7 @@ class SessionDestination extends StatelessWidget {
     
         return Column(
           children: [
-            if (index == 0) const BoothSearchBar(),
+            if (index == 0) boothSearchBar(),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Card(
@@ -297,48 +297,44 @@ class SessionDestination extends StatelessWidget {
       },
     );
   }
-}
 
-class BoothSearchBar extends StatelessWidget {
-  const BoothSearchBar({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  SearchBar boothSearchBar(){
     return SearchBar(
-        leading: const IntrinsicHeight(
-          child: Row(
-            children: [
-              Icon(Icons.search),
-              VerticalDivider(color: Colors.black,)
-            ],
+      onSubmitted: (value) {
+        // Do search things
+      },
+      leading: const IntrinsicHeight(
+        child: Row(
+          children: [
+            Icon(Icons.search),
+            VerticalDivider(color: Colors.black,)
+          ],
+        ),
+      ),
+      trailing: [
+        ElevatedButton(
+          onPressed: (){},
+          style: const ButtonStyle(
+            backgroundColor: WidgetStateColor.transparent
           ),
-        ),
-        trailing: [
-          ElevatedButton(
-            onPressed: (){},
-            style: ButtonStyle(
-              backgroundColor: WidgetStateColor.transparent
-            ),
-            child: const Icon(
-              Icons.filter_list_rounded,
-              color: Colors.white
-            ),
-          )
-        ],
-        shadowColor: const WidgetStatePropertyAll(
-          Colors.transparent
-        ),
-        backgroundColor: const WidgetStatePropertyAll(
-          Color.fromARGB(106, 78, 78, 78),
-        ),
-        shape: const WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.zero)
-          )
+          child: const Icon(
+            Icons.filter_list_rounded,
+            color: Colors.white
+          ),
         )
-      );
+      ],
+      shadowColor: const WidgetStatePropertyAll(
+        Colors.transparent
+      ),
+      backgroundColor: const WidgetStatePropertyAll(
+        Color.fromARGB(106, 78, 78, 78),
+      ),
+      shape: const WidgetStatePropertyAll(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.zero)
+        )
+      )
+    );
   }
 }
 
@@ -361,11 +357,65 @@ class UsageDestination extends StatelessWidget{
 }
 
 class AdminDestination extends StatelessWidget{
-  const AdminDestination({super.key});
+  const AdminDestination({
+    super.key,
+    required DatabaseReference ref,
+    required this.controller,
+  }): _ref = ref;
 
+  final DatabaseReference _ref;
+  final BoothController controller;
   @override
   Widget build(BuildContext context) {
-    return const Text("Place backend stuff here to test");
+    List<String> myFriends = controller.getFriends();
+    List<String> myRequests = controller.getRequests();
+    return Column(
+      children: [
+        const Expanded(
+          child: Text("Place backend stuff here to test")
+        ),
+        // Testing friend system
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text("Friends"),
+                    const Divider(),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: myFriends.length,
+                        itemBuilder: (context, index){
+                          return Text(myFriends[index]);
+                        }
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              VerticalDivider(),
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text("Requests"),
+                    const Divider(),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: myRequests.length,
+                        itemBuilder: (context, index){
+                          return null;
+                        }
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
   }
 }
 

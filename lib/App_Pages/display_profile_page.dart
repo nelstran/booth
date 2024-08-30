@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 
@@ -23,25 +24,23 @@ class ProfileDisplayPage extends StatelessWidget {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
-              child: ElevatedButton(
-                onPressed: (){
-                  Navigator.pushNamed(
-                    context, '/create_profile',
-                    arguments: {'user': user}
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
-                child: const Text(
-                  "Create Profile",
-                  style: TextStyle(color: Colors.black),
-                  ),
-                )
-
-            );
+            child: ElevatedButton(
+              onPressed: (){
+                Navigator.pushNamed(
+                  context, '/create_profile',
+                  arguments: {'user': user}
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+              ),
+              child: const Text(
+                "Create Profile",
+                style: TextStyle(color: Colors.black),
+              ),
+            )
+          );
         }
-
         Map<dynamic, dynamic> data = snapshot.data;
         return ProfilePage(data: data);
       },

@@ -151,7 +151,7 @@ class BoothController {
   }
 
   Future<bool> isUserAlreadyInSession(String uid) async {
-// Query the sessions node to find if the user is a member of any session
+  // Query the sessions node to find if the user is a member of any session
 
     bool inSession = await db.isUserInSession(uid);
     // Check if the snapshot has any data
@@ -162,6 +162,34 @@ class BoothController {
       // User is not in any session
       return false;
     }
+  }
+
+  //----- FRIEND SYSTEM ---- //
+  List<String> getFriends(){
+    return [];
+  }
+
+  void addFriend(){
+
+  }
+
+  void removeFriend(){
+
+  }
+
+  List<String> getRequests(){
+    return [];
+  }
+  void sendFriendRequest(){
+
+  }
+
+  void declineFriendRequest(){
+
+  }
+
+  void acceptFriendRequest(){
+
   }
 }
 
