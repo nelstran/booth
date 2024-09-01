@@ -5,13 +5,14 @@ import 'package:flutter_application_1/App_Pages/friends_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 
 class ProfileDisplayPage extends StatelessWidget {
-  const ProfileDisplayPage({
-    super.key,
-    required this.user,
-    required this.controller,
-  });
+  
   final BoothController controller;
   final User user;
+  const ProfileDisplayPage(
+    this.user,
+    this.controller,
+    {super.key}
+  );
 
   @override
   Widget build(BuildContext context) {

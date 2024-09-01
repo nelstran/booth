@@ -45,7 +45,7 @@ class _SessionPageState extends State<SessionPage> {
   Scaffold createUI() {
     // SUPER INSECURE DELETE WHEN DONE
     // TODO: (For testing) Delete
-    var adminMode = controller.student.uid == 'MkqlxL5l30WnuiTKM3O7bpmbxGx1';
+    var adminMode = controller.student.uid == 'niiLt2Sf5OTakdnuAqpMVBgrmZV2';
 
     List<AppBar> appBars = [
       mainAppBar(), // Session
@@ -53,7 +53,7 @@ class _SessionPageState extends State<SessionPage> {
       mainAppBar(), // Usage
       profileAppBar(), // Profile
     ];
-    var profilePage = ProfileDisplayPage(user: widget.user!, controller: controller);
+    var profilePage = ProfileDisplayPage(widget.user!, controller);
     var sessionPage = SessionDestination(ref: _ref, controller: controller);
     List<Widget> pages = [
       sessionPage,
