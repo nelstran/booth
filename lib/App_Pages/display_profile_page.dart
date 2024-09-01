@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/friends_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 
 class ProfileDisplayPage extends StatelessWidget {
@@ -108,6 +109,17 @@ class ProfilePage extends StatelessWidget {
             'Availability: ${data['availability'] ?? 'N/A'}',
             style: const TextStyle(fontSize: 16),
           ),
+          ElevatedButton(
+            child: const Text("My Friends"),
+            onPressed: (){
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  // Thinking of either passing the controller or passing a list of friends to display
+                  builder: (context) => const FriendsPage(),
+                ),
+              );
+            }
+          )
         ],
       ),
     );

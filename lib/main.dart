@@ -6,7 +6,6 @@ import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:flutter_application_1/firebase_options.dart';
 import 'package:flutter_application_1/App_Theme/dark_mode.dart';
-
 /// The main page where the app initializes
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

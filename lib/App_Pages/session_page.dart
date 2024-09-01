@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
+import 'package:flutter_application_1/App_Pages/search_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import '../MVC/session_model.dart';
 
@@ -263,7 +264,7 @@ class SessionDestination extends StatelessWidget {
     
         return Column(
           children: [
-            if (index == 0) boothSearchBar(),
+            if (index == 0) boothSearchBar(context),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Card(
@@ -298,10 +299,14 @@ class SessionDestination extends StatelessWidget {
     );
   }
 
-  SearchBar boothSearchBar(){
+  SearchBar boothSearchBar(context){
     return SearchBar(
       onSubmitted: (value) {
-        // Do search things
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SearchPage(value),
+          ),
+        );
       },
       leading: const IntrinsicHeight(
         child: Row(
@@ -315,7 +320,9 @@ class SessionDestination extends StatelessWidget {
         ElevatedButton(
           onPressed: (){},
           style: const ButtonStyle(
-            backgroundColor: WidgetStateColor.transparent
+            backgroundColor: WidgetStatePropertyAll(
+              Colors.transparent
+            )
           ),
           child: const Icon(
             Icons.filter_list_rounded,
