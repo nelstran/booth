@@ -165,31 +165,40 @@ class BoothController {
   }
 
   //----- FRIEND SYSTEM ---- //
-  List<String> getFriends(){
-    return [];
-  }
-
-  void addFriend(){
-
+  Future<List<Object?>> getFriends() async {
+    Map<dynamic, dynamic> json = await db.getFriends(student.key) as Map<dynamic, dynamic>;
+    List<String> names = [];
+    for(var key in json.keys){
+      // Get names for now, maybe get the entire student model later
+      String value = await db.getNameByKey(key) as String;
+      names.add(value);
+    }
+    return names;
   }
 
   void removeFriend(){
 
   }
 
-  List<String> getRequests(){
-    return [];
-  }
-  void sendFriendRequest(){
-
-  }
-
-  void declineFriendRequest(){
-
+  Future<Map<dynamic, dynamic>> getRequests(bool isOutgoing) async {
+    Object? json = await db.getRequests(student.key);
+    if (json == null){
+      return {};
+    }
+    String outgoing = isOutgoing ? "outgoing" : "incoming";
+    return (json as Map<dynamic, dynamic>)[outgoing];
   }
 
-  void acceptFriendRequest(){
+  void sendFriendRequest(String key, String name){
+    db.sendFriendRequest(student.key, key);
+  }
 
+  void declineFriendRequest(String key){
+    db.declineFriendRequest(student.key, key);
+  }
+
+  void acceptFriendRequest(String key){
+    db.acceptFriendRequest(student.key, key);
   }
 }
 

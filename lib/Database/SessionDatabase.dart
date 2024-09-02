@@ -9,6 +9,7 @@
 */
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_application_1/MVC/student_model.dart';
 
 // Trying out map to pass values to database, thinking it will make it easier
 // to modify fields from each class
@@ -113,23 +114,65 @@ class SessionDatabase {
   isUserInSession(String uid) {}
 
   //----- FRIEND SYSTEM ---- //
-  void addFriend(){
-    
+  Future<Object?> getFriends(String key) async {
+    if (key == '') return null;
+    var snapshot = await ref.child('users/$key/friends').get();
+    if (snapshot.exists){
+      return snapshot.value;
+    }
+    else{
+      return null;
+    }
   }
-
   void removeFriend(){
 
   }
 
-  void sendFriendRequest(){
-
+  Future<Object?> getRequests(String key) async {
+    if (key == "") return null;
+    final newRef = ref.child("users/$key/friends/requests");
+    final snapshot = await newRef.get();
+    if (snapshot.exists){
+      return snapshot.value;
+    }
+    else{
+      return null;
+    }
+  }
+  void sendFriendRequest(String senderKey, String receiverKey) async {
+    if (senderKey == '' || receiverKey == '') return;
+    final senderRef = ref.child('users/$senderKey/friends/requests/outgoing');
+    final receiverRef = ref.child('users/$receiverKey/friends/requests/incoming');
+    await senderRef.update({receiverKey: ""});
+    await receiverRef.update({senderKey: ""});
   }
 
-  void declineFriendRequest(){
-
+  void declineFriendRequest(String studentKey, String strangerKey){
+    if (studentKey == '' || strangerKey == '') return;
+    ref.child('users/$studentKey/friends/requests/incoming/$strangerKey').remove();
+    ref.child('users/$strangerKey/friends/requests/outgoing/$studentKey').remove();
   }
 
-  void acceptFriendRequest(){
+  void acceptFriendRequest(String studentKey, String friendKey) async {
+    if (studentKey == '' || friendKey == '') return;
+    final studentRef = ref.child('users/$studentKey/friends/');
+    final friendRef = ref.child('users/$friendKey/friends/');
+    ref.child('users/$studentKey/friends/requests/incoming/$friendKey').remove();
+    ref.child('users/$friendKey/friends/requests/outgoing/$studentKey').remove();
 
+    await studentRef.update({friendKey: ""});
+    await friendRef.update({studentKey: ""});
+  }
+
+  Future<Object?> getNameByKey(String key) async {
+    if (key == "") return null;
+    final newRef = ref.child("users/$key/name");
+    final snapshot = await newRef.get();
+    if (snapshot.exists){
+      return snapshot.value;
+    }
+    else{
+      return null;
+    }
   }
 }
