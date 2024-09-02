@@ -434,11 +434,22 @@ class AdminDestination extends StatelessWidget{
                         future: controller.getFriends(),
                         builder: (context, snapshot){
                           if (!snapshot.hasData) return const SizedBox.shrink();
-                          List<String> names = snapshot.data as List<String>; 
+                          if (snapshot.data!.isEmpty) return const SizedBox.shrink();
+                          Map<dynamic, dynamic> friends = snapshot.data as Map<dynamic, dynamic>; 
+                          List<dynamic> friendKeys = friends.keys.toList();
                           return ListView.builder(
-                            itemCount: names.length,
+                            itemCount: friends.length,
                             itemBuilder: (context, index){
-                              return Text(names[index]);
+                              return ListTile(
+                                title: Text(friends[friendKeys[index]]),
+                                contentPadding: const EdgeInsets.all(0),
+                                trailing: ElevatedButton(
+                                  child: const Icon(Icons.remove),
+                                  onPressed: (){
+                                    controller.removeFriend(friendKeys[index]);
+                                  },
+                                ),
+                              );
                             }
                           );
                         },

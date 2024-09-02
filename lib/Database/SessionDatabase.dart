@@ -124,8 +124,10 @@ class SessionDatabase {
       return null;
     }
   }
-  void removeFriend(){
-
+  void removeFriend(String studentKey, String friendKey){
+    if (studentKey == '' || friendKey == '') return;
+    ref.child('users/$studentKey/friends/$friendKey').remove();
+    ref.child('users/$friendKey/friends/$studentKey').remove();
   }
 
   Future<Object?> getRequests(String key) async {
@@ -157,8 +159,8 @@ class SessionDatabase {
     if (studentKey == '' || friendKey == '') return;
     final studentRef = ref.child('users/$studentKey/friends/');
     final friendRef = ref.child('users/$friendKey/friends/');
-    ref.child('users/$studentKey/friends/requests/incoming/$friendKey').remove();
-    ref.child('users/$friendKey/friends/requests/outgoing/$studentKey').remove();
+    studentRef.child('requests/incoming/$friendKey').remove();
+    friendRef.child('requests/outgoing/$studentKey').remove();
 
     await studentRef.update({friendKey: ""});
     await friendRef.update({studentKey: ""});

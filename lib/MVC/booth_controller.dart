@@ -165,19 +165,22 @@ class BoothController {
   }
 
   //----- FRIEND SYSTEM ---- //
-  Future<List<Object?>> getFriends() async {
-    Map<dynamic, dynamic> json = await db.getFriends(student.key) as Map<dynamic, dynamic>;
-    List<String> names = [];
-    for(var key in json.keys){
+  Future<Map<dynamic, dynamic>> getFriends() async {
+    Object? json = await db.getFriends(student.key);
+    if (json == null){
+      return {};
+    }
+    Map<dynamic, dynamic> friends = json as Map<dynamic, dynamic>;
+    for(var key in friends.keys){
       // Get names for now, maybe get the entire student model later
       String value = await db.getNameByKey(key) as String;
-      names.add(value);
+      friends[key] = value;
     }
-    return names;
+    return friends;
   }
 
-  void removeFriend(){
-
+  void removeFriend(String key){
+    db.removeFriend(student.key, key);
   }
 
   Future<Map<dynamic, dynamic>> getRequests(bool isOutgoing) async {

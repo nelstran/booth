@@ -44,19 +44,21 @@ class ProfileDisplayPage extends StatelessWidget {
           );
         }
         Map<dynamic, dynamic> data = snapshot.data;
-        return ProfilePage(data: data);
+        return ProfilePage(controller, data);
       },
     );
   }
 }
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({
-    super.key,
-    required this.data,
-  });
+  const ProfilePage(
+    this.controller,
+    this.data,
+    {super.key}
+    );
 
   final Map data;
+  final BoothController controller;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -115,8 +117,7 @@ class ProfilePage extends StatelessWidget {
             onPressed: (){
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  // Thinking of either passing the controller or passing a list of friends to display
-                  builder: (context) => const FriendsPage(),
+                  builder: (context) => FriendsPage(controller),
                 ),
               );
             }
