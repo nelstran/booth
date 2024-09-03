@@ -13,15 +13,26 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   final _formKey = GlobalKey<FormState>();
   String? _name;
   String? _institution;
-  List<String> listOfInstitutions = <String>["University of Utah", "Salt Lake Community College"];
+  List<String> listOfInstitutions = <String>[
+    "University of Utah",
+    "Salt Lake Community College"
+  ];
   String? _major;
   // Freshman, Sophomore, Junior, Senior
   String? _year;
-  // String? _courses; 
+  // String? _courses;
 
   // TESTING
   List<String?> _courses = <String>[];
-  List<Object?> listOfCourses = <Object?>[null, "CS 2420", "CS 3500", "CS 3550", "CS 1410", "MATH 1000", "ENG 1010"];
+  List<Object?> listOfCourses = <Object?>[
+    null,
+    "CS 2420",
+    "CS 3500",
+    "CS 3550",
+    "CS 1410",
+    "MATH 1000",
+    "ENG 1010"
+  ];
 
   // Study Preferences
   String? _study_pref;
@@ -34,33 +45,36 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   @override
   Widget build(BuildContext context) {
     // Fetch user profile to start updating it
-    final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
-    if (arguments.containsKey("controller")){
+    final arguments = (ModalRoute.of(context)?.settings.arguments ??
+        <String, dynamic>{}) as Map;
+    if (arguments.containsKey("controller")) {
       controller = arguments['controller'] as BoothController;
     }
     return FutureBuilder(
-      future: arguments.containsKey("controller")? 
-      controller.getUserProfile()
-       : controller.fetchAccountInfo(arguments["user"]),
-      builder: (context, snapshot){
-        if (snapshot.hasData){
-          if (snapshot.data is Map<dynamic, dynamic>){
-            return createUI(snapshot.data);
+        future: arguments.containsKey("controller")
+            ? controller.getUserProfile()
+            : controller.fetchAccountInfo(arguments["user"]),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data is Map<dynamic, dynamic>) {
+              return createUI(snapshot.data);
+            } else {
+              return createUI();
+            }
           } else {
-            return createUI();
+            return const Center(child: CircularProgressIndicator());
           }
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      });
+        });
   }
 
   Scaffold createUI([profile]) {
-    var edit = profile != null; // Page will change depending on if its a new profile or existing
-    if (edit){
-      edit = (profile as Map).isNotEmpty;
+    var edit = profile !=
+        null; // Page will change depending on if its a new profile or existing
+    profile = profile as Map;
+    if (edit) {
+      edit = profile.isNotEmpty;
     }
-    listOfCourses[0] = '${_courses.join(", ")} '; 
+    listOfCourses[0] = '${_courses.join(", ")} ';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -72,11 +86,11 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            
             children: [
               Text(
                 edit ? 'Edit Profile' : 'Create Profile',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
@@ -104,7 +118,9 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
               // FOR TESTING
               DropdownButtonFormField(
-                value: edit ? profile['institution'] as String : null,
+                value: edit && profile.containsKey('institution')
+                    ? profile['institution'] as String
+                    : null,
                 decoration: const InputDecoration(labelText: 'Institution'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -112,11 +128,8 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   }
                   return null;
                 },
-                items: listOfInstitutions.map((String value){
-                  return DropdownMenuItem(
-                    value: value,
-                    child: Text(value)
-                    );
+                items: listOfInstitutions.map((String value) {
+                  return DropdownMenuItem(value: value, child: Text(value));
                 }).toList(),
                 onSaved: (value) => _institution = value,
                 onChanged: (value) => _institution = value,
@@ -136,25 +149,16 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               ),
               const SizedBox(height: 8.0),
               DropdownButtonFormField(
-                value: edit ? profile['year'] as String : null,
+                value: edit && profile.containsKey('year')
+                    ? profile['year'] as String
+                    : null,
                 decoration: const InputDecoration(labelText: 'Year'),
-                items:const [
+                items: const [
+                  DropdownMenuItem(value: "Freshman", child: Text("Freshman")),
                   DropdownMenuItem(
-                    value: "Freshman",
-                    child: Text("Freshman")
-                  ),
-                  DropdownMenuItem(
-                    value: "Sophomore",
-                    child: Text("Sophomore")
-                  ),
-                  DropdownMenuItem(
-                    value: "Junior",
-                    child: Text("Junior")
-                  ),
-                  DropdownMenuItem(
-                    value: "Senior",
-                    child: Text("Senior")
-                  ),
+                      value: "Sophomore", child: Text("Sophomore")),
+                  DropdownMenuItem(value: "Junior", child: Text("Junior")),
+                  DropdownMenuItem(value: "Senior", child: Text("Senior")),
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -177,7 +181,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 decoration: const InputDecoration(labelText: 'Courses'),
                 value: listOfCourses[0],
                 menuMaxHeight: 250,
-                
                 icon: const Icon(Icons.add),
                 validator: (value) {
                   if (value == null) {
@@ -185,33 +188,23 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   }
                   return null;
                 },
-                items: listOfCourses
-                .whereType<String>()
-                .map((String value){
-                  if (listOfCourses.indexOf(value) == 0){
+                items: listOfCourses.whereType<String>().map((String value) {
+                  if (listOfCourses.indexOf(value) == 0) {
                     return DropdownMenuItem<String>(
-                      
-                      enabled: false,
-                      value: value,
-                      child: Text(value)
-                    );
-                  }
-                  else{
+                        enabled: false, value: value, child: Text(value));
+                  } else {
                     return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value)
-                    );
+                        value: value, child: Text(value));
                   }
                 }).toList(),
                 onChanged: (value) {
-                  setState((){
-                    if (value == listOfCourses[0]){
+                  setState(() {
+                    if (value == listOfCourses[0]) {
                       return;
                     }
                     if (_courses.contains(value)) {
                       _courses.remove(value);
-                    }
-                    else{
+                    } else {
                       _courses.add(value.toString());
                     }
                     listOfCourses[0] = '${_courses.join(", ")} ';
@@ -222,7 +215,8 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               const SizedBox(height: 8.0),
               TextFormField(
                 initialValue: edit ? profile['studyPref'] : '',
-                decoration: const InputDecoration(labelText: 'Study Preferences'),
+                decoration:
+                    const InputDecoration(labelText: 'Study Preferences'),
                 onSaved: (value) => _study_pref = value,
               ),
               TextFormField(
@@ -234,7 +228,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               ElevatedButton(
                 onPressed: () {
                   // Add user details to database
-                  if(_formKey.currentState!.validate()){
+                  if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     Map<String, Object?> values = {
                       "name": _name,
@@ -250,21 +244,25 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   }
                 },
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {return Colors.blue;}),
+                  backgroundColor:
+                      MaterialStateProperty.resolveWith<Color>((states) {
+                    return Colors.blue;
+                  }),
                 ),
                 child: const Text('Save'),
               ),
               const SizedBox(height: 16.0),
-              if (!edit) Center(
-                child: GestureDetector(
-                  onTap: (){
+              if (!edit)
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
                       Navigator.pop(context);
                     },
-                  child: const Text(
-                    "Skip for now", 
+                    child: const Text(
+                      "Skip for now",
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
