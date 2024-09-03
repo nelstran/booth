@@ -40,13 +40,8 @@ class SessionDatabase {
 
   Future<Object?> getProfile(String key) async {
     final newRef = ref.child("users/$key/profile");
-    final snapshot = await newRef.get();
-    if (snapshot.exists){
-      return snapshot.value;
-    }
-    else{
-      return null;
-    }
+    final event = await newRef.once();
+    return event.snapshot.value;
   }
 
   /// Remove user by its key
@@ -116,13 +111,8 @@ class SessionDatabase {
   //----- FRIEND SYSTEM ---- //
   Future<Object?> getFriends(String key) async {
     if (key == '') return null;
-    var snapshot = await ref.child('users/$key/friends').get();
-    if (snapshot.exists){
-      return snapshot.value;
-    }
-    else{
-      return null;
-    }
+    var event = await ref.child('users/$key/friends').once();
+    return event;
   }
   void removeFriend(String studentKey, String friendKey){
     if (studentKey == '' || friendKey == '') return;
@@ -133,13 +123,14 @@ class SessionDatabase {
   Future<Object?> getRequests(String key) async {
     if (key == "") return null;
     final newRef = ref.child("users/$key/friends/requests");
-    final snapshot = await newRef.get();
-    if (snapshot.exists){
-      return snapshot.value;
-    }
-    else{
-      return null;
-    }
+    final event = await newRef.once();
+    return event.snapshot.value;
+    // if (snapshot.exists){
+    //   return snapshot.value;
+    // }
+    // else{
+    //   return null;
+    // }
   }
   void sendFriendRequest(String senderKey, String receiverKey) async {
     if (senderKey == '' || receiverKey == '') return;
@@ -169,12 +160,7 @@ class SessionDatabase {
   Future<Object?> getNameByKey(String key) async {
     if (key == "") return null;
     final newRef = ref.child("users/$key/name");
-    final snapshot = await newRef.get();
-    if (snapshot.exists){
-      return snapshot.value;
-    }
-    else{
-      return null;
-    }
+    final event = await newRef.once();
+    return event.snapshot.value;
   }
 }

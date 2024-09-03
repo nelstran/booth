@@ -70,8 +70,8 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   Scaffold createUI([profile]) {
     var edit = profile !=
         null; // Page will change depending on if its a new profile or existing
-    profile = profile as Map;
     if (edit) {
+      profile = profile as Map;
       edit = profile.isNotEmpty;
     }
     listOfCourses[0] = '${_courses.join(", ")} ';
