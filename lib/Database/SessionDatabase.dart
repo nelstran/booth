@@ -112,7 +112,7 @@ class SessionDatabase {
   Future<Object?> getFriends(String key) async {
     if (key == '') return null;
     var event = await ref.child('users/$key/friends').once();
-    return event;
+    return event.snapshot.value;
   }
   void removeFriend(String studentKey, String friendKey){
     if (studentKey == '' || friendKey == '') return;

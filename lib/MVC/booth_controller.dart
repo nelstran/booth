@@ -171,6 +171,11 @@ class BoothController {
       return {};
     }
     Map<dynamic, dynamic> friends = json as Map<dynamic, dynamic>;
+
+    if (friends.containsKey('requests')){
+      friends.remove('requests');
+    }
+
     for(var key in friends.keys){
       // Get names for now, maybe get the entire student model later
       String value = await db.getNameByKey(key) as String;
