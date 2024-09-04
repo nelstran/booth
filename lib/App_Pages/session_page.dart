@@ -127,7 +127,10 @@ class _SessionPageState extends State<SessionPage> {
         // This button is linked to the logout method
         IconButton(
           onPressed: logout,
-          icon: Icon(Icons.logout),
+          icon: Icon(
+            Icons.logout,
+            color: Colors.white,
+          ),
         ),
       ],
     );
@@ -140,7 +143,10 @@ class _SessionPageState extends State<SessionPage> {
           actions: [
             // Edit Button
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(
+                Icons.edit,
+                color: Colors.white,
+              ),
               onPressed: () async {
                 final value = await Navigator.pushNamed(
                   context,
@@ -155,7 +161,10 @@ class _SessionPageState extends State<SessionPage> {
             ),
             // Delete Button
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
               onPressed: () {
                 deletionDialog();
               },
@@ -217,7 +226,10 @@ If you proceed, you will lose access to your account and all associated content.
         // This button is linked to the logout method
         IconButton(
           onPressed: logout,
-          icon: Icon(Icons.logout),
+          icon: Icon(
+            Icons.logout,
+            color: Colors.white,
+          ),
         ),
       ],
     );
@@ -272,7 +284,7 @@ class SessionDestination extends StatelessWidget {
               child: Card(
                 clipBehavior: Clip.antiAlias,
                 // color: Colors.black38,
-                elevation: 3,
+                elevation: 0,
                 child: ListTile(
                   // Display title and description
                   title: Text(

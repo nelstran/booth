@@ -243,13 +243,15 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                     Navigator.pop(context);
                   }
                 },
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.resolveWith<Color>((states) {
-                    return Colors.blue;
-                  }),
+                style: const ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(Colors.blue)
                 ),
-                child: const Text('Save'),
+                child: const Text(
+                  'Save', 
+                  style:TextStyle(
+                    color: Colors.white
+                  )
+                ),
               ),
               const SizedBox(height: 16.0),
               if (!edit)

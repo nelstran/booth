@@ -17,12 +17,18 @@ ThemeData darkMode = ThemeData(
   // NEW THEME
   colorScheme: ColorScheme.fromSeed(
     // seedColor: const Color.fromARGB(255, 24, 135, 209),
+    primary: Colors.blue,
     seedColor: const Color.fromARGB(255, 0, 162, 255),
     brightness: Brightness.dark,
-    dynamicSchemeVariant: DynamicSchemeVariant.monochrome // Most closely how app was before in Material2
-    // dynamicSchemeVariant: DynamicSchemeVariant.content,
+    // dynamicSchemeVariant: DynamicSchemeVariant.monochrome, // Most closely how app was before in Material2
+    dynamicSchemeVariant: DynamicSchemeVariant.content,
     // surfaceContainerLow: // LIST TILES
+    surfaceContainerLow: const Color.fromARGB(255, 33, 33, 33),
     // surface: // BACKGROUND
+    surface: const Color.fromARGB(255, 19, 19, 19),
+    // onPrimaryContainer: Colors.white, // PRIMARY COLOR ON FLOATING BUTTON
+    onSurface: Colors.white, // PRIMARY TEXT ON LIST TILES AND APP BAR
+    // onSurfaceVariant: Colors.white, // SECONDARY TEXT ON LIST TILES
   )
 );
 

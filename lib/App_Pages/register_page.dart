@@ -176,7 +176,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Already have an account?",
+                    "Already have an account? ",
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary),
                   ),
