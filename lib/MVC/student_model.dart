@@ -1,3 +1,5 @@
+import 'package:flutter_application_1/MVC/booth_controller.dart';
+
 class Student {
   late final String uid; // Account Identifier
   late final String key; // User key in database
@@ -55,5 +57,27 @@ class Student {
       "uid": uid,
       "name": fullname
     };
+  }
+
+  /// Deletes the user everywhere in our app;
+  /// - Any Sessions they are apart of
+  /// - Any Sessions that they currently own
+  /// - The list of users that are recorded in the DB
+  /// - TODO: Delete user off their friends
+  void deleteUserAccountEverywhere(BoothController controller) {
+    // First Check to see if the user is apart of any study sessions
+    // If so, remove from study session
+    if (controller.student.session != "") {
+      controller.removeUserFromSession(
+          controller.student.session, controller.student.sessionKey);
+    }
+    // Check is their are any sessions that they OWN and remove the session
+    if (controller.student.ownedSessionKey != "") {
+      controller.removeUserFromSession(
+          controller.student.session, controller.student.sessionKey);
+      controller.removeSession(controller.student.ownedSessionKey);
+    }
+    // Then, remove from the "users" list in the Database
+    controller.removeUser(controller.student.key);
   }
 }

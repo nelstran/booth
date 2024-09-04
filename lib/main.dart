@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       // Show authentication page first (auth.dart)
       home: const AuthPage(),
       routes: {
-        '/session_page': (context) => const AuthPage(),
+        '/main_page': (context) => const AuthPage(),
         '/create_session': (context) => const CreateSessionPage(),
         '/create_profile': (context) => const CreateProfilePage(),
       },

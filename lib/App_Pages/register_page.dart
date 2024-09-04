@@ -68,12 +68,6 @@ class _RegisterPageState extends State<RegisterPage> {
           context, '/create_profile',
           arguments: {'user': userCredential.user}
         );
-
-      // Navigator.pushNamedAndRemoveUntil(
-      //   context, '/session_page',
-      //   (_) => false, // This clears all routes in the stack
-      //   arguments: {'user': userCredential.user},
-      // );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);
@@ -87,7 +81,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // This changes the color of the page to match which mode is selected (light/dark)
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
         child: SingleChildScrollView(
           reverse: true,

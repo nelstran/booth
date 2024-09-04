@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
 
     // Try to sign the user in with the credentials they have typed
     try {
-      UserCredential? userCredential =
+      // UserCredential? userCredential =
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
 
       // Navigate to the session page after successful login
@@ -40,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
       if(!mounted) return;
       Navigator.pop(context);
       Navigator.pushNamedAndRemoveUntil(
-        context, '/session_page',
+        context, '/main_page',
         (_) => false, // This clears all routes in the stack
       );
 
@@ -61,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // This changes the color of the page to match which mode is selected (light/dark)
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
         child: SingleChildScrollView(
           reverse:true,

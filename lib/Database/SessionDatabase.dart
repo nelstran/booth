@@ -9,7 +9,6 @@
 */
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
 
 // Trying out map to pass values to database, thinking it will make it easier
 // to modify fields from each class
