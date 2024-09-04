@@ -107,8 +107,6 @@ class _SessionPageState extends State<SessionPage> {
         },
         child: const Icon(Icons.add),
       ) : const SizedBox.shrink(),
-
-      // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int i) {
           setState(() {
@@ -272,12 +270,16 @@ class SessionDestination extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Card(
+                clipBehavior: Clip.antiAlias,
+                // color: Colors.black38,
                 elevation: 3,
                 child: ListTile(
                   // Display title and description
                   title: Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold
+                    ),
                   ),
                   subtitle: Text(description),
                   trailing: Text(
