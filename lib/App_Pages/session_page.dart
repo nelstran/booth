@@ -308,7 +308,15 @@ class SessionDestination extends StatelessWidget {
       onSubmitted: (value) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SearchPage(value),
+            builder: (context) => FloatingActionButton(
+              child: const Icon(Icons.search),
+              onPressed: () async{
+                await showSearch(
+                  context: context,
+                  delegate: SearchPage(),
+                );
+              }
+            )
           ),
         );
       },
