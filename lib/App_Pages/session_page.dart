@@ -179,7 +179,7 @@ If you proceed, you will lose access to your account and all associated content.
           actions: [
             TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
+                foregroundColor: Colors.white,
               ),
               child: const Text("Cancel"),
               onPressed: () {

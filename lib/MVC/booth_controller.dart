@@ -264,6 +264,9 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
         actions: <Widget>[
           TextButton(
             child: const Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               //password = "Cancel";
               Navigator.of(context).pop();
@@ -272,6 +275,9 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
           ),
           TextButton(
             child: const Text('Confirm'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
             onPressed: () async {
               password = passwordController.text;
               try {
@@ -304,6 +310,9 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
                           content: const Text("Wrong Password. Try Again."),
                           actions: [
                             TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed: () {
                                 Navigator.pop(context);
                               },
@@ -313,7 +322,7 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
                         );
                       });
                   // Handle case where the entered password is incorrect
-                } else if (e.code == "user-mismatch") {
+                } else if (e.code == "wrong-password") {
                   // Handle case where the user doesn't match
                   showDialog(
                       context: context,
@@ -323,14 +332,17 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
                             children: [
                               Padding(
                                 padding: EdgeInsets.all(8.0),
-                                child: Text("error_occured"),
+                                child: Text("Wrong Password!"),
                               ),
                             ],
                           ),
-                          content: const Text(
-                              "User Mis-Match Error. Please Try Again."),
+                          content:
+                              const Text("Wrong Password! Please Try Again."),
                           actions: [
                             TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed: () {
                                 Navigator.pop(context);
                               },
@@ -356,6 +368,9 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
                               const Text("Error Occured, Please Try Again."),
                           actions: [
                             TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed: () {
                                 Navigator.pop(context);
                               },
