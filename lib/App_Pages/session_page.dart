@@ -9,7 +9,6 @@ import 'package:flutter_application_1/App_Pages/search_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import '../MVC/session_model.dart';
 
-
 /// This is the home page - where Booth Sessions appear in list view
 class SessionPage extends StatefulWidget {
   final User? user;
@@ -35,9 +34,7 @@ class _SessionPageState extends State<SessionPage> {
           if (snapshot.hasData) {
             return createUI();
           } else {
-            return const Center(
-              child: CircularProgressIndicator()
-            );
+            return const Center(child: CircularProgressIndicator());
           }
         });
   }
@@ -66,32 +63,32 @@ class _SessionPageState extends State<SessionPage> {
       profilePage,
     ];
     List<Widget> destinations = [
-          const NavigationDestination(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.map),
-            label: "Map",
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.data_thresholding),
-            label: "Usage",
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person),
-            label: "Profile",
-          ),
-        ];
+      const NavigationDestination(
+        icon: Icon(Icons.home),
+        label: "Home",
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.map),
+        label: "Map",
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.data_thresholding),
+        label: "Usage",
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.person),
+        label: "Profile",
+      ),
+    ];
 
     // TODO: (For testing) Delete
-    if (adminMode){
+    if (adminMode) {
       appBars.add(adminAppBar());
       pages.add(AdminDestination(ref: _ref, controller: controller));
       destinations.add(const NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: "Admin",
-          ));
+        icon: Icon(Icons.settings),
+        label: "Admin",
+      ));
     }
 
     return Scaffold(
@@ -99,14 +96,16 @@ class _SessionPageState extends State<SessionPage> {
       // Body
       body: pages[currPageIndex],
       // Floating Action Button
-      floatingActionButton: currPageIndex == 0 ? FloatingActionButton(
-        onPressed: () {
-          // Navigate to the create session page
-          Navigator.pushNamed(context, '/create_session',
-              arguments: {'user': controller.student});
-        },
-        child: const Icon(Icons.add),
-      ) : const SizedBox.shrink(),
+      floatingActionButton: currPageIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                // Navigate to the create session page
+                Navigator.pushNamed(context, '/create_session',
+                    arguments: {'user': controller.student});
+              },
+              child: const Icon(Icons.add),
+            )
+          : const SizedBox.shrink(),
 
       // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(
@@ -117,7 +116,7 @@ class _SessionPageState extends State<SessionPage> {
         },
         selectedIndex: currPageIndex,
         destinations: destinations,
-        ),
+      ),
     );
   }
 
@@ -137,33 +136,33 @@ class _SessionPageState extends State<SessionPage> {
 
   AppBar profileAppBar() {
     return AppBar(
-          title: const Text('Profile'),
-          backgroundColor: Colors.blue,
-          actions: [
-            // Edit Button
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () async {
-                final value = await Navigator.pushNamed(
-                  context,
-                  '/create_profile',
-                  arguments: {"user" : widget.user, "controller": controller},
-                );
-                // Causes the page to update when user is done
-                setState(() {
-                  currPageIndex = currPageIndex;
-                });
-              },
-            ),
-            // Delete Button
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                deletionDialog();
-              },
-            ),
-          ],
-        );
+      title: const Text('Profile'),
+      backgroundColor: Colors.blue,
+      actions: [
+        // Edit Button
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () async {
+            final value = await Navigator.pushNamed(
+              context,
+              '/create_profile',
+              arguments: {"user": widget.user, "controller": controller},
+            );
+            // Causes the page to update when user is done
+            setState(() {
+              currPageIndex = currPageIndex;
+            });
+          },
+        ),
+        // Delete Button
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () {
+            deletionDialog();
+          },
+        ),
+      ],
+    );
   }
 
   Future<dynamic> deletionDialog() {
@@ -172,8 +171,7 @@ class _SessionPageState extends State<SessionPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Confirm Account Deletion"),
-          content: const Text(
-              '''Are you sure you want to delete your account? 
+          content: const Text('''Are you sure you want to delete your account? 
 
 This action is permanent and cannot be undone. All your data, settings, and history will be permanently deleted. 
               
@@ -245,15 +243,15 @@ class SessionDestination extends StatelessWidget {
           Animation<double> animation, int index) {
         // Convert the snapshot to a Map
         Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
-    
+
         // Here to avoid exception while debugging
         if (!json.containsKey("users")) return const SizedBox.shrink();
-    
+
         Session session = Session.fromJson(json);
-    
+
         List<String> memberNames = [];
         List<String> memberUIDs = [];
-    
+
         Map<String, dynamic> usersInFS =
             Map<String, dynamic>.from(json['users']);
         usersInFS.forEach((key, value) {
@@ -265,7 +263,7 @@ class SessionDestination extends StatelessWidget {
         // String description = session['description']?? '';
         String description =
             json['description'] + '\n• ' + memberNames.join("\n• ");
-    
+
         return Column(
           children: [
             if (index == 0) boothSearchBar(context),
@@ -303,61 +301,49 @@ class SessionDestination extends StatelessWidget {
     );
   }
 
-  SearchBar boothSearchBar(context){
+  SearchBar boothSearchBar(context) {
     return SearchBar(
-      onSubmitted: (value) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => FloatingActionButton(
-              child: const Icon(Icons.search),
-              onPressed: () async{
-                await showSearch(
-                  context: context,
-                  delegate: SearchPage(),
-                );
-              }
-            )
+        onSubmitted: (value) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (context) => FloatingActionButton(
+                    child: const Icon(Icons.search),
+                    onPressed: () async {
+                      await showSearch(
+                        context: context,
+                        delegate: SearchPage(),
+                      );
+                    })),
+          );
+        },
+        leading: const IntrinsicHeight(
+          child: Row(
+            children: [
+              Icon(Icons.search),
+              VerticalDivider(
+                color: Colors.black,
+              )
+            ],
           ),
-        );
-      },
-      leading: const IntrinsicHeight(
-        child: Row(
-          children: [
-            Icon(Icons.search),
-            VerticalDivider(color: Colors.black,)
-          ],
         ),
-      ),
-      trailing: [
-        ElevatedButton(
-          onPressed: (){},
-          style: const ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll(
-              Colors.transparent
-            )
-          ),
-          child: const Icon(
-            Icons.filter_list_rounded,
-            color: Colors.white
-          ),
-        )
-      ],
-      shadowColor: const WidgetStatePropertyAll(
-        Colors.transparent
-      ),
-      backgroundColor: const WidgetStatePropertyAll(
-        Color.fromARGB(106, 78, 78, 78),
-      ),
-      shape: const WidgetStatePropertyAll(
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.zero)
-        )
-      )
-    );
+        trailing: [
+          ElevatedButton(
+            onPressed: () {},
+            style: const ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(Colors.transparent)),
+            child: const Icon(Icons.filter_list_rounded, color: Colors.white),
+          )
+        ],
+        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+        backgroundColor: const WidgetStatePropertyAll(
+          Color.fromARGB(106, 78, 78, 78),
+        ),
+        shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.zero))));
   }
 }
 
-class MapDestination extends StatelessWidget{
+class MapDestination extends StatelessWidget {
   const MapDestination({super.key});
 
   @override
@@ -366,7 +352,7 @@ class MapDestination extends StatelessWidget{
   }
 }
 
-class UsageDestination extends StatelessWidget{
+class UsageDestination extends StatelessWidget {
   const UsageDestination({super.key});
 
   @override
@@ -375,12 +361,12 @@ class UsageDestination extends StatelessWidget{
   }
 }
 
-class AdminDestination extends StatelessWidget{
+class AdminDestination extends StatelessWidget {
   const AdminDestination({
     super.key,
     required DatabaseReference ref,
     required this.controller,
-  }): _ref = ref;
+  }) : _ref = ref;
 
   final DatabaseReference _ref;
   final BoothController controller;
@@ -389,9 +375,7 @@ class AdminDestination extends StatelessWidget{
     return Column(
       children: [
         const Expanded(
-          flex: 1,
-          child: Text("Place backend stuff here to test")
-        ),
+            flex: 1, child: Text("Place backend stuff here to test")),
         // Testing friend system
         const Divider(),
         Expanded(
@@ -404,29 +388,33 @@ class AdminDestination extends StatelessWidget{
                     const Text("All users"),
                     const Divider(),
                     Expanded(
-                      flex: 1,
-                      child: FirebaseAnimatedList(
-                        query: _ref.child("users"),
-                        itemBuilder: (BuildContext context, DataSnapshot snapshot,
-                        Animation<double> animation, int index) {
-                          Map <dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
-                          if (json['uid'] == controller.student.uid) return const SizedBox.shrink();
-                          return ListTile(
-                            title: Text(
-                              json["name"],
-                              style: const TextStyle(
-                                fontSize: 12,
+                        flex: 1,
+                        child: FirebaseAnimatedList(
+                          query: _ref.child("users"),
+                          itemBuilder: (BuildContext context,
+                              DataSnapshot snapshot,
+                              Animation<double> animation,
+                              int index) {
+                            Map<dynamic, dynamic> json =
+                                snapshot.value as Map<dynamic, dynamic>;
+                            if (json['uid'] == controller.student.uid)
+                              return const SizedBox.shrink();
+                            return ListTile(
+                              title: Text(
+                                json["name"],
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                ),
                               ),
-                            ), 
-                            trailing: const Icon(Icons.add),
-                            contentPadding: EdgeInsets.zero,
-                            onTap: (){
-                              controller.sendFriendRequest(snapshot.key!, json['name']);
-                            },
-                          );
-                        },
-                      )
-                    ),
+                              trailing: const Icon(Icons.add),
+                              contentPadding: EdgeInsets.zero,
+                              onTap: () {
+                                controller.sendFriendRequest(
+                                    snapshot.key!, json['name']);
+                              },
+                            );
+                          },
+                        )),
                   ],
                 ),
               ),
@@ -438,31 +426,31 @@ class AdminDestination extends StatelessWidget{
                     const Text("Friends"),
                     const Divider(),
                     Expanded(
-                      child: FutureBuilder(
-                        future: controller.getFriends(),
-                        builder: (context, snapshot){
-                          if (!snapshot.hasData) return const SizedBox.shrink();
-                          if (snapshot.data!.isEmpty) return const SizedBox.shrink();
-                          Map<dynamic, dynamic> friends = snapshot.data as Map<dynamic, dynamic>; 
-                          List<dynamic> friendKeys = friends.keys.toList();
-                          return ListView.builder(
+                        child: FutureBuilder(
+                      future: controller.getFriends(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const SizedBox.shrink();
+                        if (snapshot.data!.isEmpty)
+                          return const SizedBox.shrink();
+                        Map<dynamic, dynamic> friends =
+                            snapshot.data as Map<dynamic, dynamic>;
+                        List<dynamic> friendKeys = friends.keys.toList();
+                        return ListView.builder(
                             itemCount: friends.length,
-                            itemBuilder: (context, index){
+                            itemBuilder: (context, index) {
                               return ListTile(
                                 title: Text(friends[friendKeys[index]]),
                                 contentPadding: const EdgeInsets.all(0),
                                 trailing: ElevatedButton(
                                   child: const Icon(Icons.remove),
-                                  onPressed: (){
+                                  onPressed: () {
                                     controller.removeFriend(friendKeys[index]);
                                   },
                                 ),
                               );
-                            }
-                          );
-                        },
-                        )
-                    )
+                            });
+                      },
+                    ))
                   ],
                 ),
               ),
@@ -472,73 +460,75 @@ class AdminDestination extends StatelessWidget{
                 child: Column(
                   children: [
                     Expanded(
-                      child: Column(
-                        children: [
-                          const Text("Incoming Requests"),
-                          const Divider(),
-                          Expanded(
+                        child: Column(
+                      children: [
+                        const Text("Incoming Requests"),
+                        const Divider(),
+                        Expanded(
                             child: FutureBuilder(
-                              future: controller.getRequests(false),
-                              builder: (context, snapshot){
-                                if (!snapshot.hasData) return const SizedBox.shrink();
-                                Map<dynamic, dynamic> json = snapshot.data as Map<dynamic, dynamic>;
-                                if (json.isEmpty) return const SizedBox.shrink();
-                                var keys = json.keys.toList();
-                                return ListView.builder(
-                                  itemCount: json.length,
-                                  itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title: Text(json[keys[index]]),
-                                      trailing: Column(
-                                          children: [
-                                            GestureDetector(
-                                              child: const Icon(Icons.check),
-                                              onTap: (){
-                                                controller.acceptFriendRequest(keys[index]);
-                                              },
-                                            ),
-                                            GestureDetector(
-                                              child: const Icon(Icons.close),
-                                              onTap: (){
-                                                controller.declineFriendRequest(keys[index]);
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                    );
-                                  },
+                          future: controller.getRequests(false),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData)
+                              return const SizedBox.shrink();
+                            Map<dynamic, dynamic> json =
+                                snapshot.data as Map<dynamic, dynamic>;
+                            if (json.isEmpty) return const SizedBox.shrink();
+                            var keys = json.keys.toList();
+                            return ListView.builder(
+                              itemCount: json.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  title: Text(json[keys[index]]),
+                                  trailing: Column(
+                                    children: [
+                                      GestureDetector(
+                                        child: const Icon(Icons.check),
+                                        onTap: () {
+                                          controller
+                                              .acceptFriendRequest(keys[index]);
+                                        },
+                                      ),
+                                      GestureDetector(
+                                        child: const Icon(Icons.close),
+                                        onTap: () {
+                                          controller.declineFriendRequest(
+                                              keys[index]);
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 );
                               },
-                            )
-                          ),
-                        ],
-                      )
-                    ),
+                            );
+                          },
+                        )),
+                      ],
+                    )),
                     Expanded(
-                      child: Column(
-                        children: [
-                          const Text("Outgoing Requests"),
-                          const Divider(),
-                          Expanded(
+                        child: Column(
+                      children: [
+                        const Text("Outgoing Requests"),
+                        const Divider(),
+                        Expanded(
                             child: FutureBuilder(
-                              future: controller.getRequests(true),
-                              builder: (context, snapshot){
-                                if (!snapshot.hasData) return const SizedBox.shrink();
-                                Map<dynamic, dynamic> json = snapshot.data as Map<dynamic, dynamic>;
-                                if (json.isEmpty) return const SizedBox.shrink();
-                                var keys = json.keys.toList();
-                                return ListView.builder(
-                                  itemCount: json.length,
-                                  itemBuilder: (context, index) {
-                                    return Text(keys[index]);
-                                  },
-                                );
+                          future: controller.getRequests(true),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData)
+                              return const SizedBox.shrink();
+                            Map<dynamic, dynamic> json =
+                                snapshot.data as Map<dynamic, dynamic>;
+                            if (json.isEmpty) return const SizedBox.shrink();
+                            var keys = json.keys.toList();
+                            return ListView.builder(
+                              itemCount: json.length,
+                              itemBuilder: (context, index) {
+                                return Text(keys[index]);
                               },
-                            )
-                          ),
-                        ],
-                      )
-                    ),
+                            );
+                          },
+                        )),
+                      ],
+                    )),
                   ],
                 ),
               ),

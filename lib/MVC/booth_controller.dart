@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/login_page.dart';
 import 'package:flutter_application_1/Database/SessionDatabase.dart';
 import 'package:logger/web.dart';
 
@@ -32,7 +33,7 @@ class BoothController {
       // Modify student on change
       studentRef.onValue.listen((event) {
         // In an event the user deletes their account
-        if (!event.snapshot.exists){
+        if (!event.snapshot.exists) {
           return;
         }
         var value = event.snapshot.value as Map;
@@ -70,16 +71,16 @@ class BoothController {
 
   Future<Map<dynamic, dynamic>> getUserProfile([key]) async {
     String studentKey;
-    if (key != null){
+    if (key != null) {
       studentKey = key;
     } else {
       studentKey = student.key;
     }
     Object? json = await db.getProfile(studentKey);
-    if (json == null){
+    if (json == null) {
       return {};
     }
-    return json as Map<dynamic, dynamic>; 
+    return json as Map<dynamic, dynamic>;
   }
 
   /// Add the logged in user (student) to a session
@@ -151,7 +152,7 @@ class BoothController {
   }
 
   Future<bool> isUserAlreadyInSession(String uid) async {
-  // Query the sessions node to find if the user is a member of any session
+    // Query the sessions node to find if the user is a member of any session
 
     bool inSession = await db.isUserInSession(uid);
     // Check if the snapshot has any data
@@ -167,16 +168,16 @@ class BoothController {
   //----- FRIEND SYSTEM ---- //
   Future<Map<dynamic, dynamic>> getFriends() async {
     Object? json = await db.getFriends(student.key);
-    if (json == null){
+    if (json == null) {
       return {};
     }
     Map<dynamic, dynamic> friends = json as Map<dynamic, dynamic>;
 
-    if (friends.containsKey('requests')){
+    if (friends.containsKey('requests')) {
       friends.remove('requests');
     }
 
-    for(var key in friends.keys){
+    for (var key in friends.keys) {
       // Get names for now, maybe get the entire student model later
       String value = await db.getNameByKey(key) as String;
       friends[key] = value;
@@ -184,28 +185,28 @@ class BoothController {
     return friends;
   }
 
-  void removeFriend(String key){
+  void removeFriend(String key) {
     db.removeFriend(student.key, key);
   }
 
   Future<Map<dynamic, dynamic>> getRequests(bool isOutgoing) async {
     Object? json = await db.getRequests(student.key);
-    if (json == null){
+    if (json == null) {
       return {};
     }
     String outgoing = isOutgoing ? "outgoing" : "incoming";
     return (json as Map<dynamic, dynamic>)[outgoing];
   }
 
-  void sendFriendRequest(String key, String name){
+  void sendFriendRequest(String key, String name) {
     db.sendFriendRequest(student.key, key);
   }
 
-  void declineFriendRequest(String key){
+  void declineFriendRequest(String key) {
     db.declineFriendRequest(student.key, key);
   }
 
-  void acceptFriendRequest(String key){
+  void acceptFriendRequest(String key) {
     db.acceptFriendRequest(student.key, key);
   }
 }
@@ -243,106 +244,9 @@ Future<void> reauthenticateThenDelete(BuildContext context) async {
   Logger logger = Logger();
   // Checks if context is mounted so no crash happens
   //if (!context.mounted) return;
-  try {
-    String email = FirebaseAuth.instance.currentUser!.email!;
-    // Runs helper function to get the password
-    String password = await getPassword(context);
-    // Get the Users credential from Username and Password
-    AuthCredential credential =
-        EmailAuthProvider.credential(email: email, password: password);
-    await FirebaseAuth.instance.currentUser!
-        .reauthenticateWithCredential(credential);
-    // After fresh credential is gained, Firebase Deletes the account
-    await FirebaseAuth.instance.currentUser!.delete();
 
-    if(!context.mounted) return;
-    Navigator.of(context).pop();
-  } on FirebaseAuthException catch (e) {
-    logger.e(e);
-    // Handles Firebase exceptions during reauthentication
-    if (e.code == "wrong-password") {
-      showDialog(
-          context: context,
-          builder: (BuildContext ctx) {
-            return AlertDialog(
-              title: const Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text("error_occured"),
-                  ),
-                ],
-              ),
-              content: const Text("Wrong Password. Try Again."),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Ok"),
-                )
-              ],
-            );
-          });
-      // Handle case where the entered password is incorrect
-    } else if (e.code == "user-mismatch") {
-      // Handle case where the user doesn't match
-      showDialog(
-          context: context,
-          builder: (BuildContext ctx) {
-            return AlertDialog(
-              title: const Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text("error_occured"),
-                  ),
-                ],
-              ),
-              content: const Text("User Mis-Match Error. Please Try Again."),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Ok"),
-                )
-              ],
-            );
-          });
-    } else {
-      showDialog(
-          context: context,
-          builder: (BuildContext ctx) {
-            return AlertDialog(
-              title: const Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text("error_occured"),
-                  ),
-                ],
-              ),
-              content: const Text("Error Occured, Please Try Again."),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Ok"),
-                )
-              ],
-            );
-          });
-    }
-  } catch (e) {
-    logger.e(e);
-  }
-}
-
-/// Dialog Pops up to ask the user for their password. If they get it wrong,
-/// asks to try again until they get it.
-Future<String> getPassword(BuildContext context) async {
+  // Runs method to delete account
+  //await tryToDelete(context);
   // For inputted password
   TextEditingController passwordController = TextEditingController();
   String password = '';
@@ -361,13 +265,154 @@ Future<String> getPassword(BuildContext context) async {
           TextButton(
             child: const Text('Cancel'),
             onPressed: () {
+              //password = "Cancel";
               Navigator.of(context).pop();
+              return;
             },
           ),
           TextButton(
             child: const Text('Confirm'),
-            onPressed: () {
+            onPressed: () async {
               password = passwordController.text;
+              try {
+                AuthCredential credential = EmailAuthProvider.credential(
+                    email: FirebaseAuth.instance.currentUser!.email!,
+                    password: password);
+                await FirebaseAuth.instance.currentUser!
+                    .reauthenticateWithCredential(credential);
+                // After fresh credential is gained, Firebase Deletes the account
+                await FirebaseAuth.instance.currentUser!.delete();
+                //Pops both Dialogs (Enter Password + Warning Dialog)
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              } on FirebaseAuthException catch (e) {
+                logger.e(e);
+                // Handles Firebase exceptions during reauthentication
+                if (e.code == "invalid-credential") {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext ctx) {
+                        return AlertDialog(
+                          title: const Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("Wrong Password!"),
+                              ),
+                            ],
+                          ),
+                          content: const Text("Wrong Password. Try Again."),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Ok"),
+                            )
+                          ],
+                        );
+                      });
+                  // Handle case where the entered password is incorrect
+                } else if (e.code == "user-mismatch") {
+                  // Handle case where the user doesn't match
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext ctx) {
+                        return AlertDialog(
+                          title: const Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("error_occured"),
+                              ),
+                            ],
+                          ),
+                          content: const Text(
+                              "User Mis-Match Error. Please Try Again."),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Ok"),
+                            )
+                          ],
+                        );
+                      });
+                } else {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext ctx) {
+                        return AlertDialog(
+                          title: const Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text("error_occured"),
+                              ),
+                            ],
+                          ),
+                          content:
+                              const Text("Error Occured, Please Try Again."),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Ok"),
+                            )
+                          ],
+                        );
+                      });
+                }
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Dialog Pops up to ask the user for their password. If they get it wrong,
+/// asks to try again until they get it.
+Future<void> tryToDelete(BuildContext context) async {
+  // For inputted password
+  TextEditingController passwordController = TextEditingController();
+  String password = '';
+
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Enter Password'),
+        content: TextField(
+          controller: passwordController,
+          obscureText: true,
+          decoration: const InputDecoration(hintText: "Password"),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              //password = "Cancel";
+              Navigator.of(context).pop();
+              return;
+            },
+          ),
+          TextButton(
+            child: const Text('Confirm'),
+            onPressed: () async {
+              password = passwordController.text;
+              AuthCredential credential = EmailAuthProvider.credential(
+                  email: FirebaseAuth.instance.currentUser!.email!,
+                  password: password);
+              await FirebaseAuth.instance.currentUser!
+                  .reauthenticateWithCredential(credential);
+              // After fresh credential is gained, Firebase Deletes the account
+              await FirebaseAuth.instance.currentUser!.delete();
+              // deleteUserAccountEverywhere(controller);
+              Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
           ),
@@ -376,5 +421,5 @@ Future<String> getPassword(BuildContext context) async {
     },
   );
 
-  return password;
+  return;
 }
