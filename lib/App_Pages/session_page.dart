@@ -301,45 +301,41 @@ class SessionDestination extends StatelessWidget {
     );
   }
 
-  SearchBar boothSearchBar(context) {
-    return SearchBar(
-        onSubmitted: (value) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (context) => FloatingActionButton(
-                    child: const Icon(Icons.search),
-                    onPressed: () async {
-                      await showSearch(
-                        context: context,
-                        delegate: SearchPage(),
-                      );
-                    })),
-          );
-        },
-        leading: const IntrinsicHeight(
-          child: Row(
-            children: [
-              Icon(Icons.search),
-              VerticalDivider(
-                color: Colors.black,
-              )
-            ],
-          ),
+  Widget boothSearchBar(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await showSearch(
+          context: context,
+          delegate: SearchPage(),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(106, 78, 78, 78),
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4.0,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        trailing: [
-          ElevatedButton(
-            onPressed: () {},
-            style: const ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(Colors.transparent)),
-            child: const Icon(Icons.filter_list_rounded, color: Colors.white),
-          )
-        ],
-        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
-        backgroundColor: const WidgetStatePropertyAll(
-          Color.fromARGB(106, 78, 78, 78),
+        child: const Row(
+          children: [
+            Icon(Icons.search, color: Colors.white),
+            SizedBox(width: 8.0),
+            Text(
+              'Search...',
+              style: TextStyle(color: Colors.white),
+            ),
+            //Spacer(),
+            //Icon(Icons.filter_list_rounded, color: Colors.white),
+          ],
         ),
-        shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.zero))));
+      ),
+    );
   }
 }
 
