@@ -165,6 +165,14 @@ class BoothController {
     }
   }
 
+  Future<Map<dynamic, dynamic>> getUsers() async {
+    Object? json = await db.getAllUsers();
+    if (json == null) {
+      return {};
+    }
+    return json as Map<dynamic, dynamic>;
+  }
+
   //----- FRIEND SYSTEM ---- //
   Future<Map<dynamic, dynamic>> getFriends() async {
     Object? json = await db.getFriends(student.key);

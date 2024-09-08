@@ -306,7 +306,7 @@ class SessionDestination extends StatelessWidget {
       onTap: () async {
         await showSearch(
           context: context,
-          delegate: SearchPage(),
+          delegate: SearchPage(controller: controller),
         );
       },
       child: Container(

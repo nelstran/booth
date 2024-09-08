@@ -51,7 +51,8 @@ class SessionDatabase {
   }
 
   /// Add a session and include the user who made it into that session
-  Future<Map<String, String?>> addSession(Map sessionValues, Map studentValues) async {
+  Future<Map<String, String?>> addSession(
+      Map sessionValues, Map studentValues) async {
     // Adding the session given a map
     final newRef = ref.child('sessions').push();
     await newRef.set(sessionValues);
@@ -107,6 +108,12 @@ class SessionDatabase {
   }
 
   isUserInSession(String uid) {}
+  // Gets all of the users recorded in the database
+  Future<Object?> getAllUsers() async {
+    final newRef = ref.child("users");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
 
   //----- FRIEND SYSTEM ---- //
   Future<Object?> getFriends(String key) async {
@@ -114,7 +121,8 @@ class SessionDatabase {
     var event = await ref.child('users/$key/friends').once();
     return event.snapshot.value;
   }
-  void removeFriend(String studentKey, String friendKey){
+
+  void removeFriend(String studentKey, String friendKey) {
     if (studentKey == '' || friendKey == '') return;
     ref.child('users/$studentKey/friends/$friendKey').remove();
     ref.child('users/$friendKey/friends/$studentKey').remove();
@@ -132,18 +140,24 @@ class SessionDatabase {
     //   return null;
     // }
   }
+
   void sendFriendRequest(String senderKey, String receiverKey) async {
     if (senderKey == '' || receiverKey == '') return;
     final senderRef = ref.child('users/$senderKey/friends/requests/outgoing');
-    final receiverRef = ref.child('users/$receiverKey/friends/requests/incoming');
+    final receiverRef =
+        ref.child('users/$receiverKey/friends/requests/incoming');
     await senderRef.update({receiverKey: ""});
     await receiverRef.update({senderKey: ""});
   }
 
-  void declineFriendRequest(String studentKey, String strangerKey){
+  void declineFriendRequest(String studentKey, String strangerKey) {
     if (studentKey == '' || strangerKey == '') return;
-    ref.child('users/$studentKey/friends/requests/incoming/$strangerKey').remove();
-    ref.child('users/$strangerKey/friends/requests/outgoing/$studentKey').remove();
+    ref
+        .child('users/$studentKey/friends/requests/incoming/$strangerKey')
+        .remove();
+    ref
+        .child('users/$strangerKey/friends/requests/outgoing/$studentKey')
+        .remove();
   }
 
   void acceptFriendRequest(String studentKey, String friendKey) async {
