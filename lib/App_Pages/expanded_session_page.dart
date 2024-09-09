@@ -42,7 +42,6 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
-        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

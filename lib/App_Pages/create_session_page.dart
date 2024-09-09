@@ -39,7 +39,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
-        backgroundColor: Colors.blue,
       ),
       body: Form(
         key: _formKey,
@@ -169,8 +168,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                     Navigator.pop(context);
                   }
                 },
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {return Colors.blue;}),
+                style: const ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    Color(0xFF0d4073)
+                  )
                 ),
                 child: const Text('Create Session'),
               ),

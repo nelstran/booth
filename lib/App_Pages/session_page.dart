@@ -64,19 +64,31 @@ class _SessionPageState extends State<SessionPage> {
     ];
     List<Widget> destinations = [
       const NavigationDestination(
-        icon: Icon(Icons.home),
+        icon: Icon(
+          Icons.home, 
+          color: Colors.white
+        ),
         label: "Home",
       ),
       const NavigationDestination(
-        icon: Icon(Icons.map),
+        icon: Icon(
+          Icons.map, 
+          color: Colors.white
+        ),
         label: "Map",
       ),
       const NavigationDestination(
-        icon: Icon(Icons.data_thresholding),
+        icon: Icon(
+          Icons.data_thresholding, 
+          color: Colors.white
+        ),
         label: "Usage",
       ),
       const NavigationDestination(
-        icon: Icon(Icons.person),
+        icon: Icon(
+          Icons.person, 
+          color: Colors.white
+        ),
         label: "Profile",
       ),
     ];
@@ -96,20 +108,19 @@ class _SessionPageState extends State<SessionPage> {
       // Body
       body: pages[currPageIndex],
       // Floating Action Button
-      floatingActionButton: currPageIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                // Navigate to the create session page
-                Navigator.pushNamed(context, '/create_session',
-                    arguments: {'user': controller.student});
-              },
-              child: const Icon(Icons.add),
-            )
-          : const SizedBox.shrink(),
-
+      floatingActionButton: currPageIndex == 0 ? 
+        FloatingActionButton(
+          onPressed: () {
+            // Navigate to the create session page
+            Navigator.pushNamed(context, '/create_session',
+                arguments: {'user': controller.student});
+          },
+          child: const Text("Create Session"),
+        )
+      : const SizedBox.shrink(),
       // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int i) {
+                onDestinationSelected: (int i) {
           setState(() {
             currPageIndex = i;
           });
@@ -123,7 +134,6 @@ class _SessionPageState extends State<SessionPage> {
   AppBar mainAppBar() {
     return AppBar(
       title: Text("Booth | Welcome ${controller.student.fullname}!"),
-      backgroundColor: Colors.blue,
       actions: const [
         // This button is linked to the logout method
         IconButton(
@@ -137,7 +147,6 @@ class _SessionPageState extends State<SessionPage> {
   AppBar profileAppBar() {
     return AppBar(
       title: const Text('Profile'),
-      backgroundColor: Colors.blue,
       actions: [
         // Edit Button
         IconButton(
@@ -212,7 +221,6 @@ If you proceed, you will lose access to your account and all associated content.
   AppBar adminAppBar() {
     return AppBar(
       title: Text("Admin Page"),
-      backgroundColor: Colors.blue,
       actions: const [
         // This button is linked to the logout method
         IconButton(
@@ -236,6 +244,8 @@ class SessionDestination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<Color> sessionColor = [Colors.red, Colors.orange, Colors.yellow, Colors.green];
+
     return FirebaseAnimatedList(
       query: _ref.child("sessions"),
       // Build each item in the list view
@@ -264,37 +274,68 @@ class SessionDestination extends StatelessWidget {
         String description =
             json['description'] + '\n• ' + memberNames.join("\n• ");
 
+        int index = ((session.seatsTaken/session.seatsAvailable) * 100).floor();
+        Color fullness;
+        if (index <= 33){
+          fullness = sessionColor[3];
+        }
+        else if (index <= 66){
+          fullness = sessionColor[2];
+        }
+        else if (index <= 99){
+          fullness = sessionColor[1];
+        }
+        else{
+          fullness = sessionColor[0];
+        }
         return Column(
           children: [
             if (index == 0) boothSearchBar(context),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Card(
-                elevation: 3,
-                child: ListTile(
-                  // Display title and description
-                  title: Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                elevation: 2,
+                child: ClipPath(
+                  clipper: ShapeBorderClipper(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)
+                  )
+                ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: fullness,
+                        width: 10,
+                      )
+                    )
                   ),
-                  subtitle: Text(description),
-                  trailing: Text(
-                    "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
-                    textAlign: TextAlign.center,
-                  ),
-                  onTap: () {
-                    Amplitude.getInstance().logEvent("Session Clicked");
-                    // Expand session
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ExpandedSessionPage(snapshot.key!, controller),
+                  child: ListTile(
+                      // Display title and description
+                      title: Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    );
-                  },
+                      subtitle: Text(description),
+                      trailing: Text(
+                        "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                        textAlign: TextAlign.center,
+                      ),
+                      onTap: () {
+                        Amplitude.getInstance().logEvent("Session Clicked");
+                        // Expand session
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ExpandedSessionPage(snapshot.key!, controller),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
                 ),
               ),
-            ),
           ],
         );
       },

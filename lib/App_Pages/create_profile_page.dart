@@ -78,7 +78,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
-        backgroundColor: Colors.blue,
       ),
       body: Form(
         key: _formKey,
