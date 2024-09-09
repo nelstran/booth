@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/App_Pages/requests_page.dart'; // Import the RequestsPage
 
@@ -113,10 +114,15 @@ class FriendsPage extends StatelessWidget {
                         ),
                         onTap: () {
                           // TODO: Navigate to the profile page of the selected friend, Replace with actual logic
-                          Navigator.pushNamed(
-                            context,
-                            '/profile',
-                            arguments: userId,
+                          // Navigator.pushNamed(
+                          //   context,
+                          //   '/profile',
+                          //   arguments: userId,
+                          // );
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => UserDisplayPage(boothController, userId),
+                            ),
                           );
                         },
                       ),

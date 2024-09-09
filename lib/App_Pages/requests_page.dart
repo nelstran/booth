@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 
 class RequestsPage extends StatelessWidget {
@@ -26,7 +27,6 @@ class RequestsPage extends StatelessWidget {
           return ListView.builder(
             itemCount: requests.length,
             itemBuilder: (context, index) {
-              // TODO: Displaying name of user who sent request
               final requestId = requests.keys.elementAt(index);
               final requestName = requests[requestId] as String;
               return ListTile(
@@ -59,6 +59,13 @@ class RequestsPage extends StatelessWidget {
                     ),
                   ],
                 ),
+                onTap: (){
+                  Navigator.of(context).push(
+                            MaterialPageRoute(
+                      builder: (context) => UserDisplayPage(controller, requestId),
+                    ),
+                  );
+                },
               );
             },
           );

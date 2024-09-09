@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 
 import '../MVC/booth_controller.dart';
 
@@ -75,24 +76,21 @@ class SearchPage extends SearchDelegate<String> {
       },
     );
   }
-
   @override
-  Widget buildSuggestions(BuildContext context) {
+  Widget buildSuggestions(BuildContext context)  {
     return FutureBuilder(
-      future: getUsers(controller),
+      future: Future.wait([
+        getUsers(controller),
+        controller.getFriends(),
+        controller.getRequests(true),
+      ]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error occurred'));
         }
-        Map<dynamic, dynamic> users = snapshot.data!;
-        // final List<String> suggestionList = query.isEmpty
-        //     ? []
-        //     : (users.values.toList() as List<String>)
-        //         .where(
-        //             (item) => item.toLowerCase().contains(query.toLowerCase()))
-        //         .toList();
+        Map<dynamic, dynamic> users = snapshot.data![0];
         Map<String, String> suggestionList = {};
         if (query.isNotEmpty){
           for(var key in users.keys){
@@ -106,14 +104,42 @@ class SearchPage extends SearchDelegate<String> {
           itemBuilder: (context, index) {
             String name = suggestionList.values.elementAt(index);
             String userKey = suggestionList.keys.elementAt(index);
+            List<IconButton> trailingIcons = [
+              IconButton( // Add friend
+                onPressed: (){
+                  controller.sendFriendRequest(userKey); // TODO: Change icon when this is tapped
+                }, 
+                icon: const Icon(Icons.person_add_outlined)
+              ),
+              const IconButton( // Already friends
+                // color: Colors.green,
+                onPressed: null, 
+                icon: Icon(Icons.check)
+              ),
+              const IconButton( // Request sent
+                onPressed: null, // TODO: Cancel friend request 
+                icon: Icon(Icons.mark_email_read_outlined)
+              ),
+            ];
+            IconButton listIcon = trailingIcons[0];
+            if (snapshot.data![1].containsKey(userKey)){
+              listIcon = trailingIcons[1];
+            }
+            if(snapshot.data![2].containsKey(userKey)){
+              listIcon = trailingIcons[2];
+            }
             return ListTile(
-              trailing: const Icon(Icons.add),
+              trailing: listIcon,
               title: Text(name),
               onTap: () {
-                // Change Later to show the users profile/session examples
-                query = name;
-                controller.sendFriendRequest(userKey);
                 // Show the search results based on the selected suggestion.
+                query = name;
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => UserDisplayPage(controller, userKey),
+                  ),
+                );
+                
               },
             );
           },

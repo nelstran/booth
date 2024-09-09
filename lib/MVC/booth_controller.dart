@@ -199,14 +199,25 @@ class BoothController {
 
   Future<Map<dynamic, dynamic>> getRequests(bool isOutgoing) async {
     Object? json = await db.getRequests(student.key);
-    if (json == null) {
+    String outgoing = isOutgoing ? "outgoing" : "incoming";
+    if (json == null || (json as Map)[outgoing] == null) {
       return {};
     }
-    String outgoing = isOutgoing ? "outgoing" : "incoming";
-    return (json as Map<dynamic, dynamic>)[outgoing];
+    Map<dynamic, dynamic> requests = {};
+    for (var key in json[outgoing].keys) {
+      // Get names for now, maybe get the entire student model later
+      String value = await db.getNameByKey(key) as String;
+      requests[key] = value;
+    }
+    return requests;
   }
 
-  void sendFriendRequest(String key) {
+  void sendFriendRequest(String key) async {
+    Map<dynamic, dynamic> requests = await getRequests(true);
+    Map<dynamic, dynamic> friends = await getFriends();
+    if (requests.containsKey(key)) return; // Do nothing if user already sent a request
+    if (friends.containsKey(key)) return; // Do nothing if user is already friends
+    
     db.sendFriendRequest(student.key, key);
   }
 
@@ -214,7 +225,12 @@ class BoothController {
     db.declineFriendRequest(student.key, key);
   }
 
-  void acceptFriendRequest(String key) {
+  void acceptFriendRequest(String key) async {
+    Map<dynamic, dynamic> requests = await getRequests(true);
+    Map<dynamic, dynamic> friends = await getFriends();
+    if (requests.containsKey(key)) return; // Do nothing if user already sent a request
+    if (friends.containsKey(key)) return; // Do nothing if user is already friends
+
     db.acceptFriendRequest(student.key, key);
   }
 }
