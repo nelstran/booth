@@ -206,7 +206,7 @@ class BoothController {
     return (json as Map<dynamic, dynamic>)[outgoing];
   }
 
-  void sendFriendRequest(String key, String name) {
+  void sendFriendRequest(String key) {
     db.sendFriendRequest(student.key, key);
   }
 

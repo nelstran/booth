@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 
 import '../MVC/booth_controller.dart';
@@ -42,8 +44,9 @@ class SearchPage extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return FutureBuilder<List<String>>(
-      future: getUserNames(controller),
+    return FutureBuilder
+    (
+      future: getUsers(controller),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -52,8 +55,8 @@ class SearchPage extends SearchDelegate<String> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No Users'));
         }
-
-        final List<String> searchResults = snapshot.data!
+        Map<dynamic, dynamic> users = snapshot.data!;
+        final List<String> searchResults = (users.values.toList()as List<String>)
             .where((item) => item.toLowerCase().contains(query.toLowerCase()))
             .toList();
 
@@ -75,31 +78,41 @@ class SearchPage extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return FutureBuilder<List<String>>(
-      future: getUserNames(controller),
+    return FutureBuilder(
+      future: getUsers(controller),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error occurred'));
         }
-
-        final List<String> suggestionList = query.isEmpty
-            ? []
-            : snapshot.data!
-                .where(
-                    (item) => item.toLowerCase().contains(query.toLowerCase()))
-                .toList();
-
+        Map<dynamic, dynamic> users = snapshot.data!;
+        // final List<String> suggestionList = query.isEmpty
+        //     ? []
+        //     : (users.values.toList() as List<String>)
+        //         .where(
+        //             (item) => item.toLowerCase().contains(query.toLowerCase()))
+        //         .toList();
+        Map<String, String> suggestionList = {};
+        if (query.isNotEmpty){
+          for(var key in users.keys){
+            if (users[key].toString().toLowerCase().contains(query.toLowerCase())){
+              suggestionList[key] = users[key];
+            }
+          }
+        }
         return ListView.builder(
           itemCount: suggestionList.length,
           itemBuilder: (context, index) {
+            String name = suggestionList.values.elementAt(index);
+            String userKey = suggestionList.keys.elementAt(index);
             return ListTile(
               trailing: const Icon(Icons.add),
-              title: Text(suggestionList[index]),
+              title: Text(name),
               onTap: () {
                 // Change Later to show the users profile/session examples
-                query = suggestionList[index];
+                query = name;
+                controller.sendFriendRequest(userKey);
                 // Show the search results based on the selected suggestion.
               },
             );
@@ -109,15 +122,16 @@ class SearchPage extends SearchDelegate<String> {
     );
   }
 
-  Future<List<String>> getUserNames(BoothController controller) async {
+  Future<Map<dynamic, dynamic>> getUsers(BoothController controller) async {
     Map<dynamic, dynamic> users =
         await controller.getUsers(); // Await the Future
 
-    List<String> userList = [];
+    Map<String, String> userList = {};
 
     users.forEach((key, value) {
-      String name = value['name'];
-      userList.add(name);
+      String name = value['name'] as String;
+      String userKey = key as String;
+      userList[userKey] = name;
     });
 
     return userList;

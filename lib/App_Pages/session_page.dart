@@ -274,15 +274,15 @@ class SessionDestination extends StatelessWidget {
         String description =
             json['description'] + '\n• ' + memberNames.join("\n• ");
 
-        int index = ((session.seatsTaken/session.seatsAvailable) * 100).floor();
+        int colorIndex = ((session.seatsTaken/session.seatsAvailable) * 100).floor();
         Color fullness;
-        if (index <= 33){
+        if (colorIndex <= 33){
           fullness = sessionColor[3];
         }
-        else if (index <= 66){
+        else if (colorIndex <= 66){
           fullness = sessionColor[2];
         }
-        else if (index <= 99){
+        else if (colorIndex <= 99){
           fullness = sessionColor[1];
         }
         else{
@@ -447,7 +447,7 @@ class AdminDestination extends StatelessWidget {
                               contentPadding: EdgeInsets.zero,
                               onTap: () {
                                 controller.sendFriendRequest(
-                                    snapshot.key!, json['name']);
+                                    snapshot.key!);
                               },
                             );
                           },
