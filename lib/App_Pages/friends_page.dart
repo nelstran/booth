@@ -15,43 +15,46 @@ class FriendsPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Requests section with a clickable option
-          GestureDetector(
-            onTap: () {
-              // Navigate to the RequestsPage
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RequestsPage(controller: boothController), 
+          // Requests section (hidden if user does not have requests)
+          FutureBuilder<Map<dynamic, dynamic>>(
+            future: boothController.getRequests(false), 
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Container(); // Hide the section if no requests
+              }
+              final requestsCount = snapshot.data!.length;
+              return GestureDetector(
+                onTap: () {
+                  // Navigate to the RequestsPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RequestsPage(controller: boothController),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Requests",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text("($requestsCount)"), // Show # of requests
+                    ],
+                  ),
                 ),
               );
             },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Requests",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  FutureBuilder<Map<dynamic, dynamic>>(
-                    future: boothController.getRequests(false), // Fetch friend requests
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Text("(0)");
-                      }
-                      return Text("(${snapshot.data!.length})"); // Show # of requests
-                    },
-                  ),
-                ],
-              ),
-            ),
           ),
           // Friends header
           const Padding(
@@ -85,46 +88,67 @@ class FriendsPage extends StatelessWidget {
                     final userId = friends.keys.elementAt(index);
                     final userName = friends[userId] as String;
 
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                    return Dismissible( // Dismissible allows swipe away actions
+                      key: Key(userId), 
+                      background: Container( 
+                        color: Colors.red,
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 25,
-                          backgroundColor: Colors.grey[200],
-                          child: Icon(
-                            Icons.person,
-                            size: 30,
-                            color: Colors.grey[500],
-                          ),
+                      onDismissed: (direction) {
+                        if (direction == DismissDirection.endToStart) {
+                          showConfirmationDialog(context, userName, userId);
+                        }
+                      },
+                      child: Card(
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
                         ),
-                        title: Text(
-                          userName,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Row(
-                          children: [
-                            getStatusIndicator(userId),
-                            const SizedBox(width: 8),
-                            Text(getAvailability(userId)), 
-                          ],
-                        ),
-                        onTap: () {
-                          // TODO: Navigate to the profile page of the selected friend, Replace with actual logic
-                          // Navigator.pushNamed(
-                          //   context,
-                          //   '/profile',
-                          //   arguments: userId,
-                          // );
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => UserDisplayPage(boothController, userId),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 25,
+                            backgroundColor: Colors.grey[200],
+                            child: Icon(
+                              Icons.person,
+                              size: 30,
+                              color: Colors.grey[500],
                             ),
-                          );
-                        },
+                          ),
+                          title: Text(
+                            userName,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Row(
+                            children: [
+                              getStatusIndicator(userId),
+                              const SizedBox(width: 8),
+                              Text(getAvailability(userId)),
+                            ],
+                          ),
+                          trailing: PopupMenuButton<int>( //  Popup menu for options (currently remove friend option)
+                            icon: const Icon(Icons.more_vert),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 1,
+                                child: Text('Remove Friend'),
+                              ),
+                            ],
+                            onSelected: (value) {
+                              if (value == 1) {
+                                showConfirmationDialog(context, userName, userId);
+                              }
+                            },
+                          ),
+                          onTap: () {
+                            // Navigate to the profile page of the selected friend
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => UserDisplayPage(boothController, userId),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     );
                   },
@@ -137,6 +161,42 @@ class FriendsPage extends StatelessWidget {
     );
   }
 
+  void showConfirmationDialog(BuildContext context, String userName, String userId) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirm Removal'),
+        content: Text('Are you sure you want to unfriend $userName ?'),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: const Text('Remove'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red, 
+            ),
+            onPressed: () {
+              boothController.removeFriend(userId);
+              Navigator.pop(context);
+              // Show snackbar for confirmation (optional)
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Removed $userName from friends'),
+                ),
+              );
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
   // TODO: Function to return availability, replace with actual logic
   String getAvailability(String userId) {
     return "Online"; 
