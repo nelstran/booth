@@ -64,31 +64,19 @@ class _SessionPageState extends State<SessionPage> {
     ];
     List<Widget> destinations = [
       const NavigationDestination(
-        icon: Icon(
-          Icons.home, 
-          color: Colors.white
-        ),
+        icon: Icon(Icons.home, color: Colors.white),
         label: "Home",
       ),
       const NavigationDestination(
-        icon: Icon(
-          Icons.map, 
-          color: Colors.white
-        ),
+        icon: Icon(Icons.map, color: Colors.white),
         label: "Map",
       ),
       const NavigationDestination(
-        icon: Icon(
-          Icons.data_thresholding, 
-          color: Colors.white
-        ),
+        icon: Icon(Icons.data_thresholding, color: Colors.white),
         label: "Usage",
       ),
       const NavigationDestination(
-        icon: Icon(
-          Icons.person, 
-          color: Colors.white
-        ),
+        icon: Icon(Icons.person, color: Colors.white),
         label: "Profile",
       ),
     ];
@@ -108,19 +96,19 @@ class _SessionPageState extends State<SessionPage> {
       // Body
       body: pages[currPageIndex],
       // Floating Action Button
-      floatingActionButton: currPageIndex == 0 ? 
-        FloatingActionButton(
-          onPressed: () {
-            // Navigate to the create session page
-            Navigator.pushNamed(context, '/create_session',
-                arguments: {'user': controller.student});
-          },
-          child: const Text("Create Session"),
-        )
-      : const SizedBox.shrink(),
+      floatingActionButton: currPageIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                // Navigate to the create session page
+                Navigator.pushNamed(context, '/create_session',
+                    arguments: {'user': controller.student});
+              },
+              child: const Text("Create Session"),
+            )
+          : const SizedBox.shrink(),
       // Testing the difference between BottomNavigationBar and NavigationBar -- Nelson
       bottomNavigationBar: NavigationBar(
-                onDestinationSelected: (int i) {
+        onDestinationSelected: (int i) {
           setState(() {
             currPageIndex = i;
           });
@@ -200,10 +188,7 @@ If you proceed, you will lose access to your account and all associated content.
                 // Deletes the account from FireBase (In Controller)
                 // Await is used so that the user is deleted on FB Auth before the app
                 // tries to delete the user from our realtime database
-                await deleteUserAccountFB(context);
-
-                // Deletes the user from everywhere on our app
-                deleteUserAccountEverywhere(controller);
+                await controller.deleteUserAccountFB(context);
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
@@ -244,7 +229,12 @@ class SessionDestination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Color> sessionColor = [Colors.red, Colors.orange, Colors.yellow, Colors.green];
+    List<Color> sessionColor = [
+      Colors.red,
+      Colors.orange,
+      Colors.yellow,
+      Colors.green
+    ];
 
     return FirebaseAnimatedList(
       query: _ref.child("sessions"),
@@ -274,18 +264,16 @@ class SessionDestination extends StatelessWidget {
         String description =
             json['description'] + '\n• ' + memberNames.join("\n• ");
 
-        int colorIndex = ((session.seatsTaken/session.seatsAvailable) * 100).floor();
+        int colorIndex =
+            ((session.seatsTaken / session.seatsAvailable) * 100).floor();
         Color fullness;
-        if (colorIndex <= 33){
+        if (colorIndex <= 33) {
           fullness = sessionColor[3];
-        }
-        else if (colorIndex <= 66){
+        } else if (colorIndex <= 66) {
           fullness = sessionColor[2];
-        }
-        else if (colorIndex <= 99){
+        } else if (colorIndex <= 99) {
           fullness = sessionColor[1];
-        }
-        else{
+        } else {
           fullness = sessionColor[0];
         }
         return Column(
@@ -297,20 +285,16 @@ class SessionDestination extends StatelessWidget {
                 elevation: 2,
                 child: ClipPath(
                   clipper: ShapeBorderClipper(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)
-                  )
-                ),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))),
                   child: Container(
                     decoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(
-                        color: fullness,
-                        width: 10,
-                      )
-                    )
-                  ),
-                  child: ListTile(
+                        border: Border(
+                            left: BorderSide(
+                      color: fullness,
+                      width: 10,
+                    ))),
+                    child: ListTile(
                       // Display title and description
                       title: Text(
                         title,
@@ -334,8 +318,8 @@ class SessionDestination extends StatelessWidget {
                     ),
                   ),
                 ),
-                ),
               ),
+            ),
           ],
         );
       },
@@ -446,8 +430,7 @@ class AdminDestination extends StatelessWidget {
                               trailing: const Icon(Icons.add),
                               contentPadding: EdgeInsets.zero,
                               onTap: () {
-                                controller.sendFriendRequest(
-                                    snapshot.key!);
+                                controller.sendFriendRequest(snapshot.key!);
                               },
                             );
                           },
@@ -581,26 +564,4 @@ class AdminDestination extends StatelessWidget {
 // This method logs the user out
 void logout() {
   FirebaseAuth.instance.signOut();
-}
-
-/// THIS SHOULD EVENTUALLY GO IN THE PROFILE PAGE
-/// Deletes the user everywhere in our app;
-/// - Any Sessions they are apart of
-/// - Any Sessions that they currently own
-/// - The list of users that are recorded in the DB
-void deleteUserAccountEverywhere(BoothController controller) {
-  // First Check to see if the user is apart of any study sessions
-  // If so, remove from study session
-  if (controller.student.session != "") {
-    controller.removeUserFromSession(
-        controller.student.session, controller.student.sessionKey);
-  }
-  // Check is their are any sessions that they OWN and remove the session
-  if (controller.student.ownedSessionKey != "") {
-    controller.removeUserFromSession(
-        controller.student.session, controller.student.sessionKey);
-    controller.removeSession(controller.student.ownedSessionKey);
-  }
-  // Then, remove from the "users" list in the Database
-  controller.removeUser(controller.student.key);
 }

@@ -49,6 +49,207 @@ class BoothController {
     }
   }
 
+  ///  Deletes the User account in FireBase
+  Future<void> deleteUserAccountFB(BuildContext context) async {
+    // Logs Exceptions
+    var logger = Logger();
+    // Checks if context is mounted so no crash happens
+    //if (!context.mounted) return;
+    try {
+      // This Deletes the user from Firebase
+      return reauthenticateThenDelete(context);
+      //await FirebaseAuth.instance.currentUser!.delete();
+      //Navigator.of(context).pop();
+    } on FirebaseAuthException catch (e) {
+      logger.e(e);
+      // This means that Firebase wants them to re-authenticate before Axing the account
+      if (e.code == "requires-recent-login") {
+        print("Requires Recent login.");
+
+        return reauthenticateThenDelete(context);
+      } else {
+        logger.e(e);
+      }
+    } catch (e) {
+      logger.e(e);
+    }
+  }
+
+  /// Function that Requires the user to input their password so they
+  /// can prove that it is them with the account.
+  Future<void> reauthenticateThenDelete(BuildContext context) async {
+    // Used for Logging exceptions
+    Logger logger = Logger();
+    // Checks if context is mounted so no crash happens
+    //if (!context.mounted) return;
+
+    // Runs method to delete account
+    //await tryToDelete(context);
+    // For inputted password
+    TextEditingController passwordController = TextEditingController();
+    String password = '';
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Password'),
+          content: TextField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(hintText: "Password"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                //password = "Cancel";
+                Navigator.of(context).pop();
+                return;
+              },
+            ),
+            TextButton(
+              child: const Text('Confirm'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              onPressed: () async {
+                password = passwordController.text;
+                try {
+                  AuthCredential credential = EmailAuthProvider.credential(
+                      email: FirebaseAuth.instance.currentUser!.email!,
+                      password: password);
+                  await FirebaseAuth.instance.currentUser!
+                      .reauthenticateWithCredential(credential);
+                  // After fresh credential is gained, Firebase Deletes the account
+                  await FirebaseAuth.instance.currentUser!.delete();
+                  //Pops both Dialogs (Enter Password + Warning Dialog)
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+
+                  // Deletes the user from everywhere on our app
+                  deleteUserAccountEverywhere(student);
+                } on FirebaseAuthException catch (e) {
+                  logger.e(e);
+                  // Handles Firebase exceptions during reauthentication
+                  if (e.code == "invalid-credential") {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("Wrong Password!"),
+                                ),
+                              ],
+                            ),
+                            content: const Text("Wrong Password. Try Again."),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Ok"),
+                              )
+                            ],
+                          );
+                        });
+                    // Handle case where the entered password is incorrect
+                  } else if (e.code == "wrong-password") {
+                    // Handle case where the user doesn't match
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("Wrong Password!"),
+                                ),
+                              ],
+                            ),
+                            content:
+                                const Text("Wrong Password! Please Try Again."),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Ok"),
+                              )
+                            ],
+                          );
+                        });
+                  } else {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("error_occured"),
+                                ),
+                              ],
+                            ),
+                            content:
+                                const Text("Error Occured, Please Try Again."),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Ok"),
+                              )
+                            ],
+                          );
+                        });
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// THIS SHOULD EVENTUALLY GO IN THE PROFILE PAGE
+  /// Deletes the user everywhere in our app;
+  /// - Any Sessions they are apart of
+  /// - Any Sessions that they currently own
+  /// - The list of users that are recorded in the DB
+  void deleteUserAccountEverywhere(Student student) {
+    // First Check to see if the user is apart of any study sessions
+    // If so, remove from study session
+    if (student.session != "") {
+      removeUserFromSession(student.session, student.sessionKey);
+    }
+    // Check is their are any sessions that they OWN and remove the session
+    if (student.ownedSessionKey != "") {
+      removeUserFromSession(student.session, student.sessionKey);
+      removeSession(student.ownedSessionKey);
+    }
+    // Then, remove from the "users" list in the Database
+    removeUser(student.key);
+  }
+
   /// Set student of the controller
   void setStudent(String key, Map value) {
     student = Student.fromJson(value);
@@ -215,9 +416,11 @@ class BoothController {
   void sendFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key)) return; // Do nothing if user already sent a request
-    if (friends.containsKey(key)) return; // Do nothing if user is already friends
-    
+    if (requests.containsKey(key))
+      return; // Do nothing if user already sent a request
+    if (friends.containsKey(key))
+      return; // Do nothing if user is already friends
+
     db.sendFriendRequest(student.key, key);
   }
 
@@ -228,237 +431,11 @@ class BoothController {
   void acceptFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key)) return; // Do nothing if user already sent a request
-    if (friends.containsKey(key)) return; // Do nothing if user is already friends
+    if (requests.containsKey(key))
+      return; // Do nothing if user already sent a request
+    if (friends.containsKey(key))
+      return; // Do nothing if user is already friends
 
     db.acceptFriendRequest(student.key, key);
   }
-}
-
-///  Deletes the User account in FireBase
-Future<void> deleteUserAccountFB(BuildContext context) async {
-  // Logs Exceptions
-  var logger = Logger();
-  // Checks if context is mounted so no crash happens
-  //if (!context.mounted) return;
-  try {
-    // This Deletes the user from Firebase
-    return reauthenticateThenDelete(context);
-    //await FirebaseAuth.instance.currentUser!.delete();
-    //Navigator.of(context).pop();
-  } on FirebaseAuthException catch (e) {
-    logger.e(e);
-    // This means that Firebase wants them to re-authenticate before Axing the account
-    if (e.code == "requires-recent-login") {
-      print("Requires Recent login.");
-
-      return reauthenticateThenDelete(context);
-    } else {
-      logger.e(e);
-    }
-  } catch (e) {
-    logger.e(e);
-  }
-}
-
-/// Function that Requires the user to input their password so they
-/// can prove that it is them with the account.
-Future<void> reauthenticateThenDelete(BuildContext context) async {
-  // Used for Logging exceptions
-  Logger logger = Logger();
-  // Checks if context is mounted so no crash happens
-  //if (!context.mounted) return;
-
-  // Runs method to delete account
-  //await tryToDelete(context);
-  // For inputted password
-  TextEditingController passwordController = TextEditingController();
-  String password = '';
-
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Enter Password'),
-        content: TextField(
-          controller: passwordController,
-          obscureText: true,
-          decoration: const InputDecoration(hintText: "Password"),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancel'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              //password = "Cancel";
-              Navigator.of(context).pop();
-              return;
-            },
-          ),
-          TextButton(
-            child: const Text('Confirm'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
-            onPressed: () async {
-              password = passwordController.text;
-              try {
-                AuthCredential credential = EmailAuthProvider.credential(
-                    email: FirebaseAuth.instance.currentUser!.email!,
-                    password: password);
-                await FirebaseAuth.instance.currentUser!
-                    .reauthenticateWithCredential(credential);
-                // After fresh credential is gained, Firebase Deletes the account
-                await FirebaseAuth.instance.currentUser!.delete();
-                //Pops both Dialogs (Enter Password + Warning Dialog)
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              } on FirebaseAuthException catch (e) {
-                logger.e(e);
-                // Handles Firebase exceptions during reauthentication
-                if (e.code == "invalid-credential") {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext ctx) {
-                        return AlertDialog(
-                          title: const Row(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text("Wrong Password!"),
-                              ),
-                            ],
-                          ),
-                          content: const Text("Wrong Password. Try Again."),
-                          actions: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text("Ok"),
-                            )
-                          ],
-                        );
-                      });
-                  // Handle case where the entered password is incorrect
-                } else if (e.code == "wrong-password") {
-                  // Handle case where the user doesn't match
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext ctx) {
-                        return AlertDialog(
-                          title: const Row(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text("Wrong Password!"),
-                              ),
-                            ],
-                          ),
-                          content:
-                              const Text("Wrong Password! Please Try Again."),
-                          actions: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text("Ok"),
-                            )
-                          ],
-                        );
-                      });
-                } else {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext ctx) {
-                        return AlertDialog(
-                          title: const Row(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text("error_occured"),
-                              ),
-                            ],
-                          ),
-                          content:
-                              const Text("Error Occured, Please Try Again."),
-                          actions: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white,
-                              ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text("Ok"),
-                            )
-                          ],
-                        );
-                      });
-                }
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-/// Dialog Pops up to ask the user for their password. If they get it wrong,
-/// asks to try again until they get it.
-Future<void> tryToDelete(BuildContext context) async {
-  // For inputted password
-  TextEditingController passwordController = TextEditingController();
-  String password = '';
-
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Enter Password'),
-        content: TextField(
-          controller: passwordController,
-          obscureText: true,
-          decoration: const InputDecoration(hintText: "Password"),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              //password = "Cancel";
-              Navigator.of(context).pop();
-              return;
-            },
-          ),
-          TextButton(
-            child: const Text('Confirm'),
-            onPressed: () async {
-              password = passwordController.text;
-              AuthCredential credential = EmailAuthProvider.credential(
-                  email: FirebaseAuth.instance.currentUser!.email!,
-                  password: password);
-              await FirebaseAuth.instance.currentUser!
-                  .reauthenticateWithCredential(credential);
-              // After fresh credential is gained, Firebase Deletes the account
-              await FirebaseAuth.instance.currentUser!.delete();
-              // deleteUserAccountEverywhere(controller);
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-
-  return;
 }
