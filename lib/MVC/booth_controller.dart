@@ -398,8 +398,10 @@ class BoothController {
     for (var key in friends.keys) {
       // Get names for now, maybe get the entire student model later
       String value = await db.getNameByKey(key) as String;
+      if (value == "") continue;
       friends[key] = value;
     }
+    friends.removeWhere((key, value) => value == "");
     return friends;
   }
 
@@ -434,8 +436,10 @@ class BoothController {
     for (var key in json[outgoing].keys) {
       // Get names for now, maybe get the entire student model later
       String value = await db.getNameByKey(key) as String;
+      if (value == "") continue;
       requests[key] = value;
     }
+    requests.removeWhere((key, value) => value == "");
     return requests;
   }
 

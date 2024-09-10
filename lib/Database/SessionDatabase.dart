@@ -175,6 +175,6 @@ class SessionDatabase {
     if (key == "") return null;
     final newRef = ref.child("users/$key/name");
     final event = await newRef.once();
-    return event.snapshot.value;
+    return event.snapshot.value ?? "";
   }
 }
