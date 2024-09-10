@@ -235,7 +235,8 @@ class BoothController {
   /// - Any Sessions they are apart of
   /// - Any Sessions that they currently own
   /// - The list of users that are recorded in the DB
-  void deleteUserAccountEverywhere(Student student) {
+  /// - From any Friends list they are apart of
+  Future<void> deleteUserAccountEverywhere(Student student) async {
     // First Check to see if the user is apart of any study sessions
     // If so, remove from study session
     if (student.session != "") {
@@ -246,6 +247,14 @@ class BoothController {
       removeUserFromSession(student.session, student.sessionKey);
       removeSession(student.ownedSessionKey);
     }
+
+    Map<dynamic, dynamic> allFriends = await getFriendsKeys();
+
+    for (var entry in allFriends.entries) {
+      var key = entry.key;
+      removeFriend(key);
+    }
+
     // Then, remove from the "users" list in the Database
     removeUser(student.key);
   }
@@ -392,6 +401,23 @@ class BoothController {
       friends[key] = value;
     }
     return friends;
+  }
+
+  Future<Map<dynamic, dynamic>> getFriendsKeys() async {
+    Object? json = await db.getFriends(student.key);
+    if (json == null) {
+      return {};
+    }
+    Map<dynamic, dynamic> friendsKeys = json as Map<dynamic, dynamic>;
+
+    if (friendsKeys.containsKey('requests')) {
+      friendsKeys.remove('requests');
+    }
+
+    for (var key in friendsKeys.keys) {
+      friendsKeys[key] = key;
+    }
+    return friendsKeys;
   }
 
   void removeFriend(String key) {
