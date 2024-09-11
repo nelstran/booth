@@ -38,9 +38,9 @@ class _LoginPageState extends State<LoginPage> {
       // Clear all routes and push SessionPage route
       
       if(!mounted) return;
-      Navigator.pop(context);
+      // Navigator.of(context).pop;
       Navigator.pushNamedAndRemoveUntil(
-        context, '/session_page',
+        context, '/main_ui_page',
         (_) => false, // This clears all routes in the stack
       );
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/App_Pages/main_ui_page.dart';
 import 'package:flutter_application_1/User_Authentication/login_or_register.dart';
 import 'package:flutter_application_1/App_Pages/session_page.dart';
 
@@ -17,7 +18,7 @@ class AuthPage extends StatelessWidget {
         builder: (context, snapshot) {
           // If the user exists in the database, display the home page (Sessions Page)
           if (snapshot.hasData) {
-            return SessionPage(snapshot.data);
+            return MainUIPage(snapshot.data);
           }
           // Otherwise, display the login or register page
           else{
