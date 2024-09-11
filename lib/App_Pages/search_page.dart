@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 
@@ -9,23 +7,11 @@ class SearchPage extends SearchDelegate<String> {
   late final BoothController controller;
   SearchPage({required this.controller});
 
-  // Mock data, need this to be a list of users from the database
-  final List<String> searchList = [
-    "Brayden",
-    "Bob",
-    "Nelson",
-    "Noah",
-    "Jack",
-    "Joel",
-    "Leena",
-    "Laura"
-  ];
-
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.clear),
+        icon: const Icon(Icons.clear),
         onPressed: () {
           query = '';
           // When pressed here the query will be cleared from the search bar.
@@ -99,50 +85,63 @@ class SearchPage extends SearchDelegate<String> {
             }
           }
         }
-        return ListView.builder(
-          itemCount: suggestionList.length,
-          itemBuilder: (context, index) {
-            String name = suggestionList.values.elementAt(index);
-            String userKey = suggestionList.keys.elementAt(index);
-            List<IconButton> trailingIcons = [
-              IconButton( // Add friend
-                onPressed: (){
-                  controller.sendFriendRequest(userKey); // TODO: Change icon when this is tapped
-                }, 
-                icon: const Icon(Icons.person_add_outlined)
-              ),
-              const IconButton( // Already friends
-                // color: Colors.green,
-                onPressed: null, 
-                icon: Icon(Icons.check)
-              ),
-              const IconButton( // Request sent
-                onPressed: null, // TODO: Cancel friend request 
-                icon: Icon(Icons.mark_email_read_outlined)
-              ),
-            ];
-            IconButton listIcon = trailingIcons[0];
-            if (snapshot.data![1].containsKey(userKey)){
-              listIcon = trailingIcons[1];
+
+        var iconIndex = 0;
+        return StatefulBuilder(
+          builder: (context, setState){
+            if (suggestionList.isEmpty && query.isNotEmpty){
+              return const Center(
+                child: Text("No users found"),
+              );
             }
-            if(snapshot.data![2].containsKey(userKey)){
-              listIcon = trailingIcons[2];
-            }
-            return ListTile(
-              trailing: listIcon,
-              title: Text(name),
-              onTap: () {
-                // Show the search results based on the selected suggestion.
-                query = name;
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => UserDisplayPage(controller, userKey),
+            return ListView.builder(
+              itemCount: suggestionList.length,
+              itemBuilder: (context, index) {
+                String name = suggestionList.values.elementAt(index);
+                String userKey = suggestionList.keys.elementAt(index);
+                List<IconButton> trailingIcons = [
+                  IconButton( // Add friend
+                    onPressed: (){
+                      controller.sendFriendRequest(userKey);
+                      // Change icon to 'request sent' when sending friend request
+                      setState((){
+                        iconIndex = 2;
+                      });
+                    }, 
+                    icon: const Icon(Icons.person_add_outlined)
                   ),
+                  const IconButton( // Already friends
+                    // color: Colors.green,
+                    onPressed: null, 
+                    icon: Icon(Icons.check)
+                  ),
+                  const IconButton( // Request sent
+                    onPressed: null, // TODO: Cancel friend request 
+                    icon: Icon(Icons.mark_email_read_outlined)
+                  ),
+                ];
+                if (snapshot.data![1].containsKey(userKey)){
+                  iconIndex = 1;
+                }
+                if(snapshot.data![2].containsKey(userKey)){
+                  iconIndex = 2;
+                }
+                return ListTile(
+                  trailing: trailingIcons[iconIndex],
+                  title: Text(name),
+                  onTap: () {
+                    // Show the search results based on the selected suggestion.
+                    query = name;
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => UserDisplayPage(controller, userKey),
+                      ),
+                    );
+                  },
                 );
-                
               },
             );
-          },
+          }
         );
       },
     );

@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/create_session_page.dart';
 import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
-import 'package:flutter_application_1/App_Pages/login_page.dart';
 import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:flutter_application_1/firebase_options.dart';
 import 'package:flutter_application_1/App_Theme/dark_mode.dart';
