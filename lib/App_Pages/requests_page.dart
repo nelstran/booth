@@ -45,16 +45,20 @@ class RequestsPage extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.check, color: Colors.green),
-                      onPressed: () {
-                        controller.acceptFriendRequest(requestId);
-                        Navigator.of(context).pop(); 
+                      onPressed: () async {
+                        await controller.acceptFriendRequest(requestId);
+                        if(context.mounted){
+                          return Navigator.of(context).pop(); 
+                        }
                       },
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.red),
-                      onPressed: () {
-                        controller.declineFriendRequest(requestId);
-                        Navigator.of(context).pop(); 
+                      onPressed: () async {
+                        await controller.declineFriendRequest(requestId);
+                        if(context.mounted){
+                          Navigator.of(context).pop(); 
+                        }
                       },
                     ),
                   ],

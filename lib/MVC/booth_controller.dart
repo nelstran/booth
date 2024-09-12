@@ -453,18 +453,19 @@ class BoothController {
     db.sendFriendRequest(student.key, key);
   }
 
-  void declineFriendRequest(String key) {
-    db.declineFriendRequest(student.key, key);
+  Future<void> declineFriendRequest(String key) async {
+    return db.declineFriendRequest(student.key, key);
   }
 
-  void acceptFriendRequest(String key) async {
+  Future<void> acceptFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key))
+    if (requests.containsKey(key)){
       return; // Do nothing if user already sent a request
-    if (friends.containsKey(key))
+    }
+    if (friends.containsKey(key)){
       return; // Do nothing if user is already friends
-
-    db.acceptFriendRequest(student.key, key);
+    }
+    return db.acceptFriendRequest(student.key, key);
   }
 }

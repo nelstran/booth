@@ -149,14 +149,14 @@ class SessionDatabase {
     await receiverRef.update({senderKey: ""});
   }
 
-  void declineFriendRequest(String studentKey, String strangerKey) {
+  void declineFriendRequest(String studentKey, String strangerKey) async {
     if (studentKey == '' || strangerKey == '') return;
-    ref
-        .child('users/$studentKey/friends/requests/incoming/$strangerKey')
-        .remove();
-    ref
-        .child('users/$strangerKey/friends/requests/outgoing/$studentKey')
-        .remove();
+    await ref
+      .child('users/$studentKey/friends/requests/incoming/$strangerKey')
+      .remove();
+    await ref
+      .child('users/$strangerKey/friends/requests/outgoing/$studentKey')
+      .remove();
   }
 
   void acceptFriendRequest(String studentKey, String friendKey) async {
