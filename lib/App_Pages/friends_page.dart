@@ -94,10 +94,13 @@ class FriendsPage extends StatelessWidget {
                         color: Colors.red,
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                      onDismissed: (direction) {
-                        if (direction == DismissDirection.endToStart) {
-                          showConfirmationDialog(context, userName, userId);
-                        }
+                      // onDismissed: (direction) {
+                      //   if (direction == DismissDirection.endToStart) {
+                      //     showConfirmationDialog(context, userName, userId);
+                      //   }
+                      // },
+                      confirmDismiss: (direction) {
+                        return showConfirmationDialog(context, userName, userId);
                       },
                       child: Card(
                         elevation: 3,
@@ -161,8 +164,9 @@ class FriendsPage extends StatelessWidget {
     );
   }
 
-  void showConfirmationDialog(BuildContext context, String userName, String userId) {
-  showDialog(
+  Future<bool> showConfirmationDialog(BuildContext context, String userName, String userId) async {
+  bool confirm = false;
+  await showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
@@ -190,12 +194,14 @@ class FriendsPage extends StatelessWidget {
                   content: Text('Removed $userName from friends'),
                 ),
               );
+              confirm = true;
             },
           ),
         ],
       );
     },
   );
+  return confirm;
 }
   // TODO: Function to return availability, replace with actual logic
   String getAvailability(String userId) {

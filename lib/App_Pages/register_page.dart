@@ -160,13 +160,12 @@ class _RegisterPageState extends State<RegisterPage> {
               //   text: "Register",
               //   onTap: registerUser,
               // ),
-              FloatingActionButton(
-                heroTag: "Register",
+              ElevatedButton(
                 onPressed: () {
                   // Register user and navigate to the create profile page
                   registerUser();
                 },
-                child: Text("Register"),
+                child: const Text("Register"),
               ),
 
               const SizedBox(height: 25),
@@ -176,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Already have an account?",
+                    "Already have an account? ",
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary),
                   ),

@@ -95,12 +95,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               TextFormField(
                 initialValue: edit ? profile['name'] : '',
                 decoration: const InputDecoration(labelText: 'Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
                 onSaved: (value) => _name = value,
               ),
               const SizedBox(height: 8.0),
@@ -121,12 +115,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                     ? profile['institution'] as String
                     : null,
                 decoration: const InputDecoration(labelText: 'Institution'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the name of your college/university';
-                  }
-                  return null;
-                },
                 items: listOfInstitutions.map((String value) {
                   return DropdownMenuItem(value: value, child: Text(value));
                 }).toList(),
@@ -138,12 +126,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               TextFormField(
                 initialValue: edit ? profile['major'] : '',
                 decoration: const InputDecoration(labelText: 'Major'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your major';
-                  }
-                  return null;
-                },
                 onSaved: (value) => _major = value,
               ),
               const SizedBox(height: 8.0),
@@ -159,12 +141,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                   DropdownMenuItem(value: "Junior", child: Text("Junior")),
                   DropdownMenuItem(value: "Senior", child: Text("Senior")),
                 ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please make a selection';
-                  }
-                  return null;
-                },
                 onChanged: (value) => _year = value,
                 onSaved: (value) => _year = value,
               ),
@@ -181,12 +157,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 value: listOfCourses[0],
                 menuMaxHeight: 250,
                 icon: const Icon(Icons.add),
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please insert a course';
-                  }
-                  return null;
-                },
                 items: listOfCourses.whereType<String>().map((String value) {
                   if (listOfCourses.indexOf(value) == 0) {
                     return DropdownMenuItem<String>(

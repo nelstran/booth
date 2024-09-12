@@ -5,6 +5,10 @@ class UsagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text("Usage Placeholder");
+     return Expanded(
+      child: Image.asset(
+                'assets/images/usage.png'),
+    );
+    // return const Text("Usage Placeholder");
   }
 }
