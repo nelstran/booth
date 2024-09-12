@@ -86,19 +86,23 @@ class SearchPage extends SearchDelegate<String> {
           }
         }
 
-        var iconIndex = 0;
-        return StatefulBuilder(
-          builder: (context, setState){
-            if (suggestionList.isEmpty && query.isNotEmpty){
-              return const Center(
-                child: Text("No users found"),
-              );
-            }
-            return ListView.builder(
-              itemCount: suggestionList.length,
-              itemBuilder: (context, index) {
+        if (suggestionList.isEmpty && query.isNotEmpty){
+          return const Center(
+            child: Text("No users found"),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: suggestionList.length,
+          itemBuilder: (context, index) {
+            var iconIndex = 0;
+            return StatefulBuilder(
+              builder: (context, setState) {
                 String name = suggestionList.values.elementAt(index);
                 String userKey = suggestionList.keys.elementAt(index);
+                if (userKey == controller.student.key){
+                  return const SizedBox.shrink();
+                }
                 List<IconButton> trailingIcons = [
                   IconButton( // Add friend
                     onPressed: (){
