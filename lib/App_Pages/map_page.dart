@@ -5,9 +5,13 @@ class MapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Image.asset(
-                'assets/images/map.png'),
+    return Column(
+      children: [
+        Expanded(
+          child: Image.asset(
+                    'assets/images/map.png'),
+        ),
+      ],
     );
     
     // return const Text("Map Placeholder");
