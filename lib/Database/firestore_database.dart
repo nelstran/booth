@@ -63,9 +63,9 @@ class FirestoreDatabase {
 /// Helper method to add up the time from Firestore and current session 
 Future<void> logDurationHelper(DocumentReference ref, String userKey, String value, int duration) async {
     final document = await ref.get();
-    final log = document.data() as Map<String, dynamic>?;
+    final log = document.data() as Map<String, dynamic>? ?? {};
     // Check if logs exists and if current location has any logged time
-    if (log != null && log.containsKey(value)){
+    if (log.containsKey(value)){
       // Add new and old time together
       duration += log[value] as int;
     }
@@ -75,9 +75,7 @@ Future<void> logDurationHelper(DocumentReference ref, String userKey, String val
     };
 
     // Combine the data
-    if(log != null){
       log.addAll(values);
-    }
 
-    ref.set(log!);
+    ref.set(log);
   }
