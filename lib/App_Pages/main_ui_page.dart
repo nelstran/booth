@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +34,9 @@ class _MainUIPageState extends State<MainUIPage> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return createUI();
+        }
+        else if (snapshot.hasError){
+          return errorDialog();
         } else {
           return const Center(child: CircularProgressIndicator());
         }
@@ -203,6 +208,24 @@ class _MainUIPageState extends State<MainUIPage> {
   // This method logs the user out
   void logout() {
     FirebaseAuth.instance.signOut();
+  }
+
+  AlertDialog errorDialog(){
+    return AlertDialog(
+      title: const Text('Error has occured'),
+      content: const Text('Your account cannot be found, please contact an administrator for help'),
+      actions: [
+        TextButton(
+          onPressed: (){
+            logout();
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white
+          ),
+          child: const Text("Cancel"),
+        )
+      ],
+    );
   }
   
   Future<dynamic> deletionDialog() {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Database/SessionDatabase.dart';
 import 'package:logger/web.dart';
 
+import '../Database/firestore_database.dart';
 import 'session_model.dart';
 import 'student_model.dart';
 
@@ -12,6 +13,7 @@ import 'student_model.dart';
 /// go through controller.
 class BoothController {
   final DatabaseReference ref;
+  final FirestoreDatabase firestoreDb = FirestoreDatabase();
   SessionDatabase db;
   Student student;
 
@@ -27,6 +29,10 @@ class BoothController {
       String key = await db.fetchUserKey(user);
       DatabaseReference studentRef = ref.child("users/$key");
       final snapshot = await studentRef.get();
+      final doc = await firestoreDb.getUserData(user.uid);
+      if (doc == null){
+        firestoreDb.addUserData(user.uid);
+      }
       var value = snapshot.value as Map;
       value['key'] = snapshot.key;
       // Modify student on change
@@ -44,7 +50,7 @@ class BoothController {
       setStudent(key, value);
       return student.fullname;
     } catch (error) {
-      return "CANNOT FIND USER";
+      return Future.error(error);
     }
   }
 
@@ -266,6 +272,7 @@ class BoothController {
   /// Add the given student to the database
   void addUser(Student student) {
     db.addUser(student.toJson());
+    firestoreDb.addUserData(student.uid);
   }
 
   /// Given its key, remove the user from the database
