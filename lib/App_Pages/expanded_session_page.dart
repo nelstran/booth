@@ -65,23 +65,23 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                     flex:4,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Text(
                           session.title,
                           style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 20.0),
+                        // const SizedBox(height: 20.0),
                         Text(
                           'Description: ${session.description}',
                           style: const TextStyle(fontSize: 18.0),
                         ),
-                        const SizedBox(height: 20.0),
+                        // const SizedBox(height: 20.0),
                         Text(
                           'Location Description: ${session.locationDescription}',
                           style: const TextStyle(fontSize: 18.0),
                         ),
-                        const SizedBox(height: 20.0),
+                        // const SizedBox(height: 20.0),
                         Row(
                           children: [
                             const Icon(Icons.access_time, size: 18.0),
@@ -92,7 +92,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20.0),
+                        // const SizedBox(height: 20.0),
                         Row(
                           children: [
                             const Icon(Icons.people, size: 18.0),
@@ -103,7 +103,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20.0),
+                        // const SizedBox(height: 20.0),
                         Row(
                           children: [
                             const Icon(Icons.subject, size: 18.0),
@@ -185,22 +185,26 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 ),
               ),
               child:Text(key == controller.student.ownedSessionKey ? "Delete" : buttonText),
-              onPressed: (){
+              onPressed: () async {
+                // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
+                if (controller.student.ownedSessionKey != "")
+                {
+                  // Put the pop at the top to prevent async gaps
+                  Navigator.of(context).pop();
+                  var sessionToDelete = controller.student.ownedSessionKey;
+                  await controller.removeUserFromSession(controller.student.session, controller.student.sessionKey);
+                  controller.removeSession(sessionToDelete);
+                }
+                // -------------------------------------------------------
+                if (isInThisSession) {
+                  controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
+                  controller.endSessionLogging(controller.student.uid);
+                }
+                else {
+                  controller.addUserToSession(widget.sessionKey, controller.student);
+                  controller.startSessionLogging(controller.student.uid, session);
+                }
                 setState(() {
-                  // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
-                  if (controller.student.ownedSessionKey != "")
-                  {
-                    controller.removeUserFromSession(controller.student.session, controller.student.sessionKey);
-                    controller.removeSession(controller.student.ownedSessionKey);
-                    Navigator.pop(context);
-                  }
-                  // -------------------------------------------------------
-                  if (isInThisSession) {
-                    controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
-                  }
-                  else {
-                    controller.addUserToSession(widget.sessionKey, controller.student);
-                  }
                   isInThisSession = !isInThisSession; // Janky way to update state UI
                   updateState();
                   // isInThisSession = controller.student.session == widget.sessionKey; // This does not work on first click

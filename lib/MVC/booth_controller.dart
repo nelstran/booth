@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -303,7 +304,7 @@ class BoothController {
   void addUserToSession(String sessionKey, Student user) async {
     // If user is in a session, remove them from it before adding them to a new one
     if (user.session != "") {
-      removeUserFromSession(user.session, user.sessionKey);
+      await removeUserFromSession(user.session, user.sessionKey);
     }
 
     Map studentValues = {
@@ -320,10 +321,11 @@ class BoothController {
   }
 
   /// Remove the logged in user (student) from the session
-  void removeUserFromSession(String sessionKey, String userSessionKey) {
+  Future<void> removeUserFromSession(String sessionKey, String userSessionKey) async {
     db.removeStudentFromSession(sessionKey, userSessionKey);
     db.updateUser(
         student.key, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
+    await endSessionLogging(student.uid);
   }
 
   /// Add the session to the database, the user who made it
@@ -356,10 +358,11 @@ class BoothController {
     student.ownedSessionKey = sessionKey;
     //Sets the owner's session key to the session key in the database
     db.updateUser(
-        owner.key, {"ownedSessionKey": sessionKey, "session": sessionKey});
+        owner.key, {"session": sessionKey, "sessionKey": userKey, "ownedSessionKey": sessionKey, });
 
     // Update session in db to state who owns that session
-    db.updateSession(keys["sessionKey"]!, {"ownerKey": userKey});
+    db.updateSession(sessionKey, {"ownerKey": userKey});
+    startSessionLogging(owner.uid, session);
   }
 
   /// Given a key, remove the session from the database
@@ -474,5 +477,30 @@ class BoothController {
       return; // Do nothing if user is already friends
     }
     return db.acceptFriendRequest(student.key, key);
+  }
+
+  // ---- USER ANALYTICS ---- //
+  void startSessionLogging(String userKey, Session session){
+    var format = DateTimeFormat.dateAndTime;
+    var timestamp = Timestamp.now().toDate();
+    Map<String, dynamic> valuesToLog = {
+      "start_time": format(timestamp),
+      "subject": session.subject,
+      "location_desc": session.locationDescription
+    };
+
+    firestoreDb.startSessionLogging(userKey, valuesToLog);
+  }
+
+  Future<void>  endSessionLogging(String userKey) async {
+    var doc = await firestoreDb.endSessionLogging(userKey);
+    if (doc == null){
+      return;
+    }
+    // var duration = DateTime.now().difference(doc["start_time"]).inHours;
+    var duration = DateTime.now().difference(DateTime.parse(doc["start_time"])).inSeconds; // For testing, I am not sitting here for hours
+
+    await firestoreDb.logSubjectTime(userKey, doc["subject"], duration);
+    await firestoreDb.logLocationTime(userKey, doc["location_desc"], duration);
   }
 }
