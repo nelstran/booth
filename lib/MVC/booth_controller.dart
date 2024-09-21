@@ -480,6 +480,8 @@ class BoothController {
   }
 
   // ---- USER ANALYTICS ---- //
+  /// Creates an entry in the Firestore that stores what subject the user
+  /// is studying and what location it is at while also taking note of the time they started.
   void startSessionLogging(String userKey, Session session){
     var format = DateTimeFormat.dateAndTime;
     var timestamp = Timestamp.now().toDate();
@@ -492,6 +494,9 @@ class BoothController {
     firestoreDb.startSessionLogging(userKey, valuesToLog);
   }
 
+  /// Grabs the log from Firestore and takes the difference of
+  /// the current time and the time the user started studying to 
+  /// then add to their data in Firestore for analytics
   Future<void>  endSessionLogging(String userKey) async {
     var doc = await firestoreDb.endSessionLogging(userKey);
     if (doc == null){
@@ -500,7 +505,19 @@ class BoothController {
     // var duration = DateTime.now().difference(doc["start_time"]).inHours;
     var duration = DateTime.now().difference(DateTime.parse(doc["start_time"])).inSeconds; // For testing, I am not sitting here for hours
 
+    // Logs subject and time in seconds
+    // TODO: Separate data by days, weeks, months
     await firestoreDb.logSubjectTime(userKey, doc["subject"], duration);
     await firestoreDb.logLocationTime(userKey, doc["location_desc"], duration);
+  }
+
+  Future<Map<String, dynamic>> fetchUserStudyData(String userKey) async {
+    final doc = await firestoreDb.fetchuserStudyData(userKey);
+    if (doc == null || doc.isEmpty){
+      return {};
+    }
+
+    return doc;
+    
   }
 }

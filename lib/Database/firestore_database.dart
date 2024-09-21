@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class FirestoreDatabase {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -54,6 +55,22 @@ class FirestoreDatabase {
      // Retrieve location logs
     final ref = db.collection("users").doc(userKey).collection("session_logs").doc("location_data");
     logDurationHelper(ref, userKey, location, duration);
+  }
+
+  /// Grabs user data from Firestore
+  Future<Map<String, dynamic>?> fetchuserStudyData(String userKey) async {
+    final ref = db.collection("users").doc(userKey).collection("session_logs");
+    try{
+      final snapshot = await ref.get();
+      Map<String, dynamic> docs = {};
+      for (var query in snapshot.docs){
+        docs[query.id] = query.data();
+      }
+      return docs;
+    }
+    catch(error){
+      return {};
+    }
   }
 
 }

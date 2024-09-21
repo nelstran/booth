@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_application_1/MVC/booth_controller.dart';
 
 class UsagePage extends StatelessWidget {
-  const UsagePage({super.key});
+  final BoothController controller;
+  const UsagePage(this.controller, {super.key});
 
   // @override
   // Widget build(BuildContext context) {
@@ -20,7 +22,6 @@ class UsagePage extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-
    List<double> weeklySummary = [4, 5, 7, 2, 1, 8, 3];
 
    BarData myBarData = BarData(

@@ -74,7 +74,7 @@ class _MainUIPageState extends State<MainUIPage> {
       label: "Map",
     );
 
-    var usagePage = const UsagePage();
+    var usagePage = UsagePage(controller);
     var usageNav = const NavigationDestination(
       icon: Icon(Icons.data_thresholding, color: Colors.white),
       label: "Usage",
