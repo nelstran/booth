@@ -546,7 +546,7 @@ class BoothController {
     firestoreDb.uploadProfilePictureFireStore(pfpURL, userKey);
   }
 
-  Future<String?> retriveProfilePicture(String userKey) async {
+  Future<String?> retrieveProfilePicture(String userKey) async {
     return await firestoreDb.retriveProfilePicture(userKey);
   }
 }

@@ -15,8 +15,8 @@ class FirestoreDatabase {
     db.collection("users").doc(key).set({});
   }
 
-  Future<Map<String, dynamic>?> getUserData(String key) async {
-    final ref = db.collection("users").doc(key);
+  Future<Map<String, dynamic>?> getUserData(String userKey) async {
+    final ref = db.collection("users").doc(userKey);
 
     try {
       final doc = await ref.get();
