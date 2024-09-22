@@ -198,10 +198,9 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 // -------------------------------------------------------
                 if (isInThisSession) {
                   controller.removeUserFromSession(widget.sessionKey, controller.student.sessionKey);
-                  controller.endSessionLogging(controller.student.uid);
                 }
                 else {
-                  controller.addUserToSession(widget.sessionKey, controller.student);
+                  await controller.addUserToSession(widget.sessionKey, controller.student);
                   controller.startSessionLogging(controller.student.uid, session);
                 }
                 setState(() {

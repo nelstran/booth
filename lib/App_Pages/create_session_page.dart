@@ -16,10 +16,16 @@ import 'package:flutter_application_1/MVC/session_model.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
 
 class CreateSessionPage extends StatefulWidget {
-  const CreateSessionPage({super.key});
-
+  final BoothController controller;
+  const CreateSessionPage(
+    this.controller,
+    {super.key}
+  );
+    
   @override
-  _CreateSessionPageState createState() => _CreateSessionPageState();
+  State<StatefulWidget> createState() {
+    return _CreateSessionPageState();
+  }
 }
 
 class _CreateSessionPageState extends State<CreateSessionPage> {
@@ -35,7 +41,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -143,7 +148,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     final boothSession = Session(
@@ -157,15 +162,12 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                       field: "field",
                       level: 1000,
                     );
-                    BoothController controller = BoothController(
-                      FirebaseDatabase.instance.ref()
-                    );
-                    Student student = arguments['user'];
+                    Student student = widget.controller.student;
                     if (student.session != "") {
-                      controller.removeUserFromSession(student.session, student.sessionKey);
+                      await widget.controller.removeUserFromSession(student.session, student.sessionKey);
                     }
-                    controller.addSession(boothSession, arguments['user']);
-                    Navigator.pop(context);
+                    widget.controller.addSession(boothSession, student);
+                    if (context.mounted) Navigator.pop(context);
                   }
                 },
                 style: const ButtonStyle(

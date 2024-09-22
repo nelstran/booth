@@ -9,6 +9,8 @@ import '../Database/firestore_database.dart';
 import 'session_model.dart';
 import 'student_model.dart';
 
+import 'package:intl/intl.dart';
+
 /// Controller will act as a bridge from front end to back end.
 /// Anything needed to modify the logged in user or sessions should
 /// go through controller.
@@ -246,11 +248,11 @@ class BoothController {
     // First Check to see if the user is apart of any study sessions
     // If so, remove from study session
     if (student.session != "") {
-      removeUserFromSession(student.session, student.sessionKey);
+      await removeUserFromSession(student.session, student.sessionKey);
     }
     // Check is their are any sessions that they OWN and remove the session
     if (student.ownedSessionKey != "") {
-      removeUserFromSession(student.session, student.sessionKey);
+      await removeUserFromSession(student.session, student.sessionKey);
       removeSession(student.ownedSessionKey);
     }
 
@@ -301,7 +303,7 @@ class BoothController {
   }
 
   /// Add the logged in user (student) to a session
-  void addUserToSession(String sessionKey, Student user) async {
+  Future<void> addUserToSession(String sessionKey, Student user) async {
     // If user is in a session, remove them from it before adding them to a new one
     if (user.session != "") {
       await removeUserFromSession(user.session, user.sessionKey);
@@ -321,7 +323,7 @@ class BoothController {
   }
 
   /// Remove the logged in user (student) from the session
-  Future<void> removeUserFromSession(String sessionKey, String userSessionKey) async {
+  Future<void> removeUserFromSession(String sessionKey, String userSessionKey) async  {
     db.removeStudentFromSession(sessionKey, userSessionKey);
     db.updateUser(
         student.key, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
@@ -485,8 +487,13 @@ class BoothController {
   void startSessionLogging(String userKey, Session session){
     var format = DateTimeFormat.dateAndTime;
     var timestamp = Timestamp.now().toDate();
+    var todayInDays = timestamp.difference(DateTime(timestamp.year, 1, 1, 0, 0)).inDays;
     Map<String, dynamic> valuesToLog = {
-      "start_time": format(timestamp),
+      "start_timestamp": format(timestamp),
+      "month": DateFormat.MMMM().format(timestamp),
+      "day_of_month": DateFormat.d().format(timestamp),
+      "day_of_week": DateFormat.EEEE().format(timestamp),
+      "day_of_year": todayInDays.toString(),
       "subject": session.subject,
       "location_desc": session.locationDescription
     };
@@ -494,21 +501,23 @@ class BoothController {
     firestoreDb.startSessionLogging(userKey, valuesToLog);
   }
 
-  /// Grabs the log from Firestore and takes the difference of
-  /// the current time and the time the user started studying to 
-  /// then add to their data in Firestore for analytics
-  Future<void>  endSessionLogging(String userKey) async {
+  /// Grabs the starting log from Firestore and finalize the data for analytics.
+  /// The data in curr_session should be in its own respective document containing data
+  /// for easy querying.
+  Future<void> endSessionLogging(String userKey) async {
     var doc = await firestoreDb.endSessionLogging(userKey);
     if (doc == null){
       return;
     }
-    // var duration = DateTime.now().difference(doc["start_time"]).inHours;
-    var duration = DateTime.now().difference(DateTime.parse(doc["start_time"])).inSeconds; // For testing, I am not sitting here for hours
+
+    var format = DateTimeFormat.dateAndTime;
+    var endTime = Timestamp.now();
+    var timestamp = format(endTime.toDate());
+    var filename = endTime.millisecondsSinceEpoch.toString();
+    doc['end_timestamp'] = timestamp;
 
     // Logs subject and time in seconds
-    // TODO: Separate data by days, weeks, months
-    await firestoreDb.logSubjectTime(userKey, doc["subject"], duration);
-    await firestoreDb.logLocationTime(userKey, doc["location_desc"], duration);
+    await firestoreDb.logSession(userKey, doc, filename);
   }
 
   Future<Map<String, dynamic>> fetchUserStudyData(String userKey) async {
@@ -516,7 +525,7 @@ class BoothController {
     if (doc == null || doc.isEmpty){
       return {};
     }
-
+    doc.remove('curr_session');
     return doc;
     
   }

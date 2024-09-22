@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/admin_page.dart';
+import 'package:flutter_application_1/App_Pages/create_session_page.dart';
 import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/map_page.dart';
 import 'package:flutter_application_1/App_Pages/session_page.dart';
@@ -122,9 +123,13 @@ class _MainUIPageState extends State<MainUIPage> {
         shape: const CircleBorder(),
         backgroundColor: Colors.blue,
         onPressed: () {
-          // Navigate to the create session page
-          Navigator.pushNamed(context, '/create_session',
-              arguments: {'user': controller.student});
+          // // Navigate to the create session page
+          // Navigator.pushNamed(context, '/create_session',
+          //     arguments: {'user': controller.student});
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => CreateSessionPage(controller)),
+          );
         },
         child: const Icon(Icons.add),
       ),

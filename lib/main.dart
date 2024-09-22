@@ -29,7 +29,6 @@ class MyApp extends StatelessWidget {
       home: const AuthPage(),
       routes: {
         '/main_ui_page': (context) => const AuthPage(),
-        '/create_session': (context) => const CreateSessionPage(),
         '/create_profile': (context) => const CreateProfilePage(),
       },
       // Change the theme of the app to light or dark mode depending on system settings

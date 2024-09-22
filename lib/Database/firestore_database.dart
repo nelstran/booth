@@ -43,18 +43,9 @@ class FirestoreDatabase {
     }
   }
 
-  /// Logs the time the user spends studying the given subject
-  Future<void> logSubjectTime(String userKey, String subject, int duration) async {
-    // Retrieve subject logs
-    final ref = db.collection("users").doc(userKey).collection("session_logs").doc("subject_data");
-    logDurationHelper(ref, userKey, subject, duration);
-  }
-
-  /// Logs the time the user spends at the given location
-  Future<void> logLocationTime(String userKey, String location, int duration) async  {
-     // Retrieve location logs
-    final ref = db.collection("users").doc(userKey).collection("session_logs").doc("location_data");
-    logDurationHelper(ref, userKey, location, duration);
+  Future<void> logSession(String userKey, Map<String, dynamic> document, String filename) async {
+    final ref = db.collection('users').doc(userKey).collection('session_logs').doc(filename);
+    await ref.set(document);
   }
 
   /// Grabs user data from Firestore
@@ -72,7 +63,6 @@ class FirestoreDatabase {
       return {};
     }
   }
-
 }
 
 // ---- HELPER METHODS ---- //
