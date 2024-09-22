@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/Database/SessionDatabase.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/web.dart';
 
 import '../Database/firestore_database.dart';
@@ -33,7 +34,7 @@ class BoothController {
       DatabaseReference studentRef = ref.child("users/$key");
       final snapshot = await studentRef.get();
       final doc = await firestoreDb.getUserData(user.uid);
-      if (doc == null){
+      if (doc == null) {
         firestoreDb.addUserData(user.uid);
       }
       var value = snapshot.value as Map;
@@ -323,7 +324,8 @@ class BoothController {
   }
 
   /// Remove the logged in user (student) from the session
-  Future<void> removeUserFromSession(String sessionKey, String userSessionKey) async  {
+  Future<void> removeUserFromSession(
+      String sessionKey, String userSessionKey) async {
     db.removeStudentFromSession(sessionKey, userSessionKey);
     db.updateUser(
         student.key, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
@@ -359,8 +361,11 @@ class BoothController {
     // Set session the user owns
     student.ownedSessionKey = sessionKey;
     //Sets the owner's session key to the session key in the database
-    db.updateUser(
-        owner.key, {"session": sessionKey, "sessionKey": userKey, "ownedSessionKey": sessionKey, });
+    db.updateUser(owner.key, {
+      "session": sessionKey,
+      "sessionKey": userKey,
+      "ownedSessionKey": sessionKey,
+    });
 
     // Update session in db to state who owns that session
     db.updateSession(sessionKey, {"ownerKey": userKey});
@@ -472,10 +477,10 @@ class BoothController {
   Future<void> acceptFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key)){
+    if (requests.containsKey(key)) {
       return; // Do nothing if user already sent a request
     }
-    if (friends.containsKey(key)){
+    if (friends.containsKey(key)) {
       return; // Do nothing if user is already friends
     }
     return db.acceptFriendRequest(student.key, key);
@@ -484,10 +489,11 @@ class BoothController {
   // ---- USER ANALYTICS ---- //
   /// Creates an entry in the Firestore that stores what subject the user
   /// is studying and what location it is at while also taking note of the time they started.
-  void startSessionLogging(String userKey, Session session){
+  void startSessionLogging(String userKey, Session session) {
     var format = DateTimeFormat.dateAndTime;
     var timestamp = Timestamp.now().toDate();
-    var todayInDays = timestamp.difference(DateTime(timestamp.year, 1, 1, 0, 0)).inDays;
+    var todayInDays =
+        timestamp.difference(DateTime(timestamp.year, 1, 1, 0, 0)).inDays;
     Map<String, dynamic> valuesToLog = {
       "start_timestamp": format(timestamp),
       "month": DateFormat.MMMM().format(timestamp),
@@ -506,7 +512,7 @@ class BoothController {
   /// for easy querying.
   Future<void> endSessionLogging(String userKey) async {
     var doc = await firestoreDb.endSessionLogging(userKey);
-    if (doc == null){
+    if (doc == null) {
       return;
     }
 
@@ -522,11 +528,25 @@ class BoothController {
 
   Future<Map<String, dynamic>> fetchUserStudyData(String userKey) async {
     final doc = await firestoreDb.fetchuserStudyData(userKey);
-    if (doc == null || doc.isEmpty){
+    if (doc == null || doc.isEmpty) {
       return {};
     }
     doc.remove('curr_session');
     return doc;
-    
+  }
+
+  // ---- Upload a Profile Picture ---- //
+
+  Future<String> uploadProfilePictureStorage(XFile file) async {
+    return await firestoreDb.uploadProfilePictureStorage(file);
+  }
+
+  Future<void> uploadProfilePictureFireStore(
+      String pfpURL, String userKey) async {
+    firestoreDb.uploadProfilePictureFireStore(pfpURL, userKey);
+  }
+
+  Future<String?> retriveProfilePicture(String userKey) async {
+    return await firestoreDb.retriveProfilePicture(userKey);
   }
 }
