@@ -26,6 +26,11 @@ class _MainUIPageState extends State<MainUIPage> {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   late final BoothController controller = BoothController(_ref);
   int currPageIndex = 0;
+  late PageController pageController;
+
+  late List<AppBar> appBars = [];
+  late List<Widget> pages = [];
+  late List<Widget> destinations = [];
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +50,16 @@ class _MainUIPageState extends State<MainUIPage> {
     );
   }
 
-  Scaffold createUI() {
+  @override
+  void dispose(){
+    pageController.dispose();
+    super.dispose(); 
+  }
+
+  @override
+  void initState(){
+    super.initState();
+
     // SUPER INSECURE DELETE WHEN DONE
     // TODO: (For testing) Delete
     List<String> admins = [
@@ -54,8 +68,9 @@ class _MainUIPageState extends State<MainUIPage> {
     ];
     var adminMode = admins.contains(controller.student.uid);
 
+    pageController = PageController(initialPage: currPageIndex);
     // Change the appbar depending on what page the user is on
-    List<AppBar> appBars = [
+    appBars = [
       mainAppBar(), // Session
       mainAppBar(), // Map
       mainAppBar(), // Usage
@@ -87,7 +102,7 @@ class _MainUIPageState extends State<MainUIPage> {
       label: "Profile",
     );
 
-    List<Widget> pages = [
+    pages = [
       sessionPage,
       mapPage,
       usagePage,
@@ -95,7 +110,7 @@ class _MainUIPageState extends State<MainUIPage> {
     ];
 
     // List of icons associated for each page
-    List<Widget> destinations = [
+    destinations = [
       sessionNav,
       mapNav,
       usageNav,
@@ -115,10 +130,19 @@ class _MainUIPageState extends State<MainUIPage> {
         label: "Admin",
       ));
     }
+  }
 
+  Scaffold createUI() {
+    
     return Scaffold(
       appBar: appBars[currPageIndex],
-      body: pages[currPageIndex],
+      // body: pages[currPageIndex],
+      body: PageView(
+        controller: pageController,
+        // physics: const NeverScrollableScrollPhysics(),
+        children: pages,
+
+      ),
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: Colors.blue,
@@ -143,6 +167,7 @@ class _MainUIPageState extends State<MainUIPage> {
           onDestinationSelected: (int i) {
             setState(() {
               currPageIndex = i;
+              pageController.jumpToPage(currPageIndex);
             });
           },
           selectedIndex: currPageIndex,

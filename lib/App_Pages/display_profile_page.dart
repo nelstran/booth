@@ -7,16 +7,25 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:http/http.dart' as http;
 
-class ProfileDisplayPage extends StatelessWidget {
+class ProfileDisplayPage extends StatefulWidget {
   final BoothController controller;
   final User user;
   const ProfileDisplayPage(this.user, this.controller, {super.key});
+  
+  @override
+  _ProfileDisplayPage createState() => _ProfileDisplayPage();
+}
+
+class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAliveClientMixin{
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return FutureBuilder(
       // Fetches the user's name
-      future: controller.getUserProfile(),
+      future: widget.controller.getUserProfile(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -27,7 +36,7 @@ class ProfileDisplayPage extends StatelessWidget {
               child: ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/create_profile',
-                  arguments: {'user': user});
+                  arguments: {'user': widget.user});
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
@@ -39,7 +48,7 @@ class ProfileDisplayPage extends StatelessWidget {
           ));
         }
         Map<dynamic, dynamic> data = snapshot.data;
-        return ProfilePage(controller, data);
+        return ProfilePage(widget.controller, data);
       },
     );
   }
@@ -55,7 +64,7 @@ class ProfilePage extends StatefulWidget {
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClientMixin{
   String? profileName = "";
   double profileRadius = 0;
   double fontSize = 0;
@@ -72,7 +81,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     // String? profilePicture;
     return Padding(
       padding: const EdgeInsets.all(16.0),
