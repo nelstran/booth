@@ -79,7 +79,7 @@ class FirestoreDatabase {
     }
   }
 
-  Future<String> uploadProfilePictureStorage(XFile file) async {
+  Future<Reference> uploadProfilePictureStorage(XFile file) async {
     String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
 
     final refRoot = storage.ref();
@@ -89,18 +89,16 @@ class FirestoreDatabase {
 
     print("new file path" + file.path);
 
-    String imageURL = "";
-
     try {
       await refUpload.putFile(File(file.path));
-      return await refUpload.getDownloadURL();
+      return refUpload;
     } catch (error) {
       return Future.error(error);
     }
   }
 
-  void uploadProfilePictureFireStore(String pfpURL, String userKey) {
-    Map<String, String> data = {"profile_picture": pfpURL};
+  Future<void> uploadProfilePictureFireStore(Map<String, String> pfpStorage, String userKey) async {
+    Map<String, String> data = {"profile_picture": pfpStorage['url']!, "filepath": pfpStorage['filepath']!};
 
     final ref = db
         .collection("users")
@@ -108,10 +106,10 @@ class FirestoreDatabase {
         .collection("user_pictures")
         .doc("pfp_url");
 
-    ref.set(data);
+    await ref.set(data);
   }
 
-  Future<String?> retriveProfilePicture(String userKey) async {
+  Future<String?> retrieveProfilePicture(String userKey) async {
     final ref = db
         .collection("users")
         .doc(userKey)
@@ -124,6 +122,23 @@ class FirestoreDatabase {
     } catch (error) {
       print(error);
       return null;
+    }
+  }
+
+  Future<void> deleteProfilePictureStorage(String userKey) async  {
+    final ref = db.collection("users")
+        .doc(userKey)
+        .collection("user_pictures")
+        .doc("pfp_url");
+
+    try {
+      final doc = await ref.get();
+      final filepath = doc.data()!["filepath"];
+      final refStorage = storage.ref(filepath);
+      await refStorage.delete();
+    }
+    catch (error) {
+      return;
     }
   }
 }

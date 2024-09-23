@@ -537,16 +537,24 @@ class BoothController {
 
   // ---- Upload a Profile Picture ---- //
 
-  Future<String> uploadProfilePictureStorage(XFile file) async {
-    return await firestoreDb.uploadProfilePictureStorage(file);
+  Future<void> deleteProfilePictureStorage(String userKey) async {
+    await firestoreDb.deleteProfilePictureStorage(userKey);
+  }
+  
+  Future<Map<String, String>> uploadProfilePictureStorage(XFile file) async {
+    final ref = await firestoreDb.uploadProfilePictureStorage(file);
+    String url = await ref.getDownloadURL();
+    String filepath = ref.fullPath;
+    return {"url": url, "filepath": filepath};
   }
 
   Future<void> uploadProfilePictureFireStore(
-      String pfpURL, String userKey) async {
-    firestoreDb.uploadProfilePictureFireStore(pfpURL, userKey);
+      Map<String, String> pfpStorage, String userKey) async {
+    await deleteProfilePictureStorage(userKey);  
+    await firestoreDb.uploadProfilePictureFireStore(pfpStorage, userKey);
   }
 
   Future<String?> retrieveProfilePicture(String userKey) async {
-    return await firestoreDb.retriveProfilePicture(userKey);
+    return await firestoreDb.retrieveProfilePicture(userKey);
   }
 }

@@ -126,20 +126,20 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                                   if (file == null) return;
                                   // upload to firebase storage
                                   try {
-                                    // Upload the image to firebase storage, and retrieve img URL
-                                    String pfpURL = await widget.controller
+                                    /// Upload the image to firebase storage, and retrieve img URL
+                                    Map<String, String> pfpStorage = await widget.controller
                                         .uploadProfilePictureStorage(file);
                                     // Update the profile picture URL in firestore
                                     await widget.controller
-                                        .uploadProfilePictureFireStore(pfpURL,
+                                        .uploadProfilePictureFireStore(pfpStorage,
                                             widget.controller.student.uid);
                                     // Retrieve the profile picture URL
                                     profileImg = await widget.controller
                                         .retrieveProfilePicture(
                                             widget.controller.student.uid);
-                                    // print("Profile Picture: $profilePicture");
+            
                                     setState(() {
-                                      // // Upload new profile pictur
+                                      // Upload new profile pictur
                                       // profileImg = profilePicture;
                                     });
                                   } catch (error) {
@@ -163,11 +163,11 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                                   // upload to firebase storage
                                   try {
                                     // Upload the image to firebase storage, and retrieve img URL
-                                    String pfpURL = await widget.controller
+                                    Map<String, String> pfpStorage = await widget.controller
                                         .uploadProfilePictureStorage(file);
                                     // Update the profile picture URL in firestore
                                     await widget.controller
-                                        .uploadProfilePictureFireStore(pfpURL,
+                                        .uploadProfilePictureFireStore(pfpStorage,
                                             widget.controller.student.uid);
                                     // Retrieve the profile picture URL
                                     profileImg = await widget.controller
@@ -276,7 +276,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
         return pfp;
       }
       else{
-        return null;
+        return Future.error("ERROR 404");
       }
     }
   }

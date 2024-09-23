@@ -39,6 +39,13 @@ class _MainUIPageState extends State<MainUIPage> {
       future: controller.fetchAccountInfo(widget.user!),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          // Change the appbar depending on what page the user is on
+          appBars = [
+            mainAppBar(), // Session
+            mainAppBar(), // Map
+            mainAppBar(), // Usage
+            profileAppBar(), // Profile
+          ];
           return createUI();
         }
         else if (snapshot.hasError){
@@ -69,13 +76,6 @@ class _MainUIPageState extends State<MainUIPage> {
     var adminMode = admins.contains(controller.student.uid);
 
     pageController = PageController(initialPage: currPageIndex);
-    // Change the appbar depending on what page the user is on
-    appBars = [
-      mainAppBar(), // Session
-      mainAppBar(), // Map
-      mainAppBar(), // Usage
-      profileAppBar(), // Profile
-    ];
 
     // Initialize the page the user can navigate to
     var sessionPage = SessionPage(ref: _ref, controller: controller);
@@ -139,7 +139,7 @@ class _MainUIPageState extends State<MainUIPage> {
       // body: pages[currPageIndex],
       body: PageView(
         controller: pageController,
-        // physics: const NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: pages,
 
       ),
