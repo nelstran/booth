@@ -11,10 +11,12 @@ class FirestoreDatabase {
 
   FirestoreDatabase();
 
+  /// Adds a user entry to Firestore
   void addUserData(String key) {
     db.collection("users").doc(key).set({});
   }
 
+  /// Retrieves user entry from Firestore
   Future<Map<String, dynamic>?> getUserData(String userKey) async {
     final ref = db.collection("users").doc(userKey);
 
@@ -54,6 +56,7 @@ class FirestoreDatabase {
     }
   }
 
+  /// Adds the given log to Firestore for analytics
   Future<void> logSession(
       String userKey, Map<String, dynamic> document, String filename) async {
     final ref = db
@@ -64,7 +67,7 @@ class FirestoreDatabase {
     await ref.set(document);
   }
 
-  /// Grabs user data from Firestore
+  /// Grabs user study data from Firestore
   Future<Map<String, dynamic>?> fetchuserStudyData(String userKey) async {
     final ref = db.collection("users").doc(userKey).collection("session_logs");
     try {
@@ -79,13 +82,14 @@ class FirestoreDatabase {
     }
   }
 
-  Future<Reference> uploadProfilePictureStorage(XFile file) async {
-    String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+  /// Uploads the given file to Firebase Storage with the given filename
+  Future<Reference> uploadProfilePictureStorage(XFile file, String filename) async {
+    // String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
 
     final refRoot = storage.ref();
     final refDirPFP = refRoot.child("profile_pictures");
 
-    Reference refUpload = refDirPFP.child(uniqueFileName);
+    Reference refUpload = refDirPFP.child(filename);
 
     print("new file path" + file.path);
 
@@ -97,8 +101,9 @@ class FirestoreDatabase {
     }
   }
 
+  /// Adds the URL of the user's profile picture to Firestore for later retrieval 
   Future<void> uploadProfilePictureFireStore(Map<String, String> pfpStorage, String userKey) async {
-    Map<String, String> data = {"profile_picture": pfpStorage['url']!, "filepath": pfpStorage['filepath']!};
+    Map<String, String> data = {"profile_picture": pfpStorage['url']!};
 
     final ref = db
         .collection("users")
@@ -109,6 +114,7 @@ class FirestoreDatabase {
     await ref.set(data);
   }
 
+  /// Goes into Firestore to get the profile picture URL
   Future<String?> retrieveProfilePicture(String userKey) async {
     final ref = db
         .collection("users")
@@ -118,13 +124,20 @@ class FirestoreDatabase {
 
     try {
       final doc = await ref.get();
-      return doc.data()!["profile_picture"];
+      final data = doc.data();
+      if (data != null && data.containsKey('profile_picture')){
+        return data['profile_picture'];
+      }
+      else{
+        return null;
+      }
     } catch (error) {
       print(error);
       return null;
     }
   }
 
+  /// Deletes user profile picture from storage
   Future<void> deleteProfilePictureStorage(String userKey) async  {
     final ref = db.collection("users")
         .doc(userKey)
@@ -132,14 +145,24 @@ class FirestoreDatabase {
         .doc("pfp_url");
 
     try {
-      final doc = await ref.get();
-      final filepath = doc.data()!["filepath"];
-      final refStorage = storage.ref(filepath);
-      await refStorage.delete();
+      final refStorage = storage.ref();
+      final pfpRef = refStorage.child("profile_pictures/$userKey");
+      await pfpRef.delete();
     }
     catch (error) {
       return;
     }
+  }
+
+  /// Removes URL of user's profile picture from Firestore
+  Future<void> deleteProfilePictureFirestore(String userKey) async {
+    final ref = db
+        .collection("users")
+        .doc(userKey)
+        .collection("user_pictures")
+        .doc("pfp_url");
+
+    await ref.set({});
   }
 }
 

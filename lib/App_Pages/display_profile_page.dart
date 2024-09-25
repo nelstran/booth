@@ -85,7 +85,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // String? profilePicture;
+    String? profilePicture;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -94,7 +94,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
           FutureBuilder(
             future: getProfilePicture(widget.controller),
             builder: (context, snapshot){
-              if (!snapshot.hasData){
+              if (snapshot.connectionState == ConnectionState.waiting){
                 return const Center(child: CircularProgressIndicator());
               }
               else if (snapshot.hasError){
@@ -125,21 +125,16 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                                   if (file == null) return;
                                   // upload to firebase storage
                                   try {
-                                    /// Upload the image to firebase storage, and retrieve img URL
-                                    Map<String, String> pfpStorage = await widget.controller
-                                        .uploadProfilePictureStorage(file);
-                                    // Update the profile picture URL in firestore
-                                    await widget.controller
-                                        .uploadProfilePictureFireStore(pfpStorage,
-                                            widget.controller.student.uid);
+                                    // Upload image to Firebase
+                                    await widget.controller.uploadProfilePicture(file, widget.controller.student.uid);
                                     // Retrieve the profile picture URL
-                                    profileImg = await widget.controller
+                                    profilePicture = await widget.controller
                                         .retrieveProfilePicture(
                                             widget.controller.student.uid);
             
                                     setState(() {
                                       // Upload new profile pictur
-                                      // profileImg = profilePicture;
+                                      profileImg = profilePicture;
                                     });
                                   } catch (error) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -161,21 +156,16 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                                   if (file == null) return;
                                   // upload to firebase storage
                                   try {
-                                    // Upload the image to firebase storage, and retrieve img URL
-                                    Map<String, String> pfpStorage = await widget.controller
-                                        .uploadProfilePictureStorage(file);
-                                    // Update the profile picture URL in firestore
-                                    await widget.controller
-                                        .uploadProfilePictureFireStore(pfpStorage,
-                                            widget.controller.student.uid);
+                                    // Upload image to Firebase
+                                    await widget.controller.uploadProfilePicture(file);
                                     // Retrieve the profile picture URL
-                                    profileImg = await widget.controller
+                                    profilePicture = await widget.controller
                                         .retrieveProfilePicture(
                                             widget.controller.student.uid);
             
                                     setState(() {
                                       // Upload new profile pictur
-                                      // profileImg = profilePicture;
+                                      profileImg = profilePicture;
                                     });
                                   } catch (error) {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -184,6 +174,16 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                                                 Text('Please Take a Picture')));
                                     return;
                                   }
+                                },
+                              ),
+                              ListTile(
+                                title: const Text("Remove Profile Picture"),
+                                onTap: () async {
+                                  Navigator.pop(context);
+                                  await widget.controller.deleteProfilePicture();
+                                  setState((){
+                                    profileImg = null;
+                                  });
                                 },
                               ),
                             ],
