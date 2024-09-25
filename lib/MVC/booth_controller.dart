@@ -289,6 +289,7 @@ class BoothController {
     db.updateProfile(student.key, value);
   }
 
+  DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
   Future<Map<dynamic, dynamic>> getUserProfile([key]) async {
     String studentKey;
     if (key != null) {

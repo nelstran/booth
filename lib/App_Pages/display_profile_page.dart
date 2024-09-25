@@ -23,15 +23,14 @@ class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAl
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return FutureBuilder(
-      // Fetches the user's name
-      future: widget.controller.getUserProfile(),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return StreamBuilder(
+      stream: widget.controller.profileRef.onValue,
+      builder: (context, snap){
+      if (snap.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        } else if (snap.hasError) {
+          return Center(child: Text('Error: ${snap.error}'));
+        } else if (!snap.hasData || snap.data?.snapshot.value == null) {
           return Center(
               child: ElevatedButton(
             onPressed: () {
@@ -47,9 +46,9 @@ class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAl
             ),
           ));
         }
-        Map<dynamic, dynamic> data = snapshot.data;
+        Map<dynamic, dynamic> data = snap.data!.snapshot.value as Map;
         return ProfilePage(widget.controller, data);
-      },
+      }
     );
   }
 }
