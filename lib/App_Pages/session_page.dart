@@ -1,4 +1,3 @@
-import 'package:amplitude_flutter/amplitude.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +95,6 @@ class SessionPage extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       onTap: () {
-                        Amplitude.getInstance().logEvent("Session Clicked");
                         // Expand session
                         Navigator.of(context).push(
                           MaterialPageRoute(

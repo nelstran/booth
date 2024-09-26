@@ -1,4 +1,3 @@
-import 'package:amplitude_flutter/amplitude.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/create_session_page.dart';
@@ -10,9 +9,6 @@ import 'package:flutter_application_1/App_Theme/dark_mode.dart';
 /// The main page where the app initializes
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final Amplitude analytics = Amplitude.getInstance(instanceName: "Booth");
-  analytics.init('8e9f2f83987da4fd6bbc90afcac6bbb6');
-  analytics.logEvent('MyApp startup', eventProperties: {});
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
