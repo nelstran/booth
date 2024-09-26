@@ -21,13 +21,13 @@ class _LoginPageState extends State<LoginPage> {
 
   // This method logs a user in 
   void login() async {
-    // This shows a loading circle
-    showDialog(
-      context: context, 
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    // // This shows a loading circle
+    // showDialog(
+    //   context: context, 
+    //   builder: (context) => const Center(
+    //     child: CircularProgressIndicator(),
+    //   ),
+    // );
 
     // Try to sign the user in with the credentials they have typed
     try {

@@ -39,13 +39,6 @@ class _MainUIPageState extends State<MainUIPage> {
       future: controller.fetchAccountInfo(widget.user!),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          // Change the appbar depending on what page the user is on
-          appBars = [
-            mainAppBar(), // Session
-            mainAppBar(), // Map
-            mainAppBar(), // Usage
-            profileAppBar(), // Profile
-          ];
           return createUI();
         }
         else if (snapshot.hasError){
@@ -66,14 +59,10 @@ class _MainUIPageState extends State<MainUIPage> {
   @override
   void initState(){
     super.initState();
-
-    // SUPER INSECURE DELETE WHEN DONE
-    // TODO: (For testing) Delete
-    List<String> admins = [
-      'niiLt2Sf5OTakdnuAqpMVBgrmZV2', // Booth Admin
-      'wUxLN0owVqZGEIBeMOt9q6lVBzL2', // Booth Admin 2
-    ];
-    var adminMode = admins.contains(controller.student.uid);
+    // accountSpecificSetup().then;
+    controller.fetchAccountInfo(widget.user!).whenComplete((){
+      accountSpecificSetup();
+    });
 
     pageController = PageController(initialPage: currPageIndex);
 
@@ -116,6 +105,24 @@ class _MainUIPageState extends State<MainUIPage> {
       usageNav,
       profileNav,
     ];
+  }
+
+  void accountSpecificSetup() {
+    // Change the appbar depending on what page the user is on
+    appBars = [
+      mainAppBar(), // Session
+      mainAppBar(), // Map
+      mainAppBar(), // Usage
+      profileAppBar(), // Profile
+    ];
+
+    // SUPER INSECURE DELETE WHEN DONE
+    // TODO: (For testing) Delete
+    List<String> admins = [
+      'niiLt2Sf5OTakdnuAqpMVBgrmZV2', // Booth Admin
+      'wUxLN0owVqZGEIBeMOt9q6lVBzL2', // Booth Admin 2
+    ];
+    var adminMode = admins.contains(controller.student.uid);
 
     // TODO: (For testing) Delete
     // Display an extra tab for admin accounts 
