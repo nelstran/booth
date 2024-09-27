@@ -142,6 +142,7 @@ class _MainUIPageState extends State<MainUIPage> {
   Scaffold createUI() {
     
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: appBars[currPageIndex],
       // body: pages[currPageIndex],
       body: PageView(

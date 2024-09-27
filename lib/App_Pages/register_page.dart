@@ -18,33 +18,36 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   // Controllers for the textboxes
-  final TextEditingController firstNameController= TextEditingController();
-  final TextEditingController lastNameController= TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPwController = TextEditingController();
 
+  bool isFirstEmpty = true;
+  bool isLastEmpty = true;
+  bool isEmailEmpty = true;
+  bool isPassEmpty = true;
+  bool doesPassMatch = false;
+  bool triedToRegister = false;
   // Register the User
   void registerUser() async {
-    // Show loading circle
-    showDialog(
-      context: context,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    // Make sure the passwords match
-    if (passwordController.text != confirmPwController.text) {
-      // pop loading circle
-      Navigator.pop(context);
-
-      // Show error message to user
-      displayMessageToUser("Passwords do not match", context);
-    }
-
-    // If the passwords do match, try creating a user
-    else {
+    setState((){
+      triedToRegister = true;
+      isFirstEmpty = firstNameController.text.isEmpty;
+      isLastEmpty = lastNameController.text.isEmpty;
+      isEmailEmpty = emailController.text.isEmpty;
+      isPassEmpty = passwordController.text.isEmpty;
+      doesPassMatch = passwordController.text == confirmPwController.text;
+    });
+    if(!isFirstEmpty && !isLastEmpty && !isEmailEmpty && !isPassEmpty && doesPassMatch){
+      // Show loading circle
+      showDialog(
+        context: context,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
       // Create the user in firebase with their email and password
       try {
         UserCredential? userCredential = await FirebaseAuth.instance
@@ -78,8 +81,11 @@ class _RegisterPageState extends State<RegisterPage> {
         // pop loading circle
         Navigator.pop(context);
         //display error message to user
-        displayMessageToUser(e.code, context);
+        displayMessageToUser(e.message ?? "Error unknown", context);
       }
+    }
+    else{
+      return;
     }
   }
 
@@ -118,25 +124,65 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: false,
                 controller: firstNameController,
               ),
-
+              isFirstEmpty && triedToRegister ? 
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "First name cannot be empty",
+                        style:TextStyle(
+                          color: Colors.red
+                        ))
+                    ]
+                  ),
+                )
+                : const SizedBox.shrink(),
               const SizedBox(height: 10),
-
               // Last name textfield
               TextBox(
                 hintText: "Last Name",
                 obscureText: false,
                 controller: lastNameController,
               ),
-
+              isLastEmpty && triedToRegister ? 
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Last name cannot be empty",
+                        style:TextStyle(
+                          color: Colors.red
+                        ))
+                    ]
+                  ),
+                )
+                : const SizedBox.shrink(),
               const SizedBox(height: 10),
-
               // Email textfield
               TextBox(
                 hintText: "Email",
                 obscureText: false,
                 controller: emailController,
               ),
-
+              isEmailEmpty && triedToRegister ? 
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Email cannot be empty",
+                        style:TextStyle(
+                          color: Colors.red
+                        ))
+                    ]
+                  ),
+                )
+                : const SizedBox.shrink(),
               const SizedBox(height: 10),
 
               // Password textfield
@@ -145,7 +191,21 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
                 controller: passwordController,
               ),
-
+              isPassEmpty && triedToRegister ? 
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Password cannot be empty",
+                        style:TextStyle(
+                          color: Colors.red
+                        ))
+                    ]
+                  ),
+                )
+                : const SizedBox.shrink(),
               const SizedBox(height: 10),
 
               // Confirm password textfield
@@ -154,6 +214,21 @@ class _RegisterPageState extends State<RegisterPage> {
                 obscureText: true,
                 controller: confirmPwController,
               ),
+              !doesPassMatch && triedToRegister ? 
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Passwords must match",
+                        style:TextStyle(
+                          color: Colors.red
+                        ))
+                    ]
+                  ),
+                )
+                : const SizedBox.shrink(),
               const SizedBox(height: 25),
               // // Register button
               // Button(
@@ -161,6 +236,9 @@ class _RegisterPageState extends State<RegisterPage> {
               //   onTap: registerUser,
               // ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 28, 125, 204)
+                ),
                 onPressed: () {
                   // Register user and navigate to the create profile page
                   registerUser();
