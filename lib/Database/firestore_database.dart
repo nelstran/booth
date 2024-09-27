@@ -28,6 +28,11 @@ class FirestoreDatabase {
     }
   }
 
+  Future<void> removeUserData(String userKey) async {
+    final ref = db.collection("users").doc(userKey);
+    await ref.delete();
+  }
+
   /// Gather data of session the user joins to start logging
   void startSessionLogging(String userKey, Map<String, dynamic> valuesToLog) {
     // Equivalent to 'users/{userKey}/session_logs/curr_session
@@ -139,11 +144,6 @@ class FirestoreDatabase {
 
   /// Deletes user profile picture from storage
   Future<void> deleteProfilePictureStorage(String userKey) async  {
-    final ref = db.collection("users")
-        .doc(userKey)
-        .collection("user_pictures")
-        .doc("pfp_url");
-
     try {
       final refStorage = storage.ref();
       final pfpRef = refStorage.child("profile_pictures/$userKey");

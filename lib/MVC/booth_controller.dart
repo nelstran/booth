@@ -257,12 +257,31 @@ class BoothController {
       removeSession(student.ownedSessionKey);
     }
 
+    // Remove user from their friends' friends list
     Map<dynamic, dynamic> allFriends = await getFriendsKeys();
 
     for (var entry in allFriends.entries) {
       var key = entry.key;
       removeFriend(key);
     }
+
+    // Remove user from their requests
+    Map<dynamic, dynamic> outRequests = await getRequests(true);
+    
+    for (var user in outRequests.keys){
+      declineFriendRequest(student.key, user);
+    }
+
+    Map<dynamic, dynamic> inRequests = await getRequests(false);
+    for (var user in inRequests.keys){
+      declineFriendRequest(user);
+    }
+    
+    // Remove user from Firestore
+    firestoreDb.removeUserData(student.key);
+
+    // Remove profile picture from Storage;
+    firestoreDb.deleteProfilePictureStorage(student.key);
 
     // Then, remove from the "users" list in the Database
     removeUser(student.key);
@@ -463,16 +482,19 @@ class BoothController {
   void sendFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key))
+    if (requests.containsKey(key)){
       return; // Do nothing if user already sent a request
-    if (friends.containsKey(key))
+    }
+    if (friends.containsKey(key)){
       return; // Do nothing if user is already friends
+    }
 
     db.sendFriendRequest(student.key, key);
   }
 
-  Future<void> declineFriendRequest(String key) async {
-    return db.declineFriendRequest(student.key, key);
+  Future<void> declineFriendRequest(String sender, [String? receiver]) async {
+    receiver = receiver ?? student.key;
+    return db.declineFriendRequest(receiver, sender);
   }
 
   Future<void> acceptFriendRequest(String key) async {
