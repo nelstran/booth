@@ -19,6 +19,10 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  bool isEmailEmpty = true;
+  bool isPassEmpty = true;
+  bool triedToLogin = false;
+
   // This method logs a user in 
   void login() async {
     // // This shows a loading circle
@@ -28,6 +32,13 @@ class _LoginPageState extends State<LoginPage> {
     //     child: CircularProgressIndicator(),
     //   ),
     // );
+    setState((){
+      triedToLogin = true;
+    }
+    );
+    if(isEmailEmpty || isPassEmpty){
+      return;
+    }
 
     // Try to sign the user in with the credentials they have typed
     try {
@@ -51,14 +62,34 @@ class _LoginPageState extends State<LoginPage> {
     // Display any errors
     on FirebaseAuthException catch (e) {
       // pop loading circle
-      Navigator.pop(context);
+      // Navigator.pop(context);
       // Show an error message to the user if error encountered
-      displayMessageToUser(e.code, context);
+      String message = e.code;
+      switch(e.code){
+        case 'invalid-email':
+        case 'invalid-credential':
+          message = "Email or password is incorrect";
+          break;
+      }
+      displayMessageToUser(message, context);
     }
+  }
+
+  void enableButton(){
+    setState((){
+      isEmailEmpty = emailController.text.isEmpty;
+      isPassEmpty = passwordController.text.isEmpty;
+      if(!isPassEmpty && !isEmailEmpty){
+        triedToLogin = false;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    passwordController.addListener(enableButton);
+    emailController.addListener(enableButton);
+
     return Scaffold(
       // This changes the color of the page to match which mode is selected (light/dark)
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -69,36 +100,43 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // This is where the logo is to be displayed - for now, an icon of a person
-              // Icon(
-              //   Icons.person,
-              //   size: 50,
-              //   color: Theme.of(context).colorScheme.inversePrimary,
-              // ),
-
               Image.asset(
                 'assets/images/lamp_logo.png',
                 width: 100,
                 height: 100),
               // Creates a space between the logo and the app name
               const SizedBox(height: 15),
-              
-
               const Text(
                 "BOOTH",
                 style: TextStyle(fontSize: 20),
               ),
-
               const SizedBox(height: 20),
-
               // Email textfield
               TextBox(
                 hintText: "Email",
                 obscureText: false,
                 controller: emailController,
               ),
-
-              const SizedBox(height: 10),
+              isEmailEmpty && triedToLogin ? 
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error,
+                        size: 20,
+                        color: Colors.red),
+                      Text(
+                        "Enter an email",
+                        style:TextStyle(
+                          color: Colors.red
+                        ))
+                    ]
+                  ),
+                )
+                : const SizedBox.shrink(),
+              const SizedBox(height: 12),
 
               // Password textfield
               TextBox(
@@ -106,26 +144,62 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: true,
                 controller: passwordController,
               ),
-
-              const SizedBox(height: 10),
+              const SizedBox(height: 5),
 
               // Forgot password
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
+                  isPassEmpty && triedToLogin ? 
+                  const Padding(
+                    padding: EdgeInsets.only(left: 15),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error,
+                          size: 20,
+                          color: Colors.red),
+                        Text(
+                          "Enter a password",
+                          style:TextStyle(
+                            color: Colors.red
+                          ))
+                      ]
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
 
               const SizedBox(height: 25),
               // Login button
-              Button(
-                text: "Login", 
-                onTap: login,
+              SizedBox(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(75),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)
+                    ),
+                    backgroundColor: 
+                    isEmailEmpty || isPassEmpty ? 
+                    Colors.grey[800]
+                    : const Color.fromARGB(255, 28, 125, 204)
+                  ),
+                  onPressed: login,
+                  child: const Text("Login"),
+                ),
               ),
 
               const SizedBox(height: 25),
