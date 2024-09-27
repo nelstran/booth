@@ -158,6 +158,10 @@ class SearchPage extends SearchDelegate<String> {
     Map<String, String> userList = {};
 
     users.forEach((key, value) {
+      // Makes sure search does not break on faulty entry in realtime database
+      if (!(value as Map).containsKey('name')){
+        return;
+      }
       String name = value['name'] as String;
       String userKey = key as String;
       userList[userKey] = name;
