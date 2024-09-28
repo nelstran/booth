@@ -66,7 +66,7 @@ class RequestsPage extends StatelessWidget {
                 onTap: (){
                   Navigator.of(context).push(
                             MaterialPageRoute(
-                      builder: (context) => UserDisplayPage(controller, requestId),
+                      builder: (context) => UserDisplayPage(controller, requestId, true),
                     ),
                   );
                 },

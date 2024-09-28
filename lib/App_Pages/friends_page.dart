@@ -148,7 +148,7 @@ class _FriendsPage extends State<FriendsPage> {
                             // Navigate to the profile page of the selected friend
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => UserDisplayPage(widget.boothController, userId),
+                                builder: (context) => UserDisplayPage(widget.boothController, userId, false),
                               ),
                             );
                           },

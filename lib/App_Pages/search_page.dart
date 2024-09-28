@@ -77,6 +77,9 @@ class SearchPage extends SearchDelegate<String> {
           return const Center(child: Text('Error occurred'));
         }
         Map<dynamic, dynamic> users = snapshot.data![0];
+        Map<dynamic, dynamic> friends = snapshot.data![1];
+        Map<dynamic, dynamic> requests = snapshot.data![2];
+
         Map<String, String> suggestionList = {};
         if (query.isNotEmpty){
           for(var key in users.keys){
@@ -124,10 +127,10 @@ class SearchPage extends SearchDelegate<String> {
                     icon: Icon(Icons.mark_email_read_outlined)
                   ),
                 ];
-                if (snapshot.data![1].containsKey(userKey)){
+                if (friends.containsKey(userKey)){
                   iconIndex = 1;
                 }
-                if(snapshot.data![2].containsKey(userKey)){
+                if(requests.containsKey(userKey)){
                   iconIndex = 2;
                 }
                 return ListTile(
@@ -138,7 +141,7 @@ class SearchPage extends SearchDelegate<String> {
                     query = name;
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => UserDisplayPage(controller, userKey),
+                        builder: (context) => UserDisplayPage(controller, userKey, false),
                       ),
                     );
                   },
