@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 
 class UserDisplayPage extends StatelessWidget {
   
@@ -15,7 +16,7 @@ class UserDisplayPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       // Fetches the user's name
-      future: controller.getUserProfile(userKey),
+      future: getUserProfile(userKey),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -31,18 +32,6 @@ class UserDisplayPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("This user has not setup their profile page yet."),
-                  // ElevatedButton(
-                  //   onPressed: (){
-                  //     controller.sendFriendRequest(userKey);
-                  //   },
-                  //   style: ElevatedButton.styleFrom(
-                  //     backgroundColor: Colors.blue,
-                  //   ),
-                  //   child: const Text(
-                  //     "Send friend request",
-                  //     style: TextStyle(color: Colors.black),
-                  //   ),
-                  // ),
                 ],
               )
             ),
@@ -52,6 +41,16 @@ class UserDisplayPage extends StatelessWidget {
         return UserProfilePage(controller, data);
       },
     );
+  }
+
+  /// Get the profile of given user and their profile picture to display
+  Future<Object> getUserProfile(userKey) async {
+    Map<dynamic, dynamic> profile = {};
+    Map<dynamic, dynamic> json = await controller.getUserEntry(userKey);
+    String? pfp = await controller.retrieveProfilePicture(json['uid']);
+    profile["profile_picture"] = pfp;
+    profile.addEntries((json['profile'] as Map).entries);
+    return profile;
   }
 }
 
@@ -79,11 +78,12 @@ class UserProfilePage extends StatelessWidget {
               child: CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.grey[200],
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.grey[500],
-                ),
+                child: ProfilePicture(
+                    name: "${data['name']}",
+                    radius: 40,
+                    fontsize: 30,
+                    img: data["profile_picture"],
+                  )
               ),
             ),
             const SizedBox(height: 16.0),

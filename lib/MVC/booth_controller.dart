@@ -21,6 +21,8 @@ class BoothController {
   SessionDatabase db;
   Student student;
 
+  DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
+
   // Constructor
   BoothController(
     this.ref,
@@ -308,15 +310,20 @@ class BoothController {
     db.updateProfile(student.key, value);
   }
 
-  DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
+  /// Get user profile, defaults to logged in user if no key is given
   Future<Map<dynamic, dynamic>> getUserProfile([key]) async {
-    String studentKey;
-    if (key != null) {
-      studentKey = key;
-    } else {
-      studentKey = student.key;
+    key = key ?? student.key;
+    Object? json = await db.getProfile(key);
+    if (json == null) {
+      return {};
     }
-    Object? json = await db.getProfile(studentKey);
+    return json as Map<dynamic, dynamic>;
+  }
+
+  /// Get user entry in database, defaults to logged in user if no key is given
+  Future<Map<dynamic, dynamic>> getUserEntry([key]) async {
+    key = key ?? student.key;
+    Object? json = await db.getUser(key);
     if (json == null) {
       return {};
     }

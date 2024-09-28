@@ -37,8 +37,16 @@ class SessionDatabase {
     await newRef.update(values);
   }
 
+  /// Get user profile
   Future<Object?> getProfile(String key) async {
     final newRef = ref.child("users/$key/profile");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
+  
+  /// Get user entry in database
+  Future<Object?> getUser(String key) async {
+    final newRef = ref.child("users/$key");
     final event = await newRef.once();
     return event.snapshot.value;
   }
