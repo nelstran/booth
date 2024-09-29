@@ -3,10 +3,17 @@ import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 import 'package:flutter_application_1/MVC/friend_extension.dart';
 
 import '../MVC/booth_controller.dart';
+import 'expanded_session_page.dart';
 
 class SearchPage extends SearchDelegate<String> {
   late final BoothController controller;
+  bool searchForUsers = true; // New state to toggle between users and sessions
+
   SearchPage({required this.controller});
+
+  @override
+  String get searchFieldLabel =>
+      searchForUsers ? 'Search for users...' : 'Search for sessions...';
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -15,7 +22,15 @@ class SearchPage extends SearchDelegate<String> {
         icon: const Icon(Icons.clear),
         onPressed: () {
           query = '';
-          // When pressed here the query will be cleared from the search bar.
+        },
+      ),
+      IconButton(
+        // Toggle button between searching users and sessions
+        icon: Icon(searchForUsers ? Icons.person : Icons.event),
+        onPressed: () {
+          searchForUsers = !searchForUsers; // Toggle state
+          query = ''; // Clear the query
+          showSuggestions(context);
         },
       ),
     ];
@@ -26,25 +41,29 @@ class SearchPage extends SearchDelegate<String> {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () => Navigator.of(context).pop(),
-      // Exit from the search screen.
     );
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    return FutureBuilder
-    (
-      future: getUsers(controller),
+    return FutureBuilder(
+      future: searchForUsers
+          ? getUsers(controller)
+          : getSessions(controller), // Toggle between users and sessions
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error occurred'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No Users'));
+          return Center(
+            child: Text(searchForUsers ? 'No Users' : 'No Sessions'),
+          );
         }
-        Map<dynamic, dynamic> users = snapshot.data!;
-        final List<String> searchResults = (users.values.toList()as List<String>)
+
+        Map<dynamic, dynamic> results = snapshot.data!;
+        final List<String> searchResults = (results.values.toList()
+                as List<String>)
             .where((item) => item.toLowerCase().contains(query.toLowerCase()))
             .toList();
 
@@ -63,114 +82,101 @@ class SearchPage extends SearchDelegate<String> {
       },
     );
   }
+
   @override
-  Widget buildSuggestions(BuildContext context)  {
+  Widget buildSuggestions(BuildContext context) {
     return FutureBuilder(
-      future: Future.wait([
-        getUsers(controller),
-        controller.getFriends(),
-        controller.getRequests(true),
-      ]),
+      future: searchForUsers
+          ? getUsers(controller)
+          : getSessions(controller), // Toggle between users and sessions
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error occurred'));
         }
-        Map<dynamic, dynamic> users = snapshot.data![0];
-        Map<dynamic, dynamic> friends = snapshot.data![1];
-        Map<dynamic, dynamic> requests = snapshot.data![2];
 
+        Map<dynamic, dynamic> suggestions = snapshot.data!;
         Map<String, String> suggestionList = {};
-        if (query.isNotEmpty){
-          for(var key in users.keys){
-            if (users[key].toString().toLowerCase().contains(query.toLowerCase())){
-              suggestionList[key] = users[key];
+
+        if (query.isNotEmpty) {
+          for (var key in suggestions.keys) {
+            if (suggestions[key]
+                .toString()
+                .toLowerCase()
+                .contains(query.toLowerCase())) {
+              suggestionList[key] = suggestions[key];
             }
           }
         }
 
-        if (suggestionList.isEmpty && query.isNotEmpty){
-          return const Center(
-            child: Text("No users found"),
+        if (suggestionList.isEmpty && query.isNotEmpty) {
+          return Center(
+            child:
+                Text(searchForUsers ? "No users found" : "No sessions found"),
           );
         }
 
         return ListView.builder(
           itemCount: suggestionList.length,
           itemBuilder: (context, index) {
-            var iconIndex = 0;
-            return StatefulBuilder(
-              builder: (context, setState) {
-                String name = suggestionList.values.elementAt(index);
-                String userKey = suggestionList.keys.elementAt(index);
-                if (userKey == controller.student.key){
-                  return const SizedBox.shrink();
+            var name = suggestionList.values.elementAt(index);
+            var key = suggestionList.keys.elementAt(index);
+
+            return ListTile(
+              title: Text(name),
+              onTap: () {
+                query = "";
+                // Handle the navigation based on the selected result.
+                if (searchForUsers) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          UserDisplayPage(controller, key, false),
+                    ),
+                  );
+                } else {
+                  // Navigate to session display page
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExpandedSessionPage(key, controller),
+                    ),
+                  );
                 }
-                List<IconButton> trailingIcons = [
-                  IconButton( // Add friend
-                    onPressed: (){
-                      controller.sendFriendRequest(userKey);
-                      // Change icon to 'request sent' when sending friend request
-                      setState((){
-                        iconIndex = 2;
-                      });
-                    }, 
-                    icon: const Icon(Icons.person_add_outlined)
-                  ),
-                  const IconButton( // Already friends
-                    // color: Colors.green,
-                    onPressed: null, 
-                    icon: Icon(Icons.check)
-                  ),
-                  const IconButton( // Request sent
-                    onPressed: null, // TODO: Cancel friend request 
-                    icon: Icon(Icons.mark_email_read_outlined)
-                  ),
-                ];
-                if (friends.containsKey(userKey)){
-                  iconIndex = 1;
-                }
-                if(requests.containsKey(userKey)){
-                  iconIndex = 2;
-                }
-                return ListTile(
-                  trailing: trailingIcons[iconIndex],
-                  title: Text(name),
-                  onTap: () {
-                    // Show the search results based on the selected suggestion.
-                    query = name;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => UserDisplayPage(controller, userKey, false),
-                      ),
-                    );
-                  },
-                );
               },
             );
-          }
+          },
         );
       },
     );
   }
 
   Future<Map<dynamic, dynamic>> getUsers(BoothController controller) async {
-    Map<dynamic, dynamic> users =
-        await controller.getUsers(); // Await the Future
-
+    Map<dynamic, dynamic> users = await controller.getUsers();
     Map<String, String> userList = {};
-
     users.forEach((key, value) {
-      // Makes sure search does not break on faulty entry in realtime database
-      if (!(value as Map).containsKey('name')){
+      if (!(value as Map).containsKey('name')) {
         return;
       }
       String name = value['name'] as String;
       String userKey = key as String;
       userList[userKey] = name;
     });
-
     return userList;
+  }
+
+  Future<Map<dynamic, dynamic>> getSessions(BoothController controller) async {
+    Map<dynamic, dynamic> sessions = await controller.getSessions();
+    Map<String, String> sessionList = {};
+    sessions.forEach((key, value) {
+      if (!(value as Map).containsKey('title')) {
+        return;
+      }
+      String name = value['title'] as String;
+      String sessionKey = key as String;
+      sessionList[sessionKey] = name;
+    });
+    return sessionList;
   }
 }
