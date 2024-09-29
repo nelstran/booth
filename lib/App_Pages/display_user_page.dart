@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/friend_extension.dart';
+import 'package:flutter_application_1/MVC/profile_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 
 

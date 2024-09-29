@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/profile_extension.dart';
 
 class CreateProfilePage extends StatefulWidget {
   const CreateProfilePage({super.key});

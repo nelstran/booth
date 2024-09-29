@@ -9,9 +9,9 @@
 
 // Create a button to add the session to the session home page (can use Button from UI components)
 // Once this button is pressed, go to the session home page
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/session_extension.dart';
 import 'package:flutter_application_1/MVC/session_model.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
 

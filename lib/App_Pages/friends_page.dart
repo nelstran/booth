@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/App_Pages/requests_page.dart'; // Import the RequestsPage
+import 'package:flutter_application_1/App_Pages/requests_page.dart';
+import 'package:flutter_application_1/MVC/friend_extension.dart'; // Import the RequestsPage
 
 class FriendsPage extends StatefulWidget{
   const FriendsPage(this.boothController, {super.key});
