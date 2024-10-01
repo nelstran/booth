@@ -263,16 +263,16 @@ class BoothController {
 
     // Remove user from their requests
     Map<dynamic, dynamic> outRequests = await getRequests(true);
-    
-    for (var user in outRequests.keys){
+
+    for (var user in outRequests.keys) {
       declineFriendRequest(student.key, user);
     }
 
     Map<dynamic, dynamic> inRequests = await getRequests(false);
-    for (var user in inRequests.keys){
+    for (var user in inRequests.keys) {
       declineFriendRequest(user);
     }
-    
+
     // Remove user from Firestore
     firestoreDb.removeUserData(student.key);
 
@@ -319,7 +319,6 @@ class BoothController {
     return json as Map<dynamic, dynamic>;
   }
 
-
   Future<Map<dynamic, dynamic>> getUsers() async {
     Object? json = await db.getAllUsers();
     if (json == null) {
@@ -328,4 +327,11 @@ class BoothController {
     return json as Map<dynamic, dynamic>;
   }
 
+  Future<Map<dynamic, dynamic>> getSessions() async {
+    Object? json = await db.getAllSessions();
+    if (json == null) {
+      return {};
+    }
+    return json as Map<dynamic, dynamic>;
+  }
 }

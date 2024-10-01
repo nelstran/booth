@@ -43,7 +43,7 @@ class SessionDatabase {
     final event = await newRef.once();
     return event.snapshot.value;
   }
-  
+
   /// Get user entry in database
   Future<Object?> getUser(String key) async {
     final newRef = ref.child("users/$key");
@@ -122,6 +122,12 @@ class SessionDatabase {
     return event.snapshot.value;
   }
 
+  Future<Object?> getAllSessions() async {
+    final newRef = ref.child("sessions");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
+
   //----- FRIEND SYSTEM ---- //
   Future<Object?> getFriends(String key) async {
     if (key == '') return null;
@@ -160,11 +166,11 @@ class SessionDatabase {
   void declineFriendRequest(String studentKey, String strangerKey) async {
     if (studentKey == '' || strangerKey == '') return;
     await ref
-      .child('users/$studentKey/friends/requests/incoming/$strangerKey')
-      .remove();
+        .child('users/$studentKey/friends/requests/incoming/$strangerKey')
+        .remove();
     await ref
-      .child('users/$strangerKey/friends/requests/outgoing/$studentKey')
-      .remove();
+        .child('users/$strangerKey/friends/requests/outgoing/$studentKey')
+        .remove();
   }
 
   void acceptFriendRequest(String studentKey, String friendKey) async {
