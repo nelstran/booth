@@ -1,7 +1,10 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:image_picker/image_picker.dart';
 
 extension ProfileExtension on BoothController {
+  DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
+
   /// Update the current user's profile
   void updateUserProfile(Map<String, Object?> value) {
     db.updateProfile(student.key, value);

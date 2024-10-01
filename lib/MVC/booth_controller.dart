@@ -16,9 +16,7 @@ class BoothController {
   final FirestoreDatabase firestoreDb = FirestoreDatabase();
   SessionDatabase db;
   Student student;
-
-  DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
-
+  
   // Constructor
   BoothController(
     this.ref,
@@ -279,7 +277,7 @@ class BoothController {
     firestoreDb.removeUserData(student.key);
 
     // Remove profile picture from Storage;
-    firestoreDb.deleteProfilePictureStorage(student.key);
+    firestoreDb.deleteProfilePictureStorage(student.uid);
 
     // Then, remove from the "users" list in the Database
     removeUser(student.key);

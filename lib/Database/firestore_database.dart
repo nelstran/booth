@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class FirestoreDatabase {
@@ -11,12 +10,12 @@ class FirestoreDatabase {
 
   FirestoreDatabase();
 
-  /// Adds a user entry to Firestore
+  /// Adds a user entry to Firestore, [userKey] uses UID
   void addUserData(String key) {
     db.collection("users").doc(key).set({});
   }
 
-  /// Retrieves user entry from Firestore
+  /// Retrieves user entry from Firestore, [userKey] uses UID
   Future<Map<String, dynamic>?> getUserData(String userKey) async {
     final ref = db.collection("users").doc(userKey);
 
@@ -28,12 +27,13 @@ class FirestoreDatabase {
     }
   }
 
+  /// Removes user data from Firestore, [userKey] uses UID
   Future<void> removeUserData(String userKey) async {
     final ref = db.collection("users").doc(userKey);
     await ref.delete();
   }
 
-  /// Gather data of session the user joins to start logging
+  /// Gather data of session the user joins to start logging, [userKey] uses UID
   void startSessionLogging(String userKey, Map<String, dynamic> valuesToLog) {
     // Equivalent to 'users/{userKey}/session_logs/curr_session
     final ref = db
@@ -44,7 +44,7 @@ class FirestoreDatabase {
     ref.set(valuesToLog);
   }
 
-  /// Clear the curr_session document in Firebase for the given user
+  /// Clear the curr_session document in Firebase for the given user, [userKey] uses UID
   Future<Map<String, dynamic>?> endSessionLogging(String userKey) async {
     final ref = db
         .collection("users")
@@ -72,7 +72,7 @@ class FirestoreDatabase {
     await ref.set(document);
   }
 
-  /// Grabs user study data from Firestore
+  /// Grabs user study data from Firestore, [userKey] uses UID
   Future<Map<String, dynamic>?> fetchuserStudyData(String userKey) async {
     final ref = db.collection("users").doc(userKey).collection("session_logs");
     try {
@@ -106,7 +106,7 @@ class FirestoreDatabase {
     }
   }
 
-  /// Adds the URL of the user's profile picture to Firestore for later retrieval 
+  /// Adds the URL of the user's profile picture to Firestore for later retrieval, [userKey] uses UID
   Future<void> uploadProfilePictureFireStore(Map<String, String> pfpStorage, String userKey) async {
     Map<String, String> data = {"profile_picture": pfpStorage['url']!};
 
@@ -119,7 +119,7 @@ class FirestoreDatabase {
     await ref.set(data);
   }
 
-  /// Goes into Firestore to get the profile picture URL
+  /// Goes into Firestore to get the profile picture URL, [userKey] uses UID
   Future<String?> retrieveProfilePicture(String userKey) async {
     final ref = db
         .collection("users")
@@ -142,7 +142,7 @@ class FirestoreDatabase {
     }
   }
 
-  /// Deletes user profile picture from storage
+  /// Deletes user profile picture from storage, [userKey] uses UID
   Future<void> deleteProfilePictureStorage(String userKey) async  {
     try {
       final refStorage = storage.ref();
@@ -154,7 +154,7 @@ class FirestoreDatabase {
     }
   }
 
-  /// Removes URL of user's profile picture from Firestore
+  /// Removes URL of user's profile picture from Firestore, [userKey] uses UID
   Future<void> deleteProfilePictureFirestore(String userKey) async {
     final ref = db
         .collection("users")
