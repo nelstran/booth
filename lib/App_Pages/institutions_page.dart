@@ -17,10 +17,15 @@ class _InstituionsPage extends State<InstitutionsPage>{
   Timer? _debounce;
   bool loading = false;
   bool searching = false;
+  String query = '';
 
   /// Only start searching after the user has stopped
   /// typing after a certain duration, currently 800ms
   _onSearchChanged(String value){
+    setState((){
+      listOfInstitutions.clear();
+      query = value;
+    });
     // Don't search an empty query
     if (value == ""){
       setState((){
@@ -38,7 +43,7 @@ class _InstituionsPage extends State<InstitutionsPage>{
     if(_debounce?.isActive ?? false){
       _debounce?.cancel();
     }
-    _debounce = Timer(const Duration(milliseconds: 800), (){
+    _debounce = Timer(const Duration(milliseconds: 800), () {
       // Start searching when timer is done
       searching = false;
       listOfInstitutions.clear();
@@ -121,57 +126,80 @@ class _InstituionsPage extends State<InstitutionsPage>{
               String website = institute['web_pages'];
               String logoURL = institute['logo'] ?? '';
 
-              return ListTile(
-                visualDensity: const VisualDensity(
-                  vertical: 3
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListTile(
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))
                   ),
-                leading: Container(
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(106, 78, 78, 78),
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(8.0)
-                    )
+                  tileColor: const Color.fromARGB(55, 78, 78, 78),
+                  visualDensity: const VisualDensity(
+                    vertical: 3
+                    ),
+                  leading: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: logoURL == '' ?Colors.transparent
+                      : Colors.white,
+                      // borderRadius: BorderRadius.all(
+                      //   Radius.circular(15.0)
+                      // )
+                    ),
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    child: SizedBox(
+                      height: 70,
+                      width: 70,
+                      child: Image.network(
+                        logoURL,
+                        fit: BoxFit.contain,
+                        // If no logo is found, use icon instead
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.school,
+                            size: 50,
+                            color: Colors.grey[700],
+                          );
+                        },
+                      )
+                    ),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: SizedBox(
-                    height: 70,
-                    width: 70,
-                    child: Image.network(
-                      logoURL,
-                      fit: BoxFit.contain,
-                      // If no logo is found, use icon instead
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.school,
-                          size: 50,
-                          color: Colors.grey[700],
-                        );
-                      },
-                    )
+                  title: Text(
+                    institute['name'],
+                    style:const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  subtitle: Text(website),
+                  onTap: (){
+                
+                  },
                 ),
-                title: Text(
-                  institute['name'],
-                  style:const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(website),
               );
             },
       ),
     );
   }
   
-  /// Function to retrieve list of institution from API
+  /// Function to retrieve list of institution from API, we add checks 
+  /// between every async operation to ensure best search results
   void _getListOfInstitutions(String value) async {
     // Encode the query to be URL-friendly
     var encoded = Uri.encodeFull(value);
+
+    // Cancel search if user is still typing
+    if (searching || query.isEmpty){
+      return;
+    }
     var response = await http.get(
       Uri.parse(
         'http://universities.hipolabs.com/search?name=$encoded&limit=15'
       )
     );
+    // Cancel search if user is still typing
+    if (searching || query.isEmpty){
+      return;
+    }
+
     List json = jsonDecode(response.body);
     List<Map<dynamic, dynamic>> list = [];
 
@@ -182,17 +210,21 @@ class _InstituionsPage extends State<InstitutionsPage>{
       inst['name'] = entry['name'];
       inst['web_pages'] = (entry['web_pages'] as List).first;
 
+      // Cancel search if user is still typing
+      if (searching || query.isEmpty){
+        return;
+      }
       String? logoUrl = await _getLogoOfInstitution(entry['name']);
+      // Cancel search if user is still typing
+      if (searching || query.isEmpty){
+        return;
+      }
+
       if (logoUrl != null){
         inst['logo'] = logoUrl;
       }
       
       list.add(inst);
-    }
-
-    // Cancel search if user is still typing
-    if (searching){
-      return;
     }
 
     setState(() {
@@ -226,7 +258,7 @@ class _InstituionsPage extends State<InstitutionsPage>{
           Image? logo = Image.network(url);
           Size logoSize = await _getImageSize(logo);
           
-          if (logoSize.height >= 128 && logoSize.width >= 128){
+          if (logoSize.height >= 32 && logoSize.width >= 32){
             return url;
           }
           else{
