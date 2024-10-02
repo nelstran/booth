@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1/App_Pages/institutions_page.dart';
 import 'package:flutter_application_1/App_Pages/main_ui_page.dart';
 import 'package:flutter_application_1/User_Authentication/login_or_register.dart';
 
@@ -22,8 +21,7 @@ class AuthPage extends StatelessWidget {
           }
           // Otherwise, display the login or register page
           else{
-            return const InstitutionsPage();
-            // return const LoginOrRegister();
+            return const LoginOrRegister();
           }
         },
       ),
