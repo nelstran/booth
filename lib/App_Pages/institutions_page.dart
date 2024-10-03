@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
+import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
 
@@ -245,7 +246,13 @@ class _InstituionsPage extends State<InstitutionsPage>{
                                     onPressed: (){
                                       // TODO: Set student to university and create dummy data
                                       widget.controller.updateUserProfile({"institution": institute['name']});
+                                      // Pop current page, push the main page and optional profile creation page
+                                      Navigator.of(context).pop();
                                       Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) => const AuthPage())
+                                      );
+                                      Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (context) => CreateProfilePage(widget.controller))
                                       );  

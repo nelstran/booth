@@ -32,7 +32,8 @@ class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAl
           return const Center(child: CircularProgressIndicator());
         } else if (snap.hasError) {
           return Center(child: Text('Error: ${snap.error}'));
-        } else if (!snap.hasData || snap.data?.snapshot.value == null) {
+        } else if (!snap.hasData || snap.data?.snapshot.value == null || 
+                    (snap.data?.snapshot.value as Map).length <= 1) {
           return Center(
               child: ElevatedButton(
             onPressed: () {

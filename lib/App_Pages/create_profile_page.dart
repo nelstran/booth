@@ -43,14 +43,11 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Fetch user profile to start updating it
-    final arguments = (ModalRoute.of(context)?.settings.arguments ??
-        <String, dynamic>{}) as Map;
     return FutureBuilder(
-        future: widget.controller.getUserEntry(),
+        future: widget.controller.getUserProfile(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            if (snapshot.data is Map<dynamic, dynamic>) {
+            if (snapshot.data is Map<dynamic, dynamic> && snapshot.data!.length > 1) {
               return createUI(snapshot.data);
             } else {
               return createUI();
