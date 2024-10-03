@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/institutions_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
 import 'package:flutter_application_1/UI_components/textbox.dart';
@@ -64,13 +65,19 @@ class _RegisterPageState extends State<RegisterPage> {
           lastName: lastNameController.text,
         );
         controller.addUser(newUser);
-
+        controller.fetchAccountInfo(userCredential.user!);
+        
         if (!mounted) return;
         Navigator.of(context).pop();
-        Navigator.pushNamed(
-          context, '/create_profile',
-          arguments: {'user': userCredential.user}
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => InstitutionsPage(controller)
+          )
         );
+        // Navigator.pushNamed(
+        //   context, '/create_profile',
+        //   arguments: {'user': userCredential.user}
+        // );
 
       // Navigator.pushNamedAndRemoveUntil(
       //   context, '/session_page',

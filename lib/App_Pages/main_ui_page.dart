@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/admin_page.dart';
+import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/create_session_page.dart';
 import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/map_page.dart';
@@ -204,11 +205,15 @@ class _MainUIPageState extends State<MainUIPage> {
         IconButton(
           icon: const Icon(Icons.edit),
           onPressed: () async {
-            await Navigator.pushNamed(
-              context,
-              '/create_profile',
-              arguments: {"user": widget.user, "controller": controller},
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CreateProfilePage(controller))
             );
+            // await Navigator.pushNamed(
+            //   context,
+            //   '/create_profile',
+            //   arguments: {"user": widget.user, "controller": controller},
+            // );
             // Causes the page to update when user is done
             setState(() {
               currPageIndex = currPageIndex;

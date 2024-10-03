@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/friends_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
@@ -35,8 +36,10 @@ class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAl
           return Center(
               child: ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/create_profile',
-                  arguments: {'user': widget.user});
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => CreateProfilePage(widget.controller))
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,

@@ -4,7 +4,11 @@ import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
 
 class CreateProfilePage extends StatefulWidget {
-  const CreateProfilePage({super.key});
+  final BoothController controller;
+  const CreateProfilePage(
+    this.controller,
+    {super.key}
+  );
 
   @override
   State<CreateProfilePage> createState() => _CreateProfilePageState();
@@ -13,11 +17,6 @@ class CreateProfilePage extends StatefulWidget {
 class _CreateProfilePageState extends State<CreateProfilePage> {
   final _formKey = GlobalKey<FormState>();
   String? _name;
-  String? _institution;
-  List<String> listOfInstitutions = <String>[
-    "University of Utah",
-    "Salt Lake Community College"
-  ];
   String? _major;
   // Freshman, Sophomore, Junior, Senior
   String? _year;
@@ -40,7 +39,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   String? _availability;
 
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
-  late BoothController controller = BoothController(_ref);
   Map<dynamic, dynamic> profile = {};
 
   @override
@@ -48,13 +46,8 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
     // Fetch user profile to start updating it
     final arguments = (ModalRoute.of(context)?.settings.arguments ??
         <String, dynamic>{}) as Map;
-    if (arguments.containsKey("controller")) {
-      controller = arguments['controller'] as BoothController;
-    }
     return FutureBuilder(
-        future: arguments.containsKey("controller")
-            ? controller.getUserProfile()
-            : controller.fetchAccountInfo(arguments["user"]),
+        future: widget.controller.getUserEntry(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data is Map<dynamic, dynamic>) {
@@ -99,29 +92,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 onSaved: (value) => _name = value,
               ),
               const SizedBox(height: 8.0),
-              // TextFormField(
-              //   decoration: const InputDecoration(labelText: 'Institution'),
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please enter the name of your college/university';
-              //     }
-              //     return null;
-              //   },
-              //   onSaved: (value) => _institution = value,
-              // ),
-
-              // FOR TESTING
-              DropdownButtonFormField(
-                value: edit && profile.containsKey('institution')
-                    ? profile['institution'] as String
-                    : null,
-                decoration: const InputDecoration(labelText: 'Institution'),
-                items: listOfInstitutions.map((String value) {
-                  return DropdownMenuItem(value: value, child: Text(value));
-                }).toList(),
-                onSaved: (value) => _institution = value,
-                onChanged: (value) => _institution = value,
-              ),
 
               const SizedBox(height: 8.0),
               TextFormField(
@@ -202,14 +172,13 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                     _formKey.currentState!.save();
                     Map<String, Object?> values = {
                       "name": _name,
-                      "institution": _institution,
                       "major": _major,
                       "year": _year,
                       "courses": _courses.asMap(),
                       "studyPref": _study_pref,
                       "availability": _availability
                     };
-                    controller.updateUserProfile(values);
+                    widget.controller.updateUserProfile(values);
                     Navigator.pop(context);
                   }
                 },

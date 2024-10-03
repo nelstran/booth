@@ -18,9 +18,9 @@ class SessionDatabase {
   SessionDatabase(this.ref);
 
   /// Add user to database given a set of values
-  void addUser(Map values) {
+  Future<void> addUser(Map values) async {
     final newRef = ref.child('users').push();
-    newRef.set(values);
+    await newRef.set(values);
   }
 
   /// Change field values of existing user

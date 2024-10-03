@@ -1,11 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
+import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/profile_extension.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
 
 class InstitutionsPage extends StatefulWidget{
-  const InstitutionsPage({super.key});
+  final BoothController controller;
+  const InstitutionsPage(
+    this.controller, 
+    {super.key});
 
   @override
   State<StatefulWidget> createState() => _InstituionsPage();
@@ -238,6 +244,11 @@ class _InstituionsPage extends State<InstitutionsPage>{
                                   child: ElevatedButton(
                                     onPressed: (){
                                       // TODO: Set student to university and create dummy data
+                                      widget.controller.updateUserProfile({"institution": institute['name']});
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) => CreateProfilePage(widget.controller))
+                                      );  
                                     }, 
                                     style: ElevatedButton.styleFrom(
                                       elevation: 0.0,

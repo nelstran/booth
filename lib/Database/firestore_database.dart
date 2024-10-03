@@ -11,8 +11,8 @@ class FirestoreDatabase {
   FirestoreDatabase();
 
   /// Adds a user entry to Firestore, [userKey] uses UID
-  void addUserData(String key) {
-    db.collection("users").doc(key).set({});
+  Future<void> addUserData(String key) async {
+    await db.collection("users").doc(key).set({});
   }
 
   /// Retrieves user entry from Firestore, [userKey] uses UID

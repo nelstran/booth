@@ -289,9 +289,9 @@ class BoothController {
   }
 
   /// Add the given student to the database
-  void addUser(Student student) {
-    db.addUser(student.toJson());
-    firestoreDb.addUserData(student.uid);
+  Future<void> addUser(Student student) async {
+    await db.addUser(student.toJson());
+    await firestoreDb.addUserData(student.uid);
   }
 
   /// Given its key, remove the user from the database
