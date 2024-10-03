@@ -71,19 +71,9 @@ class _RegisterPageState extends State<RegisterPage> {
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => InstitutionsPage(controller)
+            builder: (context) => InstitutionsPage(controller, true)
           )
         );
-        // Navigator.pushNamed(
-        //   context, '/create_profile',
-        //   arguments: {'user': userCredential.user}
-        // );
-
-      // Navigator.pushNamedAndRemoveUntil(
-      //   context, '/session_page',
-      //   (_) => false, // This clears all routes in the stack
-      //   arguments: {'user': userCredential.user},
-      // );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);

@@ -5,6 +5,7 @@ import 'package:flutter_application_1/App_Pages/admin_page.dart';
 import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/create_session_page.dart';
 import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
+import 'package:flutter_application_1/App_Pages/institutions_page.dart';
 import 'package:flutter_application_1/App_Pages/map_page.dart';
 import 'package:flutter_application_1/App_Pages/session_page.dart';
 import 'package:flutter_application_1/App_Pages/usage_page.dart';
@@ -35,7 +36,7 @@ class _MainUIPageState extends State<MainUIPage> {
   Widget build(BuildContext context) {
     // Get user profile before loading everything
     return FutureBuilder(
-      future: controller.fetchAccountInfo(widget.user!),
+      future: appSetup(widget.user),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return createUI();
@@ -47,6 +48,21 @@ class _MainUIPageState extends State<MainUIPage> {
         }
       }
     );
+  }
+
+  Future<String> appSetup(user) async {
+    String data = await controller.fetchAccountInfo(user);
+    Map profile = await controller.getUserProfile();
+
+    // Make sure users are assigned an institution
+    if (!profile.containsKey('institution') && mounted){
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => InstitutionsPage(controller, false)
+        )
+      );
+    }
+    return data;
   }
 
   @override

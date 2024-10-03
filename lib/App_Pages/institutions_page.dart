@@ -10,8 +10,10 @@ import 'dart:ui' as ui;
 
 class InstitutionsPage extends StatefulWidget{
   final BoothController controller;
+  final bool fromRegister;
   const InstitutionsPage(
     this.controller, 
+    this.fromRegister,
     {super.key});
 
   @override
@@ -248,14 +250,16 @@ class _InstituionsPage extends State<InstitutionsPage>{
                                       widget.controller.updateUserProfile({"institution": institute['name']});
                                       // Pop current page, push the main page and optional profile creation page
                                       Navigator.of(context).pop();
-                                      Navigator.of(context).pushReplacement(
+                                      Navigator.of(context).pushReplacement( // pushReplacement prevents user from going back
                                         MaterialPageRoute(
                                           builder: (context) => const AuthPage())
                                       );
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => CreateProfilePage(widget.controller))
-                                      );  
+                                      if (widget.fromRegister){
+                                        Navigator.of(context).push( // push to allow users to exit the page by going back
+                                          MaterialPageRoute(
+                                            builder: (context) => CreateProfilePage(widget.controller))
+                                        );  
+                                      }
                                     }, 
                                     style: ElevatedButton.styleFrom(
                                       elevation: 0.0,
