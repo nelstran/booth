@@ -38,7 +38,6 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   String? _study_pref;
   String? _availability;
 
-  final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   Map<dynamic, dynamic> profile = {};
 
   @override

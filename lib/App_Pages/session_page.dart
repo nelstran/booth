@@ -15,7 +15,6 @@ class SessionPage extends StatelessWidget {
 
   final DatabaseReference ref;
   final BoothController controller;
-
   @override
   Widget build(BuildContext context) {
     List<Color> sessionColor = [
@@ -24,93 +23,95 @@ class SessionPage extends StatelessWidget {
       Colors.yellow,
       Colors.green
     ];
-
-    return FirebaseAnimatedList(
-      query: ref.child("sessions"),
-      // Build each item in the list view
-      itemBuilder: (BuildContext context, DataSnapshot snapshot,
-          Animation<double> animation, int index) {
-        // Convert the snapshot to a Map
-        Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
-
-        // Here to avoid exception while debugging
-        if (!json.containsKey("users")) return const SizedBox.shrink();
-
-        Session session = Session.fromJson(json);
-
-        List<String> memberNames = [];
-        List<String> memberUIDs = [];
-
-        Map<String, dynamic> usersInFS =
-            Map<String, dynamic>.from(json['users']);
-        usersInFS.forEach((key, value) {
-          memberNames.add(value['name']);
-          memberUIDs.add(value['uid']);
-        });
-        // Extract title and description from the session map
-        String title = json['title'] ?? '';
-        // String description = session['description']?? '';
-        String description =
-            json['description'] + '\n• ' + memberNames.join("\n• ");
-
-        int colorIndex =
-            ((session.seatsTaken / session.seatsAvailable) * 100).floor();
-        Color fullness;
-        if (colorIndex <= 33) {
-          fullness = sessionColor[3];
-        } else if (colorIndex <= 66) {
-          fullness = sessionColor[2];
-        } else if (colorIndex <= 99) {
-          fullness = sessionColor[1];
-        } else {
-          fullness = sessionColor[0];
-        }
-        return Column(
-          children: [
-            if (index == 0) boothSearchBar(context),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Card(
-                elevation: 2,
-                child: ClipPath(
-                  clipper: ShapeBorderClipper(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        border: Border(
-                            left: BorderSide(
-                      color: fullness,
-                      width: 10,
-                    ))),
-                    child: ListTile(
-                      // Display title and description
-                      title: Text(
-                        title,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+    String institution = controller.studentInstitution;
+    return Column(
+      children: [
+        boothSearchBar(context),
+        Expanded(
+          child: FirebaseAnimatedList(
+            query: ref.child("institutions/$institution/sessions"),
+            // Build each item in the list view
+            itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                Animation<double> animation, int index) {
+              // Convert the snapshot to a Map
+              Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
+          
+              // Here to avoid exception while debugging
+              if (!json.containsKey("users")) return const SizedBox.shrink();
+          
+              Session session = Session.fromJson(json);
+          
+              List<String> memberNames = [];
+              List<String> memberUIDs = [];
+          
+              Map<String, dynamic> usersInFS =
+                  Map<String, dynamic>.from(json['users']);
+              usersInFS.forEach((key, value) {
+                memberNames.add(value['name']);
+                memberUIDs.add(value['uid']);
+              });
+              // Extract title and description from the session map
+              String title = json['title'] ?? '';
+              // String description = session['description']?? '';
+              String description =
+                  json['description'] + '\n• ' + memberNames.join("\n• ");
+          
+              int colorIndex =
+                  ((session.seatsTaken / session.seatsAvailable) * 100).floor();
+              Color fullness;
+              if (colorIndex <= 33) {
+                fullness = sessionColor[3];
+              } else if (colorIndex <= 66) {
+                fullness = sessionColor[2];
+              } else if (colorIndex <= 99) {
+                fullness = sessionColor[1];
+              } else {
+                fullness = sessionColor[0];
+              }
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Card(
+                  elevation: 2,
+                  child: ClipPath(
+                    clipper: ShapeBorderClipper(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          border: Border(
+                              left: BorderSide(
+                        color: fullness,
+                        width: 10,
+                      ))),
+                      child: ListTile(
+                        // Display title and description
+                        title: Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(description),
+                        trailing: Text(
+                          "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                          textAlign: TextAlign.center,
+                        ),
+                        onTap: () {
+                          // Expand session
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ExpandedSessionPage(snapshot.key!, controller),
+                            ),
+                          );
+                        },
                       ),
-                      subtitle: Text(description),
-                      trailing: Text(
-                        "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
-                        textAlign: TextAlign.center,
-                      ),
-                      onTap: () {
-                        // Expand session
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ExpandedSessionPage(snapshot.key!, controller),
-                          ),
-                        );
-                      },
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
-        );
-      },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

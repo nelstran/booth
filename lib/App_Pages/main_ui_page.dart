@@ -52,10 +52,9 @@ class _MainUIPageState extends State<MainUIPage> {
 
   Future<String> appSetup(user) async {
     String data = await controller.fetchAccountInfo(user);
-    Map profile = await controller.getUserProfile();
 
     // Make sure users are assigned an institution
-    if (!profile.containsKey('institution') && mounted){
+    if (controller.studentInstitution == "" && mounted){
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => InstitutionsPage(controller, false)

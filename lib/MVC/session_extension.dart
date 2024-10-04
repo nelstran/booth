@@ -4,6 +4,17 @@ import 'package:flutter_application_1/MVC/session_model.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
 
 extension SessionExtension on BoothController{
+
+  /// Get all open session at the given school, if no school is given, search the user's assigned school
+  Future<Map<dynamic, dynamic>> getSessions([institution]) async {
+    institution = institution ?? studentInstitution;
+    Object? json = await db.getAllSessions(institution);
+    if (json == null) {
+      return {};
+    }
+    return json as Map<dynamic, dynamic>;
+  }
+  
   /// Add the logged in user (student) to a session
   Future<void> addUserToSession(String sessionKey, Student user) async {
     // If user is in a session, remove them from it before adding them to a new one
@@ -76,19 +87,5 @@ extension SessionExtension on BoothController{
   /// Given a key, remove the session from the database
   void removeSession(String key) {
     db.removeSession(key);
-  }
-
-  Future<bool> isUserAlreadyInSession(String uid) async {
-    // Query the sessions node to find if the user is a member of any session
-
-    bool inSession = await db.isUserInSession(uid);
-    // Check if the snapshot has any data
-    if (inSession == true) {
-      // User is already in a session
-      return true;
-    } else {
-      // User is not in any session
-      return false;
-    }
   }
 }

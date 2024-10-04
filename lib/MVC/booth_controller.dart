@@ -16,6 +16,7 @@ class BoothController {
   final FirestoreDatabase firestoreDb = FirestoreDatabase();
   SessionDatabase db;
   Student student;
+  String studentInstitution = "";
   
   // Constructor
   BoothController(
@@ -35,6 +36,10 @@ class BoothController {
       }
       var value = snapshot.value as Map;
       value['key'] = snapshot.key;
+      if (value.containsKey('profile') && (value['profile'] as Map).containsKey('institution')){
+        studentInstitution = value['profile']['institution'];
+        db.setInstitution(studentInstitution);
+      }
       // Modify student on change
       studentRef.onValue.listen((event) {
         // In an event the user deletes their account
@@ -321,14 +326,6 @@ class BoothController {
 
   Future<Map<dynamic, dynamic>> getUsers() async {
     Object? json = await db.getAllUsers();
-    if (json == null) {
-      return {};
-    }
-    return json as Map<dynamic, dynamic>;
-  }
-
-  Future<Map<dynamic, dynamic>> getSessions() async {
-    Object? json = await db.getAllSessions();
     if (json == null) {
       return {};
     }

@@ -35,8 +35,8 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final DatabaseReference _ref = FirebaseDatabase.instance.ref();
-
+    DatabaseReference ref = FirebaseDatabase.instance.ref();
+    String institution = controller.studentInstitution;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -44,7 +44,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: StreamBuilder(
-          stream: _ref.child("sessions/${widget.sessionKey}").onValue,
+          stream: ref.child("institutions/$institution/sessions/${widget.sessionKey}").onValue,
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
               Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
