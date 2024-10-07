@@ -75,6 +75,7 @@ class SessionDatabase {
   void setInstitution(String institute){
     institution = institute;
   }
+  
   /// Add a session and include the user who made it into that session
   Future<Map<String, String?>> addSession(
       Map sessionValues, Map studentValues) async {
@@ -193,5 +194,16 @@ class SessionDatabase {
     final newRef = ref.child("users/$key/name");
     final event = await newRef.once();
     return event.snapshot.value ?? "";
+  }
+
+  Future<Object?> getInstitute(String institute) async {
+    final newRef = ref.child("institutions/$institute");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
+
+  Future<void> createSampleSession(Map sample) async {
+    final newRef = ref.child('institutions/$institution/sessions').push();
+    await newRef.set(sample);
   }
 }

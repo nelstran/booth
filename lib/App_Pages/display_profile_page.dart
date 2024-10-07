@@ -97,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FutureBuilder(
-            future: getProfilePicture(widget.controller),
+            future: getProfilePicture(),
             builder: (context, snapshot){
               if (snapshot.connectionState == ConnectionState.waiting){
                 return const Center(child: CircularProgressIndicator());
@@ -267,7 +267,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
   
   /// Helper future method to fetch the profile picture Image URL from the database and checks
   /// if the URL is valid; if it is not valid, return null, else return the valid URL
-  Future<String?> getProfilePicture(BoothController controller) async  {
+  Future<String?> getProfilePicture() async  {
     // Get URL from Firestore
     String? pfp = await widget.controller.retrieveProfilePicture(widget.controller.student.uid);
     if (pfp == null){

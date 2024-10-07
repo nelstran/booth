@@ -1,10 +1,14 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/App_Pages/search_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/profile_extension.dart';
+import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import '../MVC/session_model.dart';
+import 'package:http/http.dart' as http;
 
 class SessionPage extends StatelessWidget {
   const SessionPage({
@@ -50,11 +54,10 @@ class SessionPage extends StatelessWidget {
                 memberNames.add(value['name']);
                 memberUIDs.add(value['uid']);
               });
+
               // Extract title and description from the session map
               String title = json['title'] ?? '';
-              // String description = session['description']?? '';
-              String description =
-                  json['description'] + '\n• ' + memberNames.join("\n• ");
+              String description = json['description'];
           
               int colorIndex =
                   ((session.seatsTaken / session.seatsAvailable) * 100).floor();
@@ -68,6 +71,9 @@ class SessionPage extends StatelessWidget {
               } else {
                 fullness = sessionColor[0];
               }
+
+              // Control the max number of users to display on the front page
+              int numOfPFPs = 4;
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Card(
@@ -89,7 +95,16 @@ class SessionPage extends StatelessWidget {
                           title,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: Text(description),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          // Show list and the people in that session represented by their pfp
+                          children: [
+                            Text(description),
+                            const SizedBox(height: 2),
+                            rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
+                          ],
+                        ),
                         trailing: Text(
                           "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
                           textAlign: TextAlign.center,
@@ -112,6 +127,61 @@ class SessionPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  SizedBox rowOfPFPs(List<String> memberNames, int numOfPFPs, List<String> memberUIDs) {
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount: memberNames.length > numOfPFPs ? numOfPFPs : memberNames.length,
+        itemBuilder: (context, index) {
+          var pfpRadius = 15.0;
+          var pfpFontSize = 13.0;
+          return Row(
+            children: [
+              FutureBuilder(
+                future: getProfilePicture(memberUIDs[index]), 
+                builder:(context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError){
+                    return Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: ProfilePicture(
+                        name: memberNames[index], 
+                        radius: pfpRadius, 
+                        fontsize: pfpFontSize
+                      ),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.all(3.0),
+                    child: ProfilePicture(
+                        name: memberNames[index], 
+                        radius: pfpRadius, 
+                        fontsize: pfpFontSize,
+                        img: snapshot.data,
+                      ),
+                  );
+                },
+              ),
+              if (memberNames.length > numOfPFPs && index == numOfPFPs - 1) 
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "+${memberNames.length - numOfPFPs}",
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+              ) 
+              else const SizedBox.shrink()
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -150,5 +220,25 @@ class SessionPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Helper future method to fetch the profile picture Image URL from the database and checks
+  /// if the URL is valid; if it is not valid, return null, else return the valid URL
+  Future<String?> getProfilePicture(String uid) async  {
+    // Get URL from Firestore
+    String? pfp = await controller.retrieveProfilePicture(uid);
+    if (pfp == null){
+      return pfp;
+    }
+    else{
+      // Grabs response of given url
+      final response = await http.get(Uri.parse(pfp));
+      if (response.statusCode == 200){
+        return pfp;
+      }
+      else{
+        return Future.error("ERROR 404");
+      }
+    }
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:flutter_application_1/App_Pages/map_page.dart';
 import 'package:flutter_application_1/App_Pages/session_page.dart';
 import 'package:flutter_application_1/App_Pages/usage_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:flutter_application_1/MVC/sample_extension.dart';
 
 /// This is the home page - defaults to the session page
 class MainUIPage extends StatefulWidget {
@@ -52,14 +55,20 @@ class _MainUIPageState extends State<MainUIPage> {
 
   Future<String> appSetup(user) async {
     String data = await controller.fetchAccountInfo(user);
-
+    String institution = controller.studentInstitution;
     // Make sure users are assigned an institution
-    if (controller.studentInstitution == "" && mounted){
+    if (institution == "" && mounted){
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => InstitutionsPage(controller, false)
         )
       );
+    }
+    Map sessions = await controller.getInstitute(institution);
+    if (sessions.isEmpty){
+      // Create dummy data
+      var numOfSessions = Random().nextInt(9) + 6;
+      controller.createNSampleSessions(numOfSessions);
     }
     return data;
   }

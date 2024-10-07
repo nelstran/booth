@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
+import 'package:flutter_application_1/MVC/sample_extension.dart';
 import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
@@ -245,20 +247,31 @@ class _InstituionsPage extends State<InstitutionsPage>{
                                 const SizedBox(width: 8.0),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: (){
-                                      // TODO: Set student to university and create dummy data
+                                    onPressed: () async {
                                       widget.controller.updateUserProfile({"institution": institute['name']});
+                                      widget.controller.setInstitution(institute['name']);
+                                      
+                                      // TODO: Delete creation of dummy data in final product
+                                      Map sessions = await widget.controller.getInstitute();
+                                      if (sessions.isEmpty){
+                                        // Create dummy data
+                                        var numOfSessions = Random().nextInt(9) + 6;
+                                        widget.controller.createNSampleSessions(numOfSessions);
+                                      }
+
                                       // Pop current page, push the main page and optional profile creation page
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pushReplacement( // pushReplacement prevents user from going back
-                                        MaterialPageRoute(
-                                          builder: (context) => const AuthPage())
-                                      );
-                                      if (widget.fromRegister){
-                                        Navigator.of(context).push( // push to allow users to exit the page by going back
+                                      if (context.mounted) {
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pushReplacement( // pushReplacement prevents user from going back
                                           MaterialPageRoute(
-                                            builder: (context) => CreateProfilePage(widget.controller))
-                                        );  
+                                            builder: (context) => const AuthPage())
+                                        );
+                                        if (widget.fromRegister){
+                                          Navigator.of(context).push( // push to allow users to exit the page by going back
+                                            MaterialPageRoute(
+                                              builder: (context) => CreateProfilePage(widget.controller))
+                                          );  
+                                        }
                                       }
                                     }, 
                                     style: ElevatedButton.styleFrom(
