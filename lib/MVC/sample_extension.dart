@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/session_model.dart';
 
 extension SampleExtension on BoothController {
   static String namesFilePath = 'assets/mock/names.json';

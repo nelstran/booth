@@ -15,7 +15,7 @@ class ProfileDisplayPage extends StatefulWidget {
   const ProfileDisplayPage(this.user, this.controller, {super.key});
   
   @override
-  _ProfileDisplayPage createState() => _ProfileDisplayPage();
+  State<ProfileDisplayPage> createState() => _ProfileDisplayPage();
 }
 
 class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAliveClientMixin{

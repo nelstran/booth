@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/display_user_page.dart';
-import 'package:flutter_application_1/MVC/friend_extension.dart';
 import 'package:flutter_application_1/MVC/session_extension.dart';
 
 import '../MVC/booth_controller.dart';

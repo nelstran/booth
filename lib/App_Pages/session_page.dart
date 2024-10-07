@@ -1,7 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
 import 'package:flutter_application_1/App_Pages/search_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
@@ -10,30 +9,39 @@ import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import '../MVC/session_model.dart';
 import 'package:http/http.dart' as http;
 
-class SessionPage extends StatelessWidget {
+class SessionPage extends StatefulWidget {
+  final DatabaseReference ref;
+  final BoothController controller;
   const SessionPage({
     super.key,
     required this.ref,
     required this.controller,
   });
-
-  final DatabaseReference ref;
-  final BoothController controller;
+  
+  @override
+  State<SessionPage> createState() => _SessionPage();
+}
+class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin {
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
+  
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     List<Color> sessionColor = [
       Colors.red,
       Colors.orange,
       Colors.yellow,
       Colors.green
     ];
-    String institution = controller.studentInstitution;
+    String institution = widget.controller.studentInstitution;
     return Column(
       children: [
         boothSearchBar(context),
         Expanded(
           child: FirebaseAnimatedList(
-            query: ref.child("institutions/$institution/sessions"),
+            query: widget.ref.child("institutions/$institution/sessions"),
             // Build each item in the list view
             itemBuilder: (BuildContext context, DataSnapshot snapshot,
                 Animation<double> animation, int index) {
@@ -114,7 +122,7 @@ class SessionPage extends StatelessWidget {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
-                                  ExpandedSessionPage(snapshot.key!, controller),
+                                  ExpandedSessionPage(snapshot.key!, widget.controller),
                             ),
                           );
                         },
@@ -190,7 +198,7 @@ class SessionPage extends StatelessWidget {
       onTap: () async {
         await showSearch(
           context: context,
-          delegate: SearchPage(controller: controller),
+          delegate: SearchPage(controller: widget.controller),
         );
       },
       child: Container(
@@ -226,7 +234,7 @@ class SessionPage extends StatelessWidget {
   /// if the URL is valid; if it is not valid, return null, else return the valid URL
   Future<String?> getProfilePicture(String uid) async  {
     // Get URL from Firestore
-    String? pfp = await controller.retrieveProfilePicture(uid);
+    String? pfp = await widget.controller.retrieveProfilePicture(uid);
     if (pfp == null){
       return pfp;
     }
