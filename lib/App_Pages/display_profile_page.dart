@@ -32,25 +32,26 @@ class _ProfileDisplayPage extends State<ProfileDisplayPage> with AutomaticKeepAl
           return const Center(child: CircularProgressIndicator());
         } else if (snap.hasError) {
           return Center(child: Text('Error: ${snap.error}'));
-        } else if (!snap.hasData || snap.data?.snapshot.value == null || 
-                    (snap.data?.snapshot.value as Map).length <= 1) {
-          return Center(
-              child: ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => CreateProfilePage(widget.controller))
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-            ),
-            child: const Text(
-              "Create Profile",
-              style: TextStyle(color: Colors.black),
-            ),
-          ));
-        }
+        } 
+        // else if (!snap.hasData || snap.data?.snapshot.value == null || 
+        //             (snap.data?.snapshot.value as Map).length <= 1) {
+        //   return Center(
+        //       child: ElevatedButton(
+        //     onPressed: () {
+        //       Navigator.of(context).push(
+        //         MaterialPageRoute(
+        //           builder: (context) => CreateProfilePage(widget.controller))
+        //       );
+        //     },
+        //     style: ElevatedButton.styleFrom(
+        //       backgroundColor: Colors.blue,
+        //     ),
+        //     child: const Text(
+        //       "Create Profile",
+        //       style: TextStyle(color: Colors.black),
+        //     ),
+        //   ));
+        // }
         Map<dynamic, dynamic> data = snap.data!.snapshot.value as Map;
         return ProfilePage(widget.controller, data);
       }
@@ -78,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
   void initState() {
     super.initState();
     // Initialize with data from widget
-    profileName = "${widget.data["name"]}";
+    profileName = "${widget.data["name"] ?? widget.controller.student.fullname}";
     profileRadius = 40;
     fontSize = 30;
     profileImg = null;
@@ -218,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
           ),
           const SizedBox(height: 16.0),
           Text(
-            'Name: ${widget.data["name"]}',
+            'Name: ${widget.data["name"] ?? widget.controller.student.fullname}',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8.0),
