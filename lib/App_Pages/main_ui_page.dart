@@ -60,7 +60,7 @@ class _MainUIPageState extends State<MainUIPage> {
     if (institution == "" && mounted){
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => InstitutionsPage(controller, false)
+          builder: (context) => InstitutionsPage(controller, 'Login')
         )
       );
     }
@@ -231,6 +231,7 @@ class _MainUIPageState extends State<MainUIPage> {
           onPressed: () async {
             Navigator.of(context).push(
               MaterialPageRoute(
+                settings: const RouteSettings(name: '/Profile'),
                 builder: (context) => CreateProfilePage(controller))
             );
             // await Navigator.pushNamed(

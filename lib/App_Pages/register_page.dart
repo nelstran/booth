@@ -71,7 +71,7 @@ class _RegisterPageState extends State<RegisterPage> {
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => InstitutionsPage(controller, true)
+            builder: (context) => InstitutionsPage(controller, 'Register')
           )
         );
       } on FirebaseAuthException catch (e) {

@@ -10,12 +10,15 @@ import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
 
+/// Class to repressent institution selection page, 
+/// Not sure how to know the previous page in the route so previousPage is a string argument
+/// [previousPage] can be "Profile", "Login", "Register". If anything else, defaults to "Login"
 class InstitutionsPage extends StatefulWidget{
   final BoothController controller;
-  final bool fromRegister;
+  final String previousPage;
   const InstitutionsPage(
     this.controller, 
-    this.fromRegister,
+    this.previousPage,
     {super.key});
 
   @override
@@ -258,21 +261,7 @@ class _InstituionsPage extends State<InstitutionsPage>{
                                         var numOfSessions = Random().nextInt(9) + 6;
                                         widget.controller.createNSampleSessions(numOfSessions);
                                       }
-
-                                      // Pop current page, push the main page and optional profile creation page
-                                      if (context.mounted) {
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pushReplacement( // pushReplacement prevents user from going back
-                                          MaterialPageRoute(
-                                            builder: (context) => const AuthPage())
-                                        );
-                                        if (widget.fromRegister){
-                                          Navigator.of(context).push( // push to allow users to exit the page by going back
-                                            MaterialPageRoute(
-                                              builder: (context) => CreateProfilePage(widget.controller))
-                                          );  
-                                        }
-                                      }
+                                      _proceedToNextPage();
                                     }, 
                                     style: ElevatedButton.styleFrom(
                                       elevation: 0.0,
@@ -414,5 +403,42 @@ class _InstituionsPage extends State<InstitutionsPage>{
       )
     );
     return completer.future;
+  }
+  
+  void _proceedToNextPage() {
+    switch (widget.previousPage){
+      // Pop current page to go back to Profile creation page
+      case 'Profile':
+        Navigator.of(context).popUntil(ModalRoute.withName("/Profile"));
+      break;
+      case 'Register':
+        // Pop current page and go to main page
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          Navigator.of(context).pushReplacement( // pushReplacement prevents user from going back
+            MaterialPageRoute(
+              builder: (context) => const AuthPage())
+          );
+        }
+        // Go to profile creation page
+        if (context.mounted){
+          Navigator.of(context).push( // push to allow users to exit the page by going back
+            MaterialPageRoute(
+              builder: (context) => CreateProfilePage(widget.controller))
+          );  
+        }
+      break;
+      case 'Login':
+      default:
+        // Pop current page and go to main page
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          Navigator.of(context).pushReplacement( // pushReplacement prevents user from going back
+            MaterialPageRoute(
+              builder: (context) => const AuthPage())
+          );
+        }
+    }
+    
   }
 }
