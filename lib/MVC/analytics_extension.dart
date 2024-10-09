@@ -13,12 +13,14 @@ extension AnalyticsExtension on BoothController {
     var timestamp = Timestamp.now().toDate();
     var todayInDays =
         timestamp.difference(DateTime(timestamp.year, 1, 1, 0, 0)).inDays;
+    var weekNumber = ((todayInDays - timestamp.weekday + 10) / 7).floor();
     Map<String, dynamic> valuesToLog = {
       "start_timestamp": format(timestamp),
       "month": DateFormat.MMMM().format(timestamp),
-      "day_of_month": DateFormat.d().format(timestamp),
+      "day_of_month": int.parse(DateFormat.d().format(timestamp)),
       "day_of_week": DateFormat.EEEE().format(timestamp),
-      "day_of_year": todayInDays.toString(),
+      "day_of_year": int.parse(todayInDays.toString()),
+      "week_of_year": weekNumber,
       "subject": session.subject,
       "location_desc": session.locationDescription
     };
