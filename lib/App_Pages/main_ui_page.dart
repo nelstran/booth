@@ -35,31 +35,29 @@ class _MainUIPageState extends State<MainUIPage> {
   Widget build(BuildContext context) {
     // Get user profile before loading everything
     return FutureBuilder(
-      future: controller.fetchAccountInfo(widget.user!),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return createUI();
-        }
-        else if (snapshot.hasError){
-          return errorDialog();
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      }
-    );
+        future: controller.fetchAccountInfo(widget.user!),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return createUI();
+          } else if (snapshot.hasError) {
+            return errorDialog();
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        });
   }
 
   @override
-  void dispose(){
+  void dispose() {
     pageController.dispose();
-    super.dispose(); 
+    super.dispose();
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     // accountSpecificSetup().then;
-    controller.fetchAccountInfo(widget.user!).whenComplete((){
+    controller.fetchAccountInfo(widget.user!).whenComplete(() {
       accountSpecificSetup();
     });
 
@@ -72,7 +70,7 @@ class _MainUIPageState extends State<MainUIPage> {
       label: "Home",
     );
 
-    var mapPage = const MapPage();
+    var mapPage = MapPage(ref: _ref, controller: controller);
     var mapNav = const NavigationDestination(
       icon: Icon(Icons.map, color: Colors.white),
       label: "Map",
@@ -124,7 +122,7 @@ class _MainUIPageState extends State<MainUIPage> {
     var adminMode = admins.contains(controller.student.uid);
 
     // TODO: (For testing) Delete
-    // Display an extra tab for admin accounts 
+    // Display an extra tab for admin accounts
     if (adminMode) {
       // Admin app bar
       appBars.add(adminAppBar());
@@ -139,7 +137,6 @@ class _MainUIPageState extends State<MainUIPage> {
   }
 
   Scaffold createUI() {
-    
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: appBars[currPageIndex],
@@ -148,7 +145,6 @@ class _MainUIPageState extends State<MainUIPage> {
         controller: pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: pages,
-
       ),
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
@@ -159,7 +155,7 @@ class _MainUIPageState extends State<MainUIPage> {
           //     arguments: {'user': controller.student});
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => CreateSessionPage(controller)),
+                builder: (context) => CreateSessionPage(controller)),
           );
         },
         child: const Icon(Icons.add),
@@ -223,7 +219,8 @@ class _MainUIPageState extends State<MainUIPage> {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => SettingsPage(
-                  controller: controller, user: widget.user!,
+                  controller: controller,
+                  user: widget.user!,
                 ),
               ),
             );
@@ -246,31 +243,29 @@ class _MainUIPageState extends State<MainUIPage> {
     );
   }
 
-
   /// *********  HELPER METHODS  *****************
   // This method logs the user out
   void logout() {
     FirebaseAuth.instance.signOut();
   }
 
-  AlertDialog errorDialog(){
+  AlertDialog errorDialog() {
     return AlertDialog(
       title: const Text('Error has occured'),
-      content: const Text('Your account cannot be found, please contact an administrator for help'),
+      content: const Text(
+          'Your account cannot be found, please contact an administrator for help'),
       actions: [
         TextButton(
-          onPressed: (){
+          onPressed: () {
             logout();
           },
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white
-          ),
+          style: TextButton.styleFrom(foregroundColor: Colors.white),
           child: const Text("Cancel"),
         )
       ],
     );
   }
-  
+
   Future<dynamic> deletionDialog() {
     return showDialog(
       context: context,
