@@ -6,6 +6,8 @@ import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
 import 'package:flutter_application_1/MVC/sample_extension.dart';
+import 'package:flutter_application_1/MVC/session_extension.dart';
+import 'package:flutter_application_1/MVC/student_model.dart';
 import 'package:flutter_application_1/User_Authentication/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
@@ -155,147 +157,163 @@ class _InstituionsPage extends State<InstitutionsPage>{
                   );
                 },
               );
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(8.0))
-                  ),
-                  tileColor: const Color.fromARGB(55, 78, 78, 78),
-                  visualDensity: const VisualDensity(
-                    vertical: 3
-                    ),
-                  leading: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: logoURL == '' ? Colors.transparent
-                      : Colors.white,
-                      // borderRadius: BorderRadius.all(
-                      //   Radius.circular(15.0)
-                      // )
-                    ),
-                    clipBehavior: Clip.antiAliasWithSaveLayer,
-                    child: SizedBox(
-                      height: 70,
-                      width: 70,
-                      child: logo
-                    ),
-                  ),
-                  title: Text(
-                    institute['name'],
-                    style:const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(website),
-                  onTap: (){
-                    showDialog(
-                      context: context,
-                      builder: (context){
-                        return AlertDialog(
-                          title: Center(
-                            child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: logoURL == '' ? Colors.transparent
-                              : Colors.white,
-                            ),
-                            clipBehavior: Clip.antiAliasWithSaveLayer,
-                            child: SizedBox(
-                              height: 100,
-                              width: 100,
-                              child: logo
-                            ),
-                          ),
-                          ),
-                          content: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                "Would you like to join",
-                                style:TextStyle(
-                                  fontSize: 20
-                                ),
-                              ),
-                              Text(
-                                "${institute['name']}?",
-                                style:const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 30
-                                ),
-                                textAlign: TextAlign.center,
-                              )
-                            ]
-                          ),
-                          actions: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: (){
-                                      Navigator.pop(context);
-                                    }, 
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 0.0,
-                                      shadowColor: Colors.transparent,
-                                      backgroundColor: Colors.transparent
-                                    ),
-                                    child: const Text(
-                                      "No",
-                                      style: TextStyle(
-                                        color: Colors.grey
-                                      ),),
-                                  ),
-                                ), 
-                                const SizedBox(width: 8.0),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      widget.controller.updateUserProfile({"institution": institute['name']});
-                                      widget.controller.setInstitution(institute['name']);
-                                      
-                                      // TODO: Delete creation of dummy data in final product
-                                      Map sessions = await widget.controller.getInstitute();
-                                      if (sessions.isEmpty){
-                                        // Create dummy data
-                                        var numOfSessions = Random().nextInt(9) + 6;
-                                        widget.controller.createNSampleSessions(numOfSessions);
-                                      }
-                                      _proceedToNextPage();
-                                    }, 
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 0.0,
-                                      shadowColor: Colors.transparent,
-                                      backgroundColor: const Color.fromARGB(255, 28, 125, 204),
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(8.0)
-                                        )
-                                      )
-                                    ),
-                                    child: const Text(
-                                      "Yes",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15
-                                      )
-                                    ),
-                                  ),
-                                )
-                              ]
-                            )
-                          ],
-                        );
-                      }
-                    );
-                  },
-                ),
-              );
+              return schoolTile(logoURL, logo, institute, website, context);
             },
       ),
+    );
+  }
+
+  Padding schoolTile(String logoURL, Image logo, Map<dynamic, dynamic> institute, String website, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8.0))
+        ),
+        tileColor: const Color.fromARGB(55, 78, 78, 78),
+        visualDensity: const VisualDensity(
+          vertical: 3
+          ),
+        leading: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: logoURL == '' ? Colors.transparent
+            : Colors.white,
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: SizedBox(
+            height: 70,
+            width: 70,
+            child: logo
+          ),
+        ),
+        title: Text(
+          institute['name'],
+          style:const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(website),
+        onTap: (){
+          confirmationDialog(context, logoURL, logo, institute);
+        },
+      ),
+    );
+  }
+
+  Future<dynamic> confirmationDialog(BuildContext context, String logoURL, Image logo, Map<dynamic, dynamic> institute) {
+    return showDialog(
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: Center(
+            child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: logoURL == '' ? Colors.transparent
+              : Colors.white,
+            ),
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            child: SizedBox(
+              height: 100,
+              width: 100,
+              child: logo
+            ),
+          ),
+          ),
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Would you like to join",
+                style:TextStyle(
+                  fontSize: 20
+                ),
+              ),
+              Text(
+                "${institute['name']}?",
+                style:const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30
+                ),
+                textAlign: TextAlign.center,
+              )
+            ]
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: (){
+                      Navigator.pop(context);
+                    }, 
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      shadowColor: Colors.transparent,
+                      backgroundColor: Colors.transparent
+                    ),
+                    child: const Text(
+                      "No",
+                      style: TextStyle(
+                        color: Colors.grey
+                      ),),
+                  ),
+                ), 
+                const SizedBox(width: 8.0),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Student student = widget.controller.student;
+                      // First Check to see if the user is apart of any study sessions
+                      // If so, remove from study session
+                      if (student.session != "") {
+                        await widget.controller.removeUserFromSession(student.session, student.sessionKey);
+                      }
+                      // Check is their are any sessions that they OWN and remove the session
+                      if (student.ownedSessionKey != "") {
+                        await widget.controller.removeUserFromSession(student.session, student.sessionKey);
+                        widget.controller.removeSession(student.ownedSessionKey);
+                      }
+                      widget.controller.updateUserProfile({"institution": institute['name']});
+                      widget.controller.setInstitution(institute['name']);
+                      
+                      // TODO: Delete creation of dummy data in final product
+                      Map sessions = await widget.controller.getInstitute();
+                      if (sessions.isEmpty){
+                        // Create dummy data
+                        var numOfSessions = Random().nextInt(9) + 6;
+                        widget.controller.createNSampleSessions(numOfSessions);
+                      }
+                      _proceedToNextPage();
+                    }, 
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      shadowColor: Colors.transparent,
+                      backgroundColor: const Color.fromARGB(255, 28, 125, 204),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0)
+                        )
+                      )
+                    ),
+                    child: const Text(
+                      "Yes",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15
+                      )
+                    ),
+                  ),
+                )
+              ]
+            )
+          ],
+        );
+      }
     );
   }
   
@@ -408,6 +426,7 @@ class _InstituionsPage extends State<InstitutionsPage>{
     return completer.future;
   }
   
+  /// Function to navigate to the right pages depending on the user's activity
   void _proceedToNextPage() {
     switch (widget.previousPage){
       // Pop current page to go back to Profile creation page
