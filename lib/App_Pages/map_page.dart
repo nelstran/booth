@@ -76,6 +76,7 @@ class MapPageState extends State<MapPage> {
       body: GoogleMap(
         mapType: MapType.hybrid,
         initialCameraPosition: currentLocation,
+        padding: const EdgeInsets.only(bottom: 80),
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },

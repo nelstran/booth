@@ -40,99 +40,110 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
       children: [
         boothSearchBar(context),
         Expanded(
-          child: FirebaseAnimatedList(
-            key: Key(institution),
-            query: widget.controller.sessionRef,
-            // Build each item in the list view
-            itemBuilder: (BuildContext context, DataSnapshot snapshot,
-                Animation<double> animation, int index) {
-              // Convert the snapshot to a Map
-              Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
-          
-              // Here to avoid exception while debugging
-              if (!json.containsKey("users")) return const SizedBox.shrink();
-          
-              Session session = Session.fromJson(json);
-          
-              List<String> memberNames = [];
-              List<String> memberUIDs = [];
-          
-              Map<String, dynamic> usersInFS =
-                  Map<String, dynamic>.from(json['users']);
-              usersInFS.forEach((key, value) {
-                memberNames.add(value['name']);
-                memberUIDs.add(value['uid']);
-              });
-          
-              // Extract title and description from the session map
-              String title = json['title'] ?? '';
-              String description = json['description'];
-          
-              int colorIndex =
-                  ((session.seatsTaken / session.seatsAvailable) * 100).floor();
-              Color fullness;
-              if (colorIndex <= 33) {
-                fullness = sessionColor[3];
-              } else if (colorIndex <= 66) {
-                fullness = sessionColor[2];
-              } else if (colorIndex <= 99) {
-                fullness = sessionColor[1];
-              } else {
-                fullness = sessionColor[0];
+          child: StreamBuilder(
+            stream: widget.controller.profileRef.onValue,
+            builder: (context, snap){
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snap.hasError) {
+                return Center(child: Text('Error: ${snap.error}'));
               }
-          
-              // Control the max number of users to display on the front page
-              int numOfPFPs = 4;
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Card(
-                  elevation: 2,
-                  child: ClipPath(
-                    clipper: ShapeBorderClipper(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10))),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border(
-                              left: BorderSide(
-                        color: fullness,
-                        width: 10,
-                      ))),
-                      child: ListTile(
-                        // Display title and description
-                        title: Text(
-                          title,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          // Show list and the people in that session represented by their pfp
-                          children: [
-                            Text(description),
-                            const SizedBox(height: 2),
-                            rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
-                          ],
-                        ),
-                        trailing: Text(
-                          "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
-                          textAlign: TextAlign.center,
-                        ),
-                        onTap: () {
-                          // Expand session
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ExpandedSessionPage(snapshot.key!, widget.controller),
+              String institution = widget.controller.studentInstitution;
+              return FirebaseAnimatedList(
+                key: Key(institution),
+                query: widget.controller.sessionRef,
+                // Build each item in the list view
+                itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                    Animation<double> animation, int index) {
+                  // Convert the snapshot to a Map
+                  Map<dynamic, dynamic> json = snapshot.value as Map<dynamic, dynamic>;
+              
+                  // Here to avoid exception while debugging
+                  if (!json.containsKey("users")) return const SizedBox.shrink();
+              
+                  Session session = Session.fromJson(json);
+              
+                  List<String> memberNames = [];
+                  List<String> memberUIDs = [];
+              
+                  Map<String, dynamic> usersInFS =
+                      Map<String, dynamic>.from(json['users']);
+                  usersInFS.forEach((key, value) {
+                    memberNames.add(value['name']);
+                    memberUIDs.add(value['uid']);
+                  });
+              
+                  // Extract title and description from the session map
+                  String title = json['title'] ?? '';
+                  String description = json['description'];
+              
+                  int colorIndex =
+                      ((session.seatsTaken / session.seatsAvailable) * 100).floor();
+                  Color fullness;
+                  if (colorIndex <= 33) {
+                    fullness = sessionColor[3];
+                  } else if (colorIndex <= 66) {
+                    fullness = sessionColor[2];
+                  } else if (colorIndex <= 99) {
+                    fullness = sessionColor[1];
+                  } else {
+                    fullness = sessionColor[0];
+                  }
+              
+                  // Control the max number of users to display on the front page
+                  int numOfPFPs = 4;
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Card(
+                      elevation: 2,
+                      child: ClipPath(
+                        clipper: ShapeBorderClipper(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10))),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              border: Border(
+                                  left: BorderSide(
+                            color: fullness,
+                            width: 10,
+                          ))),
+                          child: ListTile(
+                            // Display title and description
+                            title: Text(
+                              title,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                          );
-                        },
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              // Show list and the people in that session represented by their pfp
+                              children: [
+                                Text(description),
+                                const SizedBox(height: 2),
+                                rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
+                              ],
+                            ),
+                            trailing: Text(
+                              "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                              textAlign: TextAlign.center,
+                            ),
+                            onTap: () {
+                              // Expand session
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ExpandedSessionPage(snapshot.key!, widget.controller),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               );
-            },
+            }
           ),
         ),
       ],
@@ -165,45 +176,35 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                       ),
                     );
                   }
-                  String? data;
-                  if (snapshot.data!.exists){
-                    data = (snapshot.data!.data() as Map)['profile_picture'];
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: ProfilePicture(
-                        name: memberNames[index], 
-                        radius: pfpRadius, 
-                        fontsize: pfpFontSize,
-                        img: data
-                      ),
+                  return FutureBuilder(
+                    future: getProfilePicture(memberUIDs[index]), 
+                    builder:(context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError){
+                        return Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.grey,
+                            radius: pfpRadius,
+                            child: SizedBox(
+                              height: pfpRadius,
+                              width: pfpRadius,
+                              child: const CircularProgressIndicator()),
+                          )
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.all(3.0),
+                        child: ProfilePicture(
+                            name: memberNames[index], 
+                            radius: pfpRadius, 
+                            fontsize: pfpFontSize,
+                            img: snapshot.data,
+                          ),
+                      );
+                    },
                   );
                 },
               ),
-              // FutureBuilder(
-              //   future: getProfilePicture(memberUIDs[index]), 
-              //   builder:(context, snapshot) {
-              //     if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError){
-              //       return Padding(
-              //         padding: const EdgeInsets.all(3.0),
-              //         child: ProfilePicture(
-              //           name: memberNames[index], 
-              //           radius: pfpRadius, 
-              //           fontsize: pfpFontSize
-              //         ),
-              //       );
-              //     }
-              //     return Padding(
-              //       padding: const EdgeInsets.all(3.0),
-              //       child: ProfilePicture(
-              //           name: memberNames[index], 
-              //           radius: pfpRadius, 
-              //           fontsize: pfpFontSize,
-              //           img: snapshot.data,
-              //         ),
-              //     );
-              //   },
-              // ),
               if (memberNames.length > numOfPFPs && index == numOfPFPs - 1) 
               Padding(
                 padding: const EdgeInsets.all(8.0),

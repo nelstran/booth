@@ -101,7 +101,13 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
             future: getProfilePicture(),
             builder: (context, snapshot){
               if (snapshot.connectionState == ConnectionState.waiting){
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.grey,
+                    radius: profileRadius,
+                    child: const CircularProgressIndicator(),
+                  ),
+                );
               }
               else if (snapshot.hasError){
                 profileImg = null;
