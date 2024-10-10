@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 import 'package:flutter_application_1/MVC/session_extension.dart';
 
+import 'package:flutter_application_1/App_Pages/display_user_page.dart'; // Ensure this imports the correct user display page
+import 'package:flutter_application_1/MVC/friend_extension.dart';
 import '../MVC/booth_controller.dart';
 import 'expanded_session_page.dart';
 
 class SearchPage extends SearchDelegate<String> {
   late final BoothController controller;
-  bool searchForUsers = true; // New state to toggle between users and sessions
 
   SearchPage({required this.controller});
 
   @override
-  String get searchFieldLabel =>
-      searchForUsers ? 'Search for users...' : 'Search for sessions...';
+  String get searchFieldLabel => 'Search...';
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -22,15 +22,6 @@ class SearchPage extends SearchDelegate<String> {
         icon: const Icon(Icons.clear),
         onPressed: () {
           query = '';
-        },
-      ),
-      IconButton(
-        // Toggle button between searching users and sessions
-        icon: Icon(searchForUsers ? Icons.person : Icons.event),
-        onPressed: () {
-          searchForUsers = !searchForUsers; // Toggle state
-          query = ''; // Clear the query
-          showSuggestions(context);
         },
       ),
     ];
@@ -46,109 +37,112 @@ class SearchPage extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return FutureBuilder(
-      future: searchForUsers
-          ? getUsers(controller)
-          : getSessions(controller), // Toggle between users and sessions
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const Center(child: Text('Error occurred'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(
-            child: Text(searchForUsers ? 'No Users' : 'No Sessions'),
-          );
-        }
-
-        Map<dynamic, dynamic> results = snapshot.data!;
-        final List<String> searchResults = (results.values.toList()
-                as List<String>)
-            .where((item) => item.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-
-        return ListView.builder(
-          itemCount: searchResults.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(searchResults[index]),
-              onTap: () {
-                // Handle the selected search result.
-                close(context, searchResults[index]);
-              },
-            );
-          },
-        );
-      },
-    );
+    return buildSearchResults(context);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return FutureBuilder(
-      future: searchForUsers
-          ? getUsers(controller)
-          : getSessions(controller), // Toggle between users and sessions
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return const Center(child: Text('Error occurred'));
-        }
+    return buildSearchResults(context);
+  }
 
-        Map<dynamic, dynamic> suggestions = snapshot.data!;
-        Map<String, String> suggestionList = {};
+  Widget buildSearchResults(BuildContext context) {
+    return DefaultTabController(
+      length: 2, // Two tabs: Users and Sessions
+      child: Column(
+        children: [
+          const TabBar(
+            tabs: [
+              Tab(text: 'Users'),
+              Tab(text: 'Sessions'),
+            ],
+            labelColor: Colors.blue, // active tabs
+            unselectedLabelColor: Colors.grey, // inactive tabs
+            indicatorSize: TabBarIndicatorSize.tab, 
+            indicator: UnderlineTabIndicator(
+              borderSide: BorderSide(width: 3.0, color: Colors.blueAccent), 
+              insets: EdgeInsets.symmetric(horizontal: 20), 
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                searchResultsView(context, true), // For users
+                searchResultsView(context, false), // For sessions
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-        if (query.isNotEmpty) {
-          for (var key in suggestions.keys) {
-            if (suggestions[key]
-                .toString()
-                .toLowerCase()
-                .contains(query.toLowerCase())) {
-              suggestionList[key] = suggestions[key];
-            }
-          }
-        }
+  Widget searchResultsView(BuildContext context, bool searchForUsers) {
+    return Column(
+      children: [
+        Expanded(
+          child: FutureBuilder<Map<dynamic, dynamic>>(
+            future: searchForUsers ? getUsers(controller) : getSessions(controller),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Error occurred'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Text(searchForUsers ? 'No Users Found' : 'No Sessions Found'),
+                );
+              }
 
-        if (suggestionList.isEmpty && query.isNotEmpty) {
-          return Center(
-            child:
-                Text(searchForUsers ? "No users found" : "No sessions found"),
-          );
-        }
+              Map<dynamic, dynamic> suggestionList = snapshot.data!;
 
-        return ListView.builder(
-          itemCount: suggestionList.length,
-          itemBuilder: (context, index) {
-            var name = suggestionList.values.elementAt(index);
-            var key = suggestionList.keys.elementAt(index);
+              // Filter the suggestions based on the query
+              final filteredSuggestions = suggestionList.entries
+                  .where((entry) => entry.value.toLowerCase().contains(query.toLowerCase()))
+                  .toList();
 
-            return ListTile(
-              title: Text(name),
-              onTap: () {
-                query = "";
-                // Handle the navigation based on the selected result.
-                if (searchForUsers) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          UserDisplayPage(controller, key, false),
-                    ),
+              if (query.isEmpty) {
+                return const Center(child: Text('Start searching...'));
+              } else if (filteredSuggestions.isEmpty) {
+                return Center(
+                  child: Text(searchForUsers ? 'No Users Found' : 'No Sessions Found'),
+                );
+              }
+
+              return ListView.builder(
+                itemCount: filteredSuggestions.length,
+                itemBuilder: (context, index) {
+                  var name = filteredSuggestions[index].value;
+                  var key = filteredSuggestions[index].key;
+
+                  return ListTile(
+                    title: Text(name),
+                    onTap: () {
+                      query = "";
+                      // Handle the navigation based on the selected result.
+                      if (searchForUsers) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                UserDisplayPage(controller, key, false),
+                          ),
+                        );
+                      } else {
+                        // Navigate to session display page
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ExpandedSessionPage(key, controller),
+                          ),
+                        );
+                      }
+                    },
                   );
-                } else {
-                  // Navigate to session display page
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ExpandedSessionPage(key, controller),
-                    ),
-                  );
-                }
-              },
-            );
-          },
-        );
-      },
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/institutions_page.dart';
 import 'package:flutter_application_1/App_Pages/map_page.dart';
 import 'package:flutter_application_1/App_Pages/session_page.dart';
+import 'package:flutter_application_1/App_Pages/settings_page.dart';
 import 'package:flutter_application_1/App_Pages/usage_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/sample_extension.dart';
@@ -250,11 +251,17 @@ class _MainUIPageState extends State<MainUIPage> {
             });
           },
         ),
-        // Delete Button
+        // Settings Button
         IconButton(
-          icon: const Icon(Icons.delete),
+          icon: const Icon(Icons.settings),
           onPressed: () {
-            deletionDialog();
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SettingsPage(
+                  controller: controller, user: widget.user!,
+                ),
+              ),
+            );
           },
         ),
       ],

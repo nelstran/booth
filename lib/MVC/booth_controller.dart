@@ -285,7 +285,7 @@ class BoothController {
     }
 
     // Remove user from Firestore
-    firestoreDb.removeUserData(student.key);
+    firestoreDb.removeUserData(student.uid);
 
     // Remove profile picture from Storage;
     firestoreDb.deleteProfilePictureStorage(student.uid);
