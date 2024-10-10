@@ -9,6 +9,7 @@ class AuthPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    LoginOrRegister loginOrRegister = LoginOrRegister();
     return Scaffold(
       // Keeps nav bar in place when keyboard is up
       resizeToAvoidBottomInset: false,
@@ -17,11 +18,12 @@ class AuthPage extends StatelessWidget {
         builder: (context, snapshot) {
           // If the user exists in the database, display the home page (Sessions Page)
           if (snapshot.hasData) {
-            return MainUIPage(snapshot.data);
+            var showLoginPage = loginOrRegister.showLoginPage;
+            return MainUIPage(snapshot.data, showLoginPage);
           }
           // Otherwise, display the login or register page
           else{
-            return const LoginOrRegister();
+            return loginOrRegister;
           }
         },
       ),

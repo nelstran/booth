@@ -17,8 +17,13 @@ import 'package:flutter_application_1/MVC/sample_extension.dart';
 /// This is the home page - defaults to the session page
 class MainUIPage extends StatefulWidget {
   final User? user;
+  final bool isLoggingIn;
 
-  const MainUIPage(this.user, {super.key});
+  const MainUIPage(
+    this.user, 
+    this.isLoggingIn,
+    {super.key}
+  );
 
   @override
   State<MainUIPage> createState() => _MainUIPageState();
@@ -60,7 +65,7 @@ class _MainUIPageState extends State<MainUIPage> {
     if (institution == "" && mounted){
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => InstitutionsPage(controller, 'Login')
+          builder: (context) => InstitutionsPage(controller, widget.isLoggingIn ? "Login" : "Register")
         )
       );
     }

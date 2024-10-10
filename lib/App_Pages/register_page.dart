@@ -64,16 +64,19 @@ class _RegisterPageState extends State<RegisterPage> {
           firstName: firstNameController.text,
           lastName: lastNameController.text,
         );
-        controller.addUser(newUser);
-        controller.fetchAccountInfo(userCredential.user!);
         
         if (!mounted) return;
         Navigator.of(context).pop();
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => InstitutionsPage(controller, 'Register')
-          )
-        );
+
+        await controller.addUser(newUser);
+        await controller.fetchAccountInfo(userCredential.user!);
+        
+        // if (!mounted) return;
+        // await Navigator.of(context).pushReplacement(
+        //   MaterialPageRoute(
+        //     builder: (context) => InstitutionsPage(controller, 'Register')
+        //   )
+        // );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);

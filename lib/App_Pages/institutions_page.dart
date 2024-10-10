@@ -25,6 +25,9 @@ class InstitutionsPage extends StatefulWidget{
   State<StatefulWidget> createState() => _InstituionsPage();
 }
 
+/// Class to repressent institution selection page, 
+/// Not sure how to know the previous page in the route so previousPage is a string argument
+/// [previousPage] can be "Profile", "Login", "Register". If anything else, defaults to "Login"
 class _InstituionsPage extends State<InstitutionsPage>{
   TextEditingController institutionController = TextEditingController();
   List<Map<dynamic, dynamic>> listOfInstitutions = [];
