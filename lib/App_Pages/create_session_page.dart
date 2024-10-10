@@ -14,14 +14,13 @@ import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/session_extension.dart';
 import 'package:flutter_application_1/MVC/session_model.dart';
 import 'package:flutter_application_1/MVC/student_model.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CreateSessionPage extends StatefulWidget {
   final BoothController controller;
-  const CreateSessionPage(
-    this.controller,
-    {super.key}
-  );
-    
+  const CreateSessionPage(this.controller, {super.key});
+
   @override
   State<StatefulWidget> createState() {
     return _CreateSessionPageState();
@@ -29,7 +28,6 @@ class CreateSessionPage extends StatefulWidget {
 }
 
 class _CreateSessionPageState extends State<CreateSessionPage> {
-  
   final _formKey = GlobalKey<FormState>();
   String? _title;
   String? _description;
@@ -38,6 +36,58 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   int? _seatsAvailable;
   String? _subject;
   bool _isPublic = true;
+  bool _shareLocation = false;
+  String? _currentAddress;
+  Position? _currentPosition;
+
+  Future<bool> _handleLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location services are disabled. Please enable the services')));
+      return false;
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')));
+        return false;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location permissions are permanently denied, we cannot request permissions.')));
+      return false;
+    }
+    return true;
+  }
+
+  Future<String?> _getAddressFromLatLng(Position position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        String address =
+            '${place.street}, ${place.subLocality}, ${place.subAdministrativeArea}, ${place.postalCode}';
+        return address;
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
+    }
+    // If no adress is found
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +141,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Location Description'),
+                decoration:
+                    const InputDecoration(labelText: 'Location Description'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a location description';
@@ -147,9 +198,66 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 ],
               ),
               const SizedBox(height: 16.0),
+              SwitchListTile(
+                title: const Text('Share Location'),
+                value: _shareLocation,
+                onChanged: (bool value) {
+                  setState(() {
+                    _shareLocation = value;
+                  });
+                },
+                subtitle:
+                    const Text('Allow your Booth to be visible on the map!'),
+              ),
+              const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
+                  // Gets the Lat and longitude of the booth
+                  if (_formKey.currentState!.validate() && _shareLocation) {
+                    final hasPermission = await _handleLocationPermission();
+
+                    if (!hasPermission) return;
+                    await Geolocator.getCurrentPosition(
+                            desiredAccuracy: LocationAccuracy.high)
+                        .then((Position position) async {
+                      setState(() => _currentPosition = position);
+                      String? address = await _getAddressFromLatLng(position);
+
+                      if (address != null) {
+                        setState(() => _currentAddress = address);
+                      }
+                    }).catchError((e) {
+                      debugPrint(e);
+                    });
+                  }
+                  // TODO: If checked the box, store LATLNG
+                  if (_formKey.currentState!.validate() && _shareLocation) {
+                    _formKey.currentState!.save();
+                    final boothSession = Session(
+                      title: _title!,
+                      description: _description!,
+                      time: _time!,
+                      locationDescription: _locationDescription!,
+                      seatsAvailable: _seatsAvailable!,
+                      subject: _subject!,
+                      isPublic: _isPublic,
+                      field: "field",
+                      level: 1000,
+                      latitude: _currentPosition?.latitude,
+                      longitude: _currentPosition?.longitude,
+                      address: _currentAddress,
+                    );
+                    Student student = widget.controller.student;
+                    if (student.session != "") {
+                      await widget.controller.removeUserFromSession(
+                          student.session, student.sessionKey);
+                    }
+                    widget.controller.addSession(boothSession, student);
+                    if (context.mounted) Navigator.pop(context);
+                  }
+                  // For when the user does not want to share location, doesn't
+                  // store the LATLNG
+                  else if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     final boothSession = Session(
                       title: _title!,
@@ -164,17 +272,15 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                     );
                     Student student = widget.controller.student;
                     if (student.session != "") {
-                      await widget.controller.removeUserFromSession(student.session, student.sessionKey);
+                      await widget.controller.removeUserFromSession(
+                          student.session, student.sessionKey);
                     }
                     widget.controller.addSession(boothSession, student);
                     if (context.mounted) Navigator.pop(context);
                   }
                 },
                 style: const ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(
-                    Color(0xFF0d4073)
-                  )
-                ),
+                    backgroundColor: WidgetStatePropertyAll(Color(0xFF0d4073))),
                 child: const Text('Create Session'),
               ),
             ],

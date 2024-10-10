@@ -1,11 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({
+    super.key,
+    required this.ref,
+    required this.controller,
+  });
+
+  final DatabaseReference ref;
+  final BoothController controller;
 
   @override
   State<MapPage> createState() => MapPageState();
@@ -15,37 +24,63 @@ class MapPageState extends State<MapPage> {
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
 
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+  Map<String, Marker> markers = {};
+
+  static const CameraPosition currentLocation = CameraPosition(
+    target: LatLng(40.763444, -111.844182),
+    zoom: 1,
   );
 
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  @override
+  void initState() {
+    super.initState();
+    _loadSessionsAndAddMarkers();
+  }
+
+  Future<void> _loadSessionsAndAddMarkers() async {
+    widget.ref.child('sessions').once().then((DatabaseEvent event) {
+      final dataSnapshot = event.snapshot;
+      final Map<dynamic, dynamic>? sessions =
+          dataSnapshot.value as Map<dynamic, dynamic>?;
+
+      if (sessions != null) {
+        sessions.forEach((key, session) {
+          if (session['latitude'] != null && session['longitude'] != null) {
+            final LatLng sessionLocation =
+                LatLng(session['latitude'], session['longitude']);
+
+            _addMarker(key, sessionLocation, session['title']);
+          }
+        });
+      }
+    });
+  }
+
+  void _addMarker(String id, LatLng location, String title) {
+    final MarkerId markerId = MarkerId(id);
+
+    final Marker marker = Marker(
+      markerId: markerId,
+      position: location,
+      infoWindow: InfoWindow(title: title),
+    );
+
+    setState(() {
+      markers[id] = marker;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GoogleMap(
         mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
+        initialCameraPosition: currentLocation,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: const Text('To the lake!'),
-        icon: const Icon(Icons.directions_boat),
+        markers: markers.values.toSet(),
       ),
     );
-  }
-
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    await controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 }
