@@ -38,7 +38,7 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _loadSessionsAndAddMarkers() async {
-    widget.ref.child('sessions').once().then((DatabaseEvent event) {
+    widget.controller.sessionRef.once().then((DatabaseEvent event) {
       final dataSnapshot = event.snapshot;
       final Map<dynamic, dynamic>? sessions =
           dataSnapshot.value as Map<dynamic, dynamic>?;

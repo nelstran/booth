@@ -19,6 +19,7 @@ class BoothController {
   String _studentInstitution = "";
   String get studentInstitution => _studentInstitution;
   
+  DatabaseReference get sessionRef => ref.child("institutions/$studentInstitution/sessions");
   // Constructor
   BoothController(
     this.ref,

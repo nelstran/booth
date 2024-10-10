@@ -42,7 +42,7 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
         Expanded(
           child: FirebaseAnimatedList(
             key: Key(institution),
-            query: widget.ref.child("institutions/$institution/sessions"),
+            query: widget.controller.sessionRef,
             // Build each item in the list view
             itemBuilder: (BuildContext context, DataSnapshot snapshot,
                 Animation<double> animation, int index) {

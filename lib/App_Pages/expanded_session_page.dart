@@ -44,7 +44,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: StreamBuilder(
-          stream: ref.child("institutions/$institution/sessions/${widget.sessionKey}").onValue,
+          stream: controller.sessionRef.child(widget.sessionKey).onValue,
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
               Map<dynamic, dynamic> json = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
@@ -204,7 +204,6 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 setState(() {
                   isInThisSession = !isInThisSession; // Janky way to update state UI
                   updateState();
-                  // isInThisSession = controller.student.session == widget.sessionKey; // This does not work on first click
                 });
               },
             )

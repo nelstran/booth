@@ -44,6 +44,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if(!isFirstEmpty && !isLastEmpty && !isEmailEmpty && !isPassEmpty && doesPassMatch){
       // Show loading circle
       showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) => const Center(
           child: CircularProgressIndicator(),

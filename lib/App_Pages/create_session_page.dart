@@ -212,6 +212,14 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
+                  // Show loading circle
+                  showDialog(
+                    barrierDismissible: false,
+                    context: context,
+                    builder: (context) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
                   // Gets the Lat and longitude of the booth
                   if (_formKey.currentState!.validate() && _shareLocation) {
                     final hasPermission = await _handleLocationPermission();
@@ -253,7 +261,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                           student.session, student.sessionKey);
                     }
                     widget.controller.addSession(boothSession, student);
-                    if (context.mounted) Navigator.pop(context);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    }
                   }
                   // For when the user does not want to share location, doesn't
                   // store the LATLNG
