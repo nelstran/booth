@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:image_picker/image_picker.dart';
@@ -5,6 +6,15 @@ import 'package:image_picker/image_picker.dart';
 extension ProfileExtension on BoothController {
   DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
 
+  DocumentReference pfpRef([String? userKey]){
+    userKey = userKey ?? student.uid;
+    return firestoreDb.db
+    .collection("users")
+    .doc(userKey)
+    .collection("user_pictures")
+    .doc("pfp_url");
+  }
+  
   /// Update the current user's profile
   void updateUserProfile(Map<String, Object?> value) {
     db.updateProfile(student.key, value);
