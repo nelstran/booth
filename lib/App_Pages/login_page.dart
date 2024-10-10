@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
 
     // Try to sign the user in with the credentials they have typed
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text.trim(), password: passwordController.text);
 
       // Navigate to the session page after successful login
       // Clear all routes and push SessionPage route

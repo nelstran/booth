@@ -51,32 +51,31 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       // Create the user in firebase with their email and password
       try {
+        String emailString = emailController.text.trim();
+        String pwString = passwordController.text;
+        String fNameString = firstNameController.text.trim();
+        String lNameString = lastNameController.text.trim();
+        
         UserCredential? userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
-                email: emailController.text, password: passwordController.text);
-
+                email: emailString, password: pwString);
+        FirebaseAuth.instance.signOut();
         // Create profile in realtime database using
         final DatabaseReference ref = FirebaseDatabase.instance.ref();
         final BoothController controller = BoothController(ref);
 
         Student newUser = Student(
           uid: userCredential.user!.uid,
-          firstName: firstNameController.text,
-          lastName: lastNameController.text,
+          firstName: fNameString,
+          lastName: lNameString,
         );
-        
         if (!mounted) return;
         Navigator.of(context).pop();
-
         await controller.addUser(newUser);
-        await controller.fetchAccountInfo(userCredential.user!);
-        
-        // if (!mounted) return;
-        // await Navigator.of(context).pushReplacement(
-        //   MaterialPageRoute(
-        //     builder: (context) => InstitutionsPage(controller, 'Register')
-        //   )
-        // );
+        FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailString, 
+          password: pwString
+        );
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);

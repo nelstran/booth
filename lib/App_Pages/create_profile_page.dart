@@ -67,6 +67,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
     }
     listOfCourses[0] = '${_courses.join(", ")} ';
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(edit ? 'Edit Profile' : 'Create Profile')
       ),
