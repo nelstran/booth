@@ -17,6 +17,10 @@ class Session {
   late int dist;
   late int seatsTaken;
 
+  double? latitude;
+  double? longitude;
+  String? address;
+
   late String ownerKey; // User key of the session owner
 
   /// Constructor
@@ -31,6 +35,9 @@ class Session {
     required this.locationDescription,
     required this.seatsAvailable,
     required this.isPublic,
+    this.latitude,
+    this.longitude,
+    this.address,
   })  : key = key ?? "NaN",
         dist = 10 + Random().nextInt(100 - 10 + 1), //Random for now
         seatsTaken = 1,
@@ -50,6 +57,10 @@ class Session {
     dist = 10 + Random().nextInt(100 - 10 + 1);
     seatsTaken = (json['users'] as Map).length;
     if (json.containsKey('ownerKey')) ownerKey = json['ownerKey'];
+
+    latitude = json['latitude'];
+    longitude = json['longitude'];
+    address = json['address'];
   }
 
   /// Converts the booth session to a JSON format
@@ -66,6 +77,9 @@ class Session {
       'level': level,
       'key': key,
       'ownerKey': ownerKey,
+      'latitude': latitude,
+      'longitude': longitude,
+      'address': address,
     };
   }
 }
