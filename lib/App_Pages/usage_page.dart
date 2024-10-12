@@ -14,7 +14,17 @@ class UsagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    Map<String, Duration> weeklyHours = getWeeklyHours();
+    return FutureBuilder(
+      future: getWeeklyHours(), 
+      builder: (context, snapshot){
+        if (snapshot.connectionState == ConnectionState.waiting)
+        {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData){
+          return const Center(child: Text("Something has happened"));
+        }
+        Map<String, Duration> weeklyHours = snapshot.data!;
     // Hours are all 0
     print("calling get weekly hours");
     print(weeklyHours.toString());
@@ -82,9 +92,10 @@ class UsagePage extends StatelessWidget {
         ),
       ),
     );
+      });
   }
 
- Map<String, Duration> getWeeklyHours(){
+ Future<Map<String, Duration>> getWeeklyHours() async {
     String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
 
     Map<String, Duration> weeklyHours = {
@@ -98,7 +109,7 @@ class UsagePage extends StatelessWidget {
                     };
                           
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    firestore.collection("users")
+    await firestore.collection("users")
               .doc(userKey)
               .collection('session_logs')
               //.where('week_of_year', isEqualTo: getCurrentWeek())
