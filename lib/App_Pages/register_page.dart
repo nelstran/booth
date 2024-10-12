@@ -70,13 +70,13 @@ class _RegisterPageState extends State<RegisterPage> {
           firstName: fNameString,
           lastName: lNameString,
         );
-        if (!mounted) return;
-        Navigator.of(context).pop();
         await controller.addUser(newUser);
-        FirebaseAuth.instance.signInWithEmailAndPassword(
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailString, 
           password: pwString
         );
+        if (!mounted) return;
+        Navigator.of(context).pop();
       } on FirebaseAuthException catch (e) {
         // pop loading circle
         Navigator.pop(context);

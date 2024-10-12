@@ -31,13 +31,13 @@ class BoothController {
     try {
       String key = await db.fetchUserKey(user);
       DatabaseReference studentRef = ref.child("users/$key");
-      final snapshot = await studentRef.get();
+      final event = await studentRef.once();
       final doc = await firestoreDb.getUserData(user.uid);
       if (doc == null) {
         firestoreDb.addUserData(user.uid);
       }
-      var value = snapshot.value as Map;
-      value['key'] = snapshot.key;
+      var value = event.snapshot.value as Map;
+      value['key'] = event.snapshot.key;
       if (value.containsKey('profile') && (value['profile'] as Map).containsKey('institution')){
         setInstitution(value['profile']['institution']);
         db.setInstitution(studentInstitution);
