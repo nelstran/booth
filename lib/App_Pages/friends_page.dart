@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
 import 'package:flutter_application_1/App_Pages/display_user_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/App_Pages/requests_page.dart';
-import 'package:flutter_application_1/MVC/friend_extension.dart'; // Import the RequestsPage
+import 'package:flutter_application_1/MVC/friend_extension.dart';
+import 'package:flutter_application_1/MVC/profile_extension.dart';
+import 'package:flutter_profile_picture/flutter_profile_picture.dart'; // Import the RequestsPage
 
 class FriendsPage extends StatefulWidget{
-  const FriendsPage(this.boothController, {super.key});
-  final BoothController boothController;
+  const FriendsPage(this.controller, {super.key});
+  final BoothController controller;
   
   @override
   State<StatefulWidget> createState() => _FriendsPage();
@@ -16,8 +19,8 @@ class _FriendsPage extends State<FriendsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Future<Map<dynamic, dynamic>> requests = widget.boothController.getRequests(false);
-    Future<Map<dynamic, dynamic>> friends = widget.boothController.getFriends();
+    Future<Map<dynamic, dynamic>> requests = widget.controller.getRequests(false);
+    Future<Map<dynamic, dynamic>> friends = widget.controller.getFriends();
     var requestsList = {};
     var friendsList = {};
     return Scaffold(
@@ -37,6 +40,10 @@ class _FriendsPage extends State<FriendsPage> {
           } 
           requestsList = snapshot.data![0];
           friendsList = snapshot.data![1];
+
+          double pfpRadius = 25;
+          double pfpFontSize = 20;
+
           return Column(
             children: [
               if (snapshot.data![0].isNotEmpty) GestureDetector(
@@ -45,11 +52,11 @@ class _FriendsPage extends State<FriendsPage> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RequestsPage(controller: widget.boothController),
+                      builder: (context) => RequestsPage(controller: widget.controller),
                     ),
                   );
                   setState(() {
-                    requests = widget.boothController.getRequests(false);
+                    requests = widget.controller.getRequests(false);
                   });
                 },
                 child: Padding(
@@ -87,11 +94,11 @@ class _FriendsPage extends State<FriendsPage> {
                 child: ListView.builder(
                   itemCount: friendsList.length,
                   itemBuilder: (context, index){
-                    final userId = friendsList.keys.elementAt(index);
-                    final userName = friendsList[userId] as String;
+                    final userKey = friendsList.keys.elementAt(index);
+                    final userName = friendsList[userKey] as String;
                 
                     return Dismissible( // Dismissible allows swipe away actions
-                      key: Key(userId), 
+                      key: Key(userKey), 
                       background: Container( 
                         color: Colors.red,
                         child: const Icon(Icons.delete, color: Colors.white),
@@ -102,7 +109,7 @@ class _FriendsPage extends State<FriendsPage> {
                       //   }
                       // },
                       confirmDismiss: (direction) {
-                        return showConfirmationDialog(context, userName, userId);
+                        return showConfirmationDialog(context, userName, userKey);
                       },
                       child: Card(
                         elevation: 3,
@@ -111,24 +118,57 @@ class _FriendsPage extends State<FriendsPage> {
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         child: ListTile(
-                          leading: CircleAvatar(
-                            radius: 25,
-                            backgroundColor: Colors.grey[200],
-                            child: Icon(
-                              Icons.person,
-                              size: 30,
-                              color: Colors.grey[500],
-                            ),
-                          ),
+                          leading: StreamBuilder(
+                            stream: widget.controller.pfpRef(userKey).snapshots(), 
+                            builder: (context, snapshot){
+                              if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData
+                              ){
+                                return Padding(
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: ProfilePicture(
+                                    name: userName, 
+                                    radius: pfpRadius, 
+                                    fontsize: pfpFontSize
+                                  ),
+                                );
+                              }
+                              return FutureBuilder(
+                                future: widget.controller.getProfilePictureByKey(userKey), 
+                                builder:(context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError){
+                                    return Padding(
+                                      padding: const EdgeInsets.all(3.0),
+                                      child: CircleAvatar(
+                                        backgroundColor: Colors.grey,
+                                        radius: pfpRadius,
+                                        child: SizedBox(
+                                          height: pfpRadius,
+                                          width: pfpRadius,
+                                          child: const CircularProgressIndicator()),
+                                      )
+                                    );
+                                  }
+                                  return Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: ProfilePicture(
+                                        name: userName, 
+                                        radius: pfpRadius, 
+                                        fontsize: pfpFontSize,
+                                        img: snapshot.data,
+                                      ),
+                                  );
+                                },
+                              );
+                            }),
                           title: Text(
                             userName,
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           subtitle: Row(
                             children: [
-                              getStatusIndicator(userId),
+                              getStatusIndicator(userKey),
                               const SizedBox(width: 8),
-                              Text(getAvailability(userId)),
+                              Text(getAvailability(userKey)),
                             ],
                           ),
                           trailing: PopupMenuButton<int>( //  Popup menu for options (currently remove friend option)
@@ -141,7 +181,7 @@ class _FriendsPage extends State<FriendsPage> {
                             ],
                             onSelected: (value) {
                               if (value == 1) {
-                                showConfirmationDialog(context, userName, userId);
+                                showConfirmationDialog(context, userName, userKey);
                               }
                             },
                           ),
@@ -149,7 +189,7 @@ class _FriendsPage extends State<FriendsPage> {
                             // Navigate to the profile page of the selected friend
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => UserDisplayPage(widget.boothController, userId, false),
+                                builder: (context) => UserDisplayPage(widget.controller, userKey, false),
                               ),
                             );
                           },
@@ -189,7 +229,7 @@ class _FriendsPage extends State<FriendsPage> {
               foregroundColor: Colors.red, 
             ),
             onPressed: () {
-              widget.boothController.removeFriend(userId);
+              widget.controller.removeFriend(userId);
               Navigator.pop(context);
               // Show snackbar for confirmation (optional)
               ScaffoldMessenger.of(context).showSnackBar(

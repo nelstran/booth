@@ -40,24 +40,6 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     buttonColor = (isInThisSession ? Colors.red[900] : Colors.green[800])!;
   }
 
-  /// Helper future method to fetch the profile picture Image URL from the database and checks
-  /// if the URL is valid; if it is not valid, return null, else return the valid URL
-  Future<String?> getProfilePicture(String uid) async {
-    // Get URL from Firestore
-    String? pfp = await controller.retrieveProfilePicture(uid);
-    if (pfp == null) {
-      return pfp;
-    } else {
-      // Grabs response of given url
-      final response = await http.get(Uri.parse(pfp));
-      if (response.statusCode == 200) {
-        return pfp;
-      } else {
-        return Future.error("ERROR 404");
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     DatabaseReference ref = FirebaseDatabase.instance.ref();
@@ -205,7 +187,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                                                 );
                                               }
                                               return FutureBuilder(
-                                                future: getProfilePicture(
+                                                future: widget.controller.getProfilePictureByUID(
                                                     memberUIDs[index]),
                                                 builder: (context, snapshot) {
                                                   if (snapshot.connectionState ==

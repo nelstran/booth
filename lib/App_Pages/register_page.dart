@@ -60,7 +60,8 @@ class _RegisterPageState extends State<RegisterPage> {
         UserCredential? userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
                 email: emailString, password: pwString);
-        FirebaseAuth.instance.signOut();
+        await FirebaseAuth.instance.signOut();
+        
         // Create profile in realtime database using
         final DatabaseReference ref = FirebaseDatabase.instance.ref();
         final BoothController controller = BoothController(ref);

@@ -54,6 +54,7 @@ class _MainUIPageState extends State<MainUIPage> {
           return errorDialog();
         } else {
           return const Center(child: CircularProgressIndicator());
+          // return const SizedBox.shrink();
         }
       }
     );
@@ -64,10 +65,11 @@ class _MainUIPageState extends State<MainUIPage> {
     String institution = controller.studentInstitution;
     // Make sure users are assigned an institution
     if (institution == "" && mounted){
-      await Navigator.of(context).pushReplacement(
+      await Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => InstitutionsPage(controller, widget.isLoggingIn ? "Login" : "Register")
-        )
+        ),
+        (route) => false
       );
     }
     Map sessions = await controller.getInstitute(institution);

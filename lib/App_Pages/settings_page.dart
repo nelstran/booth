@@ -197,7 +197,10 @@ class SettingsPageState extends State<SettingsPage> {
       title: const Text("Settings Page"),
       actions: [
         IconButton(
-          onPressed: logout,
+          onPressed: (){
+            Navigator.of(context).pop();
+            logout();
+          },
           icon: const Icon(Icons.logout),
         ),
       ],

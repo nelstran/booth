@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+
 
 extension ProfileExtension on BoothController {
   DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
@@ -55,5 +57,34 @@ extension ProfileExtension on BoothController {
   /// Retrieves the profile picture associated with the given userKey
   Future<String?> retrieveProfilePicture(String userKey) async {
     return await firestoreDb.retrieveProfilePicture(userKey);
+  }
+  /// Helper future method to fetch the profile picture Image URL from the database and checks
+  /// if the URL is valid; if it is not valid, return null, else return the valid URL
+  /// [uid] defaults to logged in user's UID if none is given
+  Future<String?> getProfilePictureByUID([String? uid]) async  {
+    uid = uid ?? student.uid;
+    // Get URL from Firestore
+    String? pfp = await retrieveProfilePicture(uid);
+    if (pfp == null){
+      return pfp;
+    }
+    else{
+      // Grabs response of given url
+      final response = await http.get(Uri.parse(pfp));
+      if (response.statusCode == 200){
+        return pfp;
+      }
+      else{
+        return Future.error("ERROR 404");
+      }
+    }
+  }
+
+  /// Helper method to get profile picture by user's key in the database
+  Future<String?> getProfilePictureByKey([String? key]) async  {
+    key = key ?? student.key;
+    Map json = await getUserEntry(key);
+    // Get URL from Firestore
+    return await getProfilePictureByUID(json['uid']);
   }
 }

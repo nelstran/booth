@@ -7,7 +7,6 @@ import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import '../MVC/session_model.dart';
-import 'package:http/http.dart' as http;
 
 class SessionPage extends StatefulWidget {
   final DatabaseReference ref;
@@ -35,13 +34,13 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
       Colors.green
     ];
     
-    String institution = widget.controller.studentInstitution;
     return Column(
       children: [
         boothSearchBar(context),
         Expanded(
+          // Update list of sessions when user changes schools
           child: StreamBuilder(
-            stream: widget.controller.profileRef.onValue,
+            stream: widget.controller.profileRef.child("institution").onValue,
             builder: (context, snap){
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -177,7 +176,7 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                     );
                   }
                   return FutureBuilder(
-                    future: getProfilePicture(memberUIDs[index]), 
+                    future: widget.controller.getProfilePictureByUID(memberUIDs[index]), 
                     builder:(context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError){
                         return Padding(
@@ -259,25 +258,5 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
         ),
       ),
     );
-  }
-
-  /// Helper future method to fetch the profile picture Image URL from the database and checks
-  /// if the URL is valid; if it is not valid, return null, else return the valid URL
-  Future<String?> getProfilePicture(String uid) async  {
-    // Get URL from Firestore
-    String? pfp = await widget.controller.retrieveProfilePicture(uid);
-    if (pfp == null){
-      return pfp;
-    }
-    else{
-      // Grabs response of given url
-      final response = await http.get(Uri.parse(pfp));
-      if (response.statusCode == 200){
-        return pfp;
-      }
-      else{
-        return Future.error("ERROR 404");
-      }
-    }
   }
 }

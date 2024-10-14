@@ -58,7 +58,9 @@ class BoothController {
       return student.fullname;
     } catch (error) {
       if(error == 'Error fetching user info'){
-        await FirebaseAuth.instance.currentUser!.delete();
+        if (FirebaseAuth.instance.currentUser != null){
+          await FirebaseAuth.instance.currentUser!.delete();
+        }
       }
       FirebaseAuth.instance.signOut();
       return Future.error(error);
