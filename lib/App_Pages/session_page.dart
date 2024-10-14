@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/App_Pages/expanded_session_page.dart';
+import 'package:flutter_application_1/App_Pages/filter_ui.dart';
 import 'package:flutter_application_1/App_Pages/search_page.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
@@ -23,6 +24,7 @@ class SessionPage extends StatefulWidget {
 class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+  Map filters = {};
   
   @override
   Widget build(BuildContext context) {
@@ -61,6 +63,9 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                   if (!json.containsKey("users")) return const SizedBox.shrink();
               
                   Session session = Session.fromJson(json);
+                  if (isFiltered(session)){
+                    return const SizedBox.shrink();
+                  }
               
                   List<String> memberNames = [];
                   List<String> memberUIDs = [];
@@ -74,7 +79,7 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
               
                   // Extract title and description from the session map
                   String title = json['title'] ?? '';
-                  String description = json['description'];
+                  String description = json['description'] ?? '';
               
                   int colorIndex =
                       ((session.seatsTaken / session.seatsAvailable) * 100).floor();
@@ -123,7 +128,7 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                               ],
                             ),
                             trailing: Text(
-                              "${session.dist}m \n[${session.seatsTaken}/${session.seatsAvailable}]",
+                              "[${session.seatsTaken}/${session.seatsAvailable}]",
                               textAlign: TextAlign.center,
                             ),
                             onTap: () {
@@ -235,7 +240,6 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: const Color.fromARGB(106, 78, 78, 78),
-          borderRadius: BorderRadius.circular(8.0),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -244,19 +248,61 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.search, color: Colors.white),
-            SizedBox(width: 8.0),
-            Text(
+            const Icon(Icons.search, color: Colors.white),
+            const SizedBox(width: 8.0),
+            const Text(
               'Search...',
               style: TextStyle(color: Colors.white),
             ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    height: 30,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        backgroundColor: const Color.fromARGB(255, 22, 22, 22)
+                      ),
+                      onPressed: (){
+                        showModalBottomSheet(
+                          showDragHandle: true,
+                          isScrollControlled: true,
+                          context: context, 
+                          builder: (context){
+                            return Wrap(
+                              children: [
+                                FilterUI(filters)
+                              ]);
+                          })
+                          // After users apply filters, values will show up here
+                          .then((value) {
+                            setState((){
+                              filters = value;
+                            });
+                          },);
+                      }, 
+                      child: const Icon(Icons.filter_list)),
+                  )
+                ],
+              )
+            )
             //Spacer(),
             //Icon(Icons.filter_list_rounded, color: Colors.white),
           ],
         ),
       ),
     );
+  }
+  
+  bool isFiltered(Session session) {
+    if (filters.containsKey('hideFull') && filters['hideFull']){
+      return session.seatsTaken == session.seatsAvailable;
+    }
+    return false; 
   }
 }
