@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/create_session_page.dart';
 import 'package:flutter_application_1/MVC/analytics_extension.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/profile_extension.dart';
@@ -23,12 +24,14 @@ class ExpandedSessionPage extends StatefulWidget {
 class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   late BoothController controller = widget.controller;
   late bool isInThisSession;
+  late bool isOwner;
   late Color buttonColor;
 
   @override
   void initState() {
     super.initState();
     isInThisSession = controller.student.session == widget.sessionKey;
+    isOwner = controller.student.ownedSessionKey == widget.sessionKey;
     updateState();
     // Log an event when the widget is initialized
   }
@@ -62,6 +65,25 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
+        actions: [
+          if (isOwner)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () async {
+                // Navigate to Edit Session Page
+                final data = await controller.sessionRef.child(widget.sessionKey).once();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateSessionPage(
+                      widget.controller,
+                      session: Session.fromJson(data.snapshot.value as Map<dynamic, dynamic>),
+                    ),
+                )
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
