@@ -33,76 +33,85 @@ class _FilterLocationPage extends State<FilterLocationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Title and back button
-            SizedBox(
-              height: 100,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 50),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      flex:1,
-                      child: GestureDetector(
-                        onTap:() => Navigator.of(context).pop(textFilters),
-                        child: const Icon(Icons.arrow_back)
-                      ),
-                    ),
-                    const Expanded(
-                      flex: 5,
-                      child: Text(
-                        "Add locations",
-                        style: TextStyle(
-                          fontSize: 24
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop){
+            return;
+          }
+          Navigator.of(context).pop(textFilters);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Title and back button
+              SizedBox(
+                height: 100,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 50),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        flex:1,
+                        child: GestureDetector(
+                          onTap:() => Navigator.of(context).maybePop(textFilters),
+                          child: const Icon(Icons.arrow_back)
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Text input for users to type in their locations
-            SizedBox(
-              height: 80,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  autofocus: true,
-                  controller: locationController,
-                  focusNode: focus,
-                  onSubmitted: (value) => addLocation(value),
-                  textAlignVertical: TextAlignVertical.center,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)
-                    ),
-                    suffixIcon: GestureDetector(
-                      onTap: () => addLocation(locationController.text),
-                      child: const Icon(Icons.add)
-                    ),
-                    hintText: "Library, Cafe, Patio...",
-                    hintStyle: const TextStyle(color: Colors.grey)
-                    
+                      const Expanded(
+                        flex: 5,
+                        child: Text(
+                          "Add locations",
+                          style: TextStyle(
+                            fontSize: 24
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            // List of locations the user prefers to be in
-            Expanded(
-              flex: 8,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Wrap(
-                  children: bubbleFilters
+              // Text input for users to type in their locations
+              SizedBox(
+                height: 80,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    autofocus: true,
+                    controller: locationController,
+                    focusNode: focus,
+                    onSubmitted: (value) => addLocation(value),
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)
+                      ),
+                      suffixIcon: GestureDetector(
+                        onTap: () => addLocation(locationController.text),
+                        child: const Icon(Icons.add)
+                      ),
+                      hintText: "Library, Cafe, Patio...",
+                      hintStyle: const TextStyle(color: Colors.grey)
+                      
+                    ),
+                  ),
                 ),
-              )
-            ),
-          ],
+              ),
+              // List of locations the user prefers to be in
+              Expanded(
+                flex: 8,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Wrap(
+                    children: bubbleFilters
+                  ),
+                )
+              ),
+            ],
+          ),
         ),
       ),
     );
