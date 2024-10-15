@@ -281,6 +281,9 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                           })
                           // After users apply filters, values will show up here
                           .then((value) {
+                            if (value == null){
+                              return;
+                            }
                             setState((){
                               filters = value;
                             });
@@ -300,8 +303,29 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
   }
   
   bool isFiltered(Session session) {
+    // Hide full sessions
     if (filters.containsKey('hideFull') && filters['hideFull']){
-      return session.seatsTaken == session.seatsAvailable;
+      if (session.seatsTaken == session.seatsAvailable){
+        return true;
+      }
+    }
+
+    // Hide sessions with less than x free seats
+    if (filters.containsKey('currMinSliderValue')){
+      if (filters['currMinSliderValue'] > 0){
+        if (session.seatsAvailable - session.seatsTaken < filters['currMinSliderValue']){
+          return true;
+        }
+      }
+    }
+
+    // Hide sessions with lobbies bigger than x people
+    if (filters.containsKey('currMaxSliderValue')){
+      if (filters['currMaxSliderValue'] != 25){
+        if (session.seatsAvailable > filters['currMaxSliderValue']){
+          return true;
+        }
+      }
     }
     return false; 
   }

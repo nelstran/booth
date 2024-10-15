@@ -11,7 +11,7 @@ class FilterUI extends StatefulWidget {
   
 }
 class _FilterUI extends State<FilterUI> {
-  // Change values here 
+  // Change default values here 
   Map<String, dynamic> defaultValues = {
     "currMinSliderValue": 0.0,
     "currMinString": 'Any',
@@ -22,26 +22,29 @@ class _FilterUI extends State<FilterUI> {
     "hideFull": false,
   };
 
+  // Filters that will be applied to sessions
   Map currentFilters = {};
 
-  // late double currMinSliderValue;
-  // late String currMinString;
-  // late int minimumMaxValue;
-  // late double currMaxSliderValue;
-  // late String currMaxString;
-  // late int maximumMinValue;
-  // late bool hideFull;
-
+  // Values that are displayed to keep filters consistent between navigation
   Map currentValues = {};
 
   @override
   void initState() {
     super.initState();
+    // Reset everything to default
     resetValues();
+
+    // Apply previous filters to keep consistency
     currentFilters = widget.filters;
     currentValues.addAll(widget.filters);
+
+    // Call functions to set proper string values
+    setMinVal(currentValues['currMinSliderValue']);
+    setMaxVal(currentValues['currMaxSliderValue']);
+
   }
 
+  // Function to reset UI elements and values
   void resetValues(){
     setState((){
       currentValues.addAll(defaultValues);
@@ -49,22 +52,22 @@ class _FilterUI extends State<FilterUI> {
     currentFilters.clear();
   }
 
+  // Round min. seats slider value to int and set string depending on value
   void setMinVal(value){
     setState((){
       currentValues['currMinSliderValue'] = value;
     });
     int rounded = currentValues['currMinSliderValue'].round();
-    if (rounded == currentValues['minimumMaxValue']){
-      currentValues['currMinString'] = '${currentValues['minimumMaxValue']}+';
-    }
-    else if (rounded == 0){
+    if (rounded == 0){
       currentValues['currMinString'] = 'Any';
     }
     else {
       currentValues['currMinString'] = currentValues['currMinSliderValue'].round().toString();
     }
+    setFilters('currMinSliderValue', currentValues['currMinSliderValue'].round().toDouble());
   }
 
+  // Round max session room slider value to int and set string depending on value
   void setMaxVal(value){
     setState((){
       currentValues['currMaxSliderValue'] = value;
@@ -76,16 +79,19 @@ class _FilterUI extends State<FilterUI> {
     else {
       currentValues['currMaxString'] = currentValues['currMaxSliderValue'].round().toString();
     }
+    setFilters('currMaxSliderValue', currentValues['currMaxSliderValue'].round().toDouble());
   }
   
+  // Set checkbox UI
   void setFull(value){
     setState(() {
       currentValues['hideFull'] = value!;
-      setCurrentValue('hideFull', value);
+      setFilters('hideFull', value);
     });
   }
 
-  void setCurrentValue(key, value){
+  // Set values for filter, remove if default value
+  void setFilters(key, value){
     if (value != defaultValues[key]){
       currentFilters[key] = value;
     }
