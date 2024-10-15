@@ -1,8 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application_1/App_Pages/filter_location_page.dart';
-import 'package:intl/number_symbols_data.dart';
 
+/// This UI helps users filter the long list of sessions by their preferences
+/// Preferences include:
+/// Hide full lobbies
+/// Minimum available seats
+/// Max lobby size
+/// Locations 
+/// Class
 class FilterUI extends StatefulWidget {
   const FilterUI(
     this.filters,
@@ -24,7 +31,8 @@ class _FilterUI extends State<FilterUI> {
     "maximumMinValue": 25,
     "hideFull": false,
     "locationFilters": [],
-    "locationString": null
+    "locationString": null,
+    "classFilter": null,
   };
 
   // Filters that will be applied to sessions
@@ -40,7 +48,8 @@ class _FilterUI extends State<FilterUI> {
     resetValues();
 
     // Apply previous filters to keep consistency
-    currentFilters = widget.filters;
+    currentFilters.clear();
+    currentFilters.addAll(widget.filters);
     currentValues.addAll(widget.filters);
 
     // Call functions to set proper string values
@@ -123,49 +132,72 @@ class _FilterUI extends State<FilterUI> {
 
   Card classUI() {
     return Card(
-        color:const  Color.fromARGB(255, 34, 34, 34),
-        shape:const  RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(8.0)
-          )
-        ),
-        child:ListTile(
-          title: const Text("Class"),
-          trailing: const Icon(Icons.add),
-          onTap: (){
-            showDialog(
-              context: context, 
-              builder: (context){
-                return AlertDialog(
-                  title: Text("Filter by class"),
-                  content: const TextField(
-                    decoration: InputDecoration(
-                      hintText: "ENG, MATH, BIOL...",
-                      hintStyle: TextStyle(color: Colors.grey)
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      child: const Text("Cancel"),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: (){},
-                    ),
-                    TextButton(
-                      child: const Text("Add"),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: (){},
-                    )
-                  ],
-                );
-              }
-            );
-          },
+      color:const  Color.fromARGB(255, 34, 34, 34),
+      shape:const  RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(8.0)
         )
-      );
+      ),
+      child:ListTile(
+        title: const Text("Class"),
+        trailing: currentValues['classFilter'] != null
+          ? Text(
+            currentValues['classFilter'],
+            style: const TextStyle(
+              fontSize: 15
+            ))
+          : const Icon(Icons.add),
+        onTap: (){
+          TextEditingController classController = TextEditingController();
+          if (currentValues['classFilter'] != null){
+            classController.text = currentValues['classFilter'];
+          }
+          showDialog(
+            context: context, 
+            builder: (context){
+              return AlertDialog(
+                title: const Text("Filter by a class"),
+                content: TextField(
+                  controller: classController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
+                  ],
+                  maxLength: 5,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: "Class abbrievation",
+                    hintStyle: TextStyle(color: Colors.grey)
+                  ),
+                  onChanged: (value) {
+                    classController.text = value.toUpperCase();
+                  },
+                  onSubmitted: (value) => setClass(value),
+                ),
+                actions: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: (){
+                      classController.clear();
+                      setClass("");
+                    },
+                    child: const Text("Clear"),
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => setClass(classController.text),
+                    child: const Text("Set"),
+                  )
+                ],
+              );
+            }
+          );
+        },
+      )
+    );
   }
 
   Card locationUI(BuildContext context) {
@@ -193,8 +225,12 @@ class _FilterUI extends State<FilterUI> {
               CupertinoPageRoute(
                 builder: (_) => FilterLocationPage(currentValues['locationFilters'] ?? [])
               )
-            ).then((value) => 
-              setLocations(value)
+            ).then((value){
+                if (value == null){
+                  return;
+                }
+                setLocations(value);
+              }
             );
           },
         ),
@@ -353,7 +389,7 @@ class _FilterUI extends State<FilterUI> {
     });
     int rounded = currentValues['currMaxSliderValue'].round();
     if (rounded == currentValues['maximumMinValue']){
-      currentValues['currMaxString'] = '${currentValues['maximumMinValue']}+';
+      currentValues['currMaxString'] = 'Any';
     }
     else {
       currentValues['currMaxString'] = currentValues['currMaxSliderValue'].round().toString();
@@ -390,6 +426,15 @@ class _FilterUI extends State<FilterUI> {
     setFilters('locationFilters', value);
   }
 
+  // Set class in filter if not empty
+  setClass(String value) {
+    setState((){
+      currentValues['classFilter'] = value.isEmpty ? null : value;
+    });
+    setFilters('classFilter', value.isEmpty ? null : value);
+    Navigator.of(context).pop();
+  }
+
   // Set values for filter, remove if default value
   void setFilters(key, value){
     if (value != defaultValues[key]){
@@ -399,4 +444,5 @@ class _FilterUI extends State<FilterUI> {
       currentFilters.remove(key);
     }
   }
+  
 }

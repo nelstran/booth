@@ -122,14 +122,17 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                               mainAxisSize: MainAxisSize.min,
                               // Show list and the people in that session represented by their pfp
                               children: [
-                                Text(description),
+                                Text(session.locationDescription),
                                 const SizedBox(height: 2),
                                 rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
                               ],
                             ),
                             trailing: Text(
-                              "[${session.seatsTaken}/${session.seatsAvailable}]",
+                              "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
                               textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14
+                              )
                             ),
                             onTap: () {
                               // Expand session
@@ -237,7 +240,7 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         decoration: BoxDecoration(
           color: const Color.fromARGB(106, 78, 78, 78),
           boxShadow: [
@@ -261,9 +264,13 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   SizedBox(
-                    height: 30,
+                    height: 40,
+                    width: 100,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)
+                        ),
                         elevation: 0,
                         shadowColor: Colors.transparent,
                         backgroundColor: const Color.fromARGB(255, 22, 22, 22)
@@ -285,7 +292,8 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                               return;
                             }
                             setState((){
-                              filters = value;
+                              filters.clear();
+                              filters.addAll(value);
                             });
                           },);
                       }, 
@@ -294,14 +302,14 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
                 ],
               )
             )
-            //Spacer(),
-            //Icon(Icons.filter_list_rounded, color: Colors.white),
           ],
         ),
       ),
     );
   }
   
+  // Method to manually filter session on user's device since realtime database does not 
+  // offer any filtering
   bool isFiltered(Session session) {
     // Hide full sessions
     if (filters.containsKey('hideFull') && filters['hideFull']){
@@ -330,13 +338,22 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
 
     // Show sessions that have location descriptions that contain a list of words
     if (filters.containsKey('locationFilters')){
-      if(!(filters['locationFilters'] as List)
-      .any(
-        (location) => session.locationDescription.toLowerCase()
-        .contains(
-          (location as String).toLowerCase()
-        ))){
-          return true;
+      if((filters['locationFilters'] as List).isNotEmpty){
+        if(!(filters['locationFilters'] as List)
+        .any(
+          (location) => session.locationDescription.toLowerCase()
+          .contains(
+            (location as String).toLowerCase()
+          ))){
+            return true;
+        }
+      }
+    }
+
+    // Show only sessions that are for a certain class
+    if (filters.containsKey('classFilter')){
+      if(session.subject.toUpperCase() != (filters['classFilter'] as String).toUpperCase()){
+        return true;
       }
     }
     return false; 
