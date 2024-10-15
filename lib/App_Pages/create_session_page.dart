@@ -10,6 +10,7 @@
 // Create a button to add the session to the session home page (can use Button from UI components)
 // Once this button is pressed, go to the session home page
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
 import 'package:flutter_application_1/MVC/session_extension.dart';
 import 'package:flutter_application_1/MVC/session_model.dart';
@@ -195,6 +196,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController classController = TextEditingController();
+    classController.text = _subject ?? "";
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -211,6 +214,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 16.0),
               TextFormField(
+                maxLength: 40,
                 decoration: const InputDecoration(labelText: 'Title'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -223,6 +227,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                maxLength: 150,
                 decoration: const InputDecoration(labelText: 'Description'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -247,6 +252,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                maxLength: 40,
                 decoration:
                     const InputDecoration(labelText: 'Location Description'),
                 validator: (value) {
@@ -260,6 +266,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+                ],
+                maxLength: 3,
                 decoration: const InputDecoration(labelText: 'Seats Available'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -277,15 +287,23 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Subject'),
+                controller: classController,
+                inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
+                  ],
+                  maxLength: 5,
+                decoration: const InputDecoration(labelText: 'Class'),
+                onChanged: (value) {
+                    classController.text = value.toUpperCase();
+                  },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a subject';
+                    return 'Please enter a class';
                   }
                   return null;
                 },
                 onSaved: (value) => _subject = value,
-                initialValue: _subject, 
+                // initialValue: _subject, 
               ),
               const SizedBox(height: 8.0),
               DropdownButtonFormField<bool>(

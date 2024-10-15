@@ -20,7 +20,7 @@ class SessionDatabase {
   /// Get the key of logged in user's
   Future<String> fetchUserKey(User user) async {
     final newRef = ref.child("users");
-    final event = await newRef.once(DatabaseEventType.value);
+    final event = await newRef.once();
 
     // Iterate through the list of users until we find a match (Probably will be slow af when there's a lot of users)
     for (final child in event.snapshot.children) {

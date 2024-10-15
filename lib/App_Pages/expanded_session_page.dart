@@ -138,7 +138,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                               const Icon(Icons.subject, size: 18.0),
                               const SizedBox(width: 5.0),
                               Text(
-                                'Subject: ${session.subject}',
+                                'Class: ${session.subject}',
                                 style: const TextStyle(fontSize: 16.0),
                               ),
                             ],
@@ -288,6 +288,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                           controller.startSessionLogging(
                               controller.student.uid, session);
                         }
+                        if(!context.mounted) return;
                         setState(() {
                           isInThisSession =
                               !isInThisSession; // Janky way to update state UI

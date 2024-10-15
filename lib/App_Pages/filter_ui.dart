@@ -160,7 +160,7 @@ class _FilterUI extends State<FilterUI> {
                 content: TextField(
                   controller: classController,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
+                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
                   ],
                   maxLength: 5,
                   autofocus: true,
@@ -428,10 +428,11 @@ class _FilterUI extends State<FilterUI> {
 
   // Set class in filter if not empty
   setClass(String value) {
+    String val = value.trim();
     setState((){
-      currentValues['classFilter'] = value.isEmpty ? null : value;
+      currentValues['classFilter'] = val.isEmpty ? null : val;
     });
-    setFilters('classFilter', value.isEmpty ? null : value);
+    setFilters('classFilter', val.isEmpty ? null : val);
     Navigator.of(context).pop();
   }
 
