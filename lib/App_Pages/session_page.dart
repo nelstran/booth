@@ -232,78 +232,84 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
   }
 
   Widget boothSearchBar(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        await showSearch(
-          context: context,
-          delegate: SearchPage(controller: widget.controller),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(106, 78, 78, 78),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search, color: Colors.white),
-            const SizedBox(width: 8.0),
-            const Text(
-              'Search...',
-              style: TextStyle(color: Colors.white),
-            ),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  SizedBox(
-                    height: 40,
-                    width: 100,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)
-                        ),
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        backgroundColor: const Color.fromARGB(255, 22, 22, 22)
-                      ),
-                      onPressed: (){
-                        showModalBottomSheet(
-                          showDragHandle: true,
-                          isScrollControlled: true,
-                          context: context, 
-                          builder: (context){
-                            return Wrap(
-                              children: [
-                                FilterUI(filters)
-                              ]);
-                          })
-                          // After users apply filters, values will show up here
-                          .then((value) {
-                            if (value == null){
-                              return;
-                            }
-                            setState((){
-                              filters.clear();
-                              filters.addAll(value);
-                            });
-                          },);
-                      }, 
-                      child: const Icon(Icons.filter_list)),
-                  )
-                ],
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(106, 78, 78, 78),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4.0,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () async {
+                await showSearch(
+                  context: context,
+                  delegate: SearchPage(controller: widget.controller),
+                );
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Colors.white),
+                    SizedBox(width: 8.0),
+                    Text(
+                      'Search...',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
               )
+            ),
+          ),
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap:() {
+              showModalBottomSheet(
+                showDragHandle: true,
+                isScrollControlled: true,
+                context: context, 
+                builder: (context){
+                  return Wrap(
+                    children: [
+                      FilterUI(filters)
+                    ]);
+                })
+                // After users apply filters, values will show up here
+                .then((value) {
+                  if (value == null){
+                    return;
+                  }
+                  setState((){
+                    filters.clear();
+                    filters.addAll(value);
+                  });
+                },
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                height: 40,
+                width: 100,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 22, 22, 22),
+                    borderRadius: BorderRadius.circular(20)
+                  ),
+                  child: const Icon(Icons.filter_list)
+                  ),
+                ),
             )
-          ],
-        ),
+          )
+        ],
       ),
     );
   }
