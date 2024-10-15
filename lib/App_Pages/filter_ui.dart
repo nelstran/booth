@@ -1,4 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/App_Pages/filter_location_page.dart';
+import 'package:intl/number_symbols_data.dart';
 
 class FilterUI extends StatefulWidget {
   const FilterUI(
@@ -20,6 +23,8 @@ class _FilterUI extends State<FilterUI> {
     "currMaxString": 'Any',
     "maximumMinValue": 25,
     "hideFull": false,
+    "locationFilters": [],
+    "locationString": null
   };
 
   // Filters that will be applied to sessions
@@ -41,7 +46,7 @@ class _FilterUI extends State<FilterUI> {
     // Call functions to set proper string values
     setMinVal(currentValues['currMinSliderValue']);
     setMaxVal(currentValues['currMaxSliderValue']);
-
+    setLocations(currentValues['locationFilters']);
   }
 
   // Function to reset UI elements and values
@@ -88,6 +93,27 @@ class _FilterUI extends State<FilterUI> {
       currentValues['hideFull'] = value!;
       setFilters('hideFull', value);
     });
+  }
+
+  // Set text for subtitle of location list tile
+  void setLocations(List value){
+    setState((){
+      currentValues['locationFilters'] = value;
+    });
+
+    String subtitle = value.join(", ");
+    if (value.isNotEmpty){
+      if(subtitle.length > 30){
+        currentValues['locationString'] = "${subtitle.substring(0, 27)}...";
+      }
+      else{
+        currentValues['locationString'] = subtitle;
+      }
+    }
+    else{
+      currentValues['locationString'] = null;
+    }
+    setFilters('locationFilters', value);
   }
 
   // Set values for filter, remove if default value
@@ -261,7 +287,24 @@ class _FilterUI extends State<FilterUI> {
           child:ListTile(
             title: const Text("Locations"),
             trailing: const Icon(Icons.add),
-            onTap: (){},
+            subtitle: currentValues['locationString'] != null 
+            ? Text(
+              currentValues['locationString'],
+              style: const TextStyle(
+                color: Color.fromARGB(255, 133, 133, 133)
+              ) 
+              ) 
+            : null,
+            onTap: (){
+              Navigator.of(context).push(
+                // Use Cupertino for slide transition (I'm too lazy to make my own)
+                CupertinoPageRoute(
+                  builder: (_) => FilterLocationPage(currentValues['locationFilters'] ?? [])
+                )
+              ).then((value) => 
+                setLocations(value)
+              );
+            },
           ),
         ),
         // Subject filter

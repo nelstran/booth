@@ -327,6 +327,18 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
         }
       }
     }
+
+    // Show sessions that have location descriptions that contain a list of words
+    if (filters.containsKey('locationFilters')){
+      if(!(filters['locationFilters'] as List)
+      .any(
+        (location) => session.locationDescription.toLowerCase()
+        .contains(
+          (location as String).toLowerCase()
+        ))){
+          return true;
+      }
+    }
     return false; 
   }
 }
