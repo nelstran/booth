@@ -267,14 +267,13 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                       onPressed: () async {
                         // Delete owned session
                         if (controller.student.ownedSessionKey != "") {
+                          Navigator.of(context).pop();
                           var sessionToDelete =
                               controller.student.ownedSessionKey;
                           await controller.removeUserFromSession(
                               controller.student.session,
                               controller.student.sessionKey);
                           controller.removeSession(sessionToDelete);
-                          if(!mounted) return;
-                          Navigator.of(context).pop();
                           return;
                         }
                         // Kicks user of old session when joining new one

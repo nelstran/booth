@@ -70,6 +70,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         _classController.text = session.subject;
         _isPublic = session.isPublic;
         _currAddrController.text = session.address ?? '';
+        _shareLocation = session.address != null;
       });
     });
     }
@@ -168,6 +169,20 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   }
 
   Future<void> _updateSession() async {
+    if(_shareLocation){
+      await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+          .then((Position position) async {
+        setState(() => _currentPosition = position);
+        String? address = await _getAddressFromLatLng(position);
+
+        if (address != null) {
+          setState(() => _currentAddress = address);
+        }
+      }).catchError((e) {
+        debugPrint(e);
+      });
+    }
+    
     Map<String, Object?> values = {
       'title': _titleController.text,
       'description': _descController.text,
@@ -176,10 +191,13 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       'seatsAvailable': int.parse(_seatsController.text),
       'subject': _classController.text,
       'isPublic': _isPublic,
-      'latitude': _currentPosition?.latitude,
-      'longitude': _currentPosition?.longitude,
-      'address': _currentAddress,
     };
+    // Remove location if users no longer want to share location
+    values.addAll({
+      'latitude': _shareLocation ? _currentPosition?.latitude : null,
+      'longitude': _shareLocation ? _currentPosition?.longitude : null,
+      'address':_shareLocation ?  _currentAddress : null,
+    });
     await widget.controller.editSession(widget.sessionKey!, values);
   }
 
