@@ -9,6 +9,8 @@
 
 // Create a button to add the session to the session home page (can use Button from UI components)
 // Once this button is pressed, go to the session home page
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/MVC/booth_controller.dart';
@@ -20,43 +22,73 @@ import 'package:geolocator/geolocator.dart';
 
 class CreateSessionPage extends StatefulWidget {
   final BoothController controller;
-  final Session? session;
-  final bool isEditing;
-  const CreateSessionPage(this.controller, {this.session, this.isEditing = false, super.key});
+  final String? sessionKey;
+  const CreateSessionPage(this.controller, {this.sessionKey, super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _CreateSessionPageState();
-  }
+  State<CreateSessionPage> createState() => _CreateSessionPageState();
 }
 
 class _CreateSessionPageState extends State<CreateSessionPage> {
   final _formKey = GlobalKey<FormState>();
-  String? _title;
-  String? _description;
-  String? _time;
-  String? _locationDescription;
-  int? _seatsAvailable;
-  String? _subject;
-  bool _isPublic = true;
-  bool _shareLocation = false;
+
   String? _currentAddress;
   Position? _currentPosition;
+  bool _isPublic = true;
+  bool _shareLocation = false;
+
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _classController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _seatsController = TextEditingController();
+  final TextEditingController _currAddrController = TextEditingController();
+
+
+  bool showingSnack = false;
+  bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.session != null) {
+    if (widget.sessionKey != null) {
+      isEditing = true;
+      widget.controller.getSession(widget.sessionKey!).then((value) {
+        if (value.isEmpty){
+          return;
+        }
+        Session session = Session.fromJson(value);
       // Prepopulate fields with session values if editing
-      _title = widget.session!.title;
-      _description = widget.session!.description;
-      _time = widget.session!.time;
-      _locationDescription = widget.session!.locationDescription;
-      _seatsAvailable = widget.session!.seatsAvailable;
-      _subject = widget.session!.subject;
-      _isPublic = widget.session!.isPublic;
-      _currentAddress = widget.session!.address;
+      setState((){
+        _titleController.text = session.title;
+        _descController.text = session.description;
+        _timeController.text = session.time;
+        _classController.text = session.subject;
+        _locationController.text = session.locationDescription;
+        _seatsController.text = session.seatsAvailable.toString();
+        _classController.text = session.subject;
+        _isPublic = session.isPublic;
+        _currAddrController.text = session.address ?? '';
+      });
+    });
     }
+  }
+
+  // Method to display snackbar warning while also preventing it from 
+  // being loaded multiple times when users spam the toggle
+  void displayWarning(String text){
+    if(showingSnack) {
+      return;
+    }
+    showingSnack = true;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text)
+      )
+    ).closed
+    .then((reason){
+      showingSnack = false;
+    });
   }
 
   Future<bool> _handleLocationPermission() async {
@@ -65,24 +97,19 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location services are disabled. Please enable the services')));
+      displayWarning('Location services are disabled. Please enable the services');
       return false;
     }
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permissions are denied')));
+        displayWarning('Location permissions are denied');
         return false;
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location permissions are permanently denied, we cannot request permissions.')));
+      displayWarning('Please enable location permissions in your phone\'s settings');
       return false;
     }
     return true;
@@ -119,61 +146,67 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     );
 
     try {
-      if (widget.isEditing) {
+      if (isEditing) {
         await _updateSession();
       } else {
         await _createSession();
       }
+      // Pop loading circle
+      if (mounted){
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       // Handle error
       debugPrint(e.toString());
-    } finally {
-      Navigator.pop(context);
+    }
+    finally{
+      // Pop current screen
+      if (mounted){
+        Navigator.of(context).pop();
+      }
     }
   }
 
   Future<void> _updateSession() async {
-    widget.controller.db.updateSession(widget.session!.key, {
-      'title': _title,
-      'description': _description,
-      'time': _time,
-      'locationDescription': _locationDescription,
-      'seatsAvailable': _seatsAvailable,
-      'subject': _subject,
+    Map<String, Object?> values = {
+      'title': _titleController.text,
+      'description': _descController.text,
+      'time': _timeController.text,
+      'locationDescription': _locationController.text,
+      'seatsAvailable': int.parse(_seatsController.text),
+      'subject': _classController.text,
       'isPublic': _isPublic,
       'latitude': _currentPosition?.latitude,
       'longitude': _currentPosition?.longitude,
       'address': _currentAddress,
-    });
-    Navigator.pop(context);
+    };
+    await widget.controller.editSession(widget.sessionKey!, values);
   }
 
   Future<void> _createSession() async {
-    final hasPermission = await _handleLocationPermission();
+    if(_shareLocation){
+      await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+          .then((Position position) async {
+        setState(() => _currentPosition = position);
+        String? address = await _getAddressFromLatLng(position);
 
-    if (!hasPermission) return;
+        if (address != null) {
+          setState(() => _currentAddress = address);
+        }
+      }).catchError((e) {
+        debugPrint(e);
+      });
+    }
 
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
-        .then((Position position) async {
-      setState(() => _currentPosition = position);
-      String? address = await _getAddressFromLatLng(position);
-
-      if (address != null) {
-        setState(() => _currentAddress = address);
-      }
-    }).catchError((e) {
-      debugPrint(e);
-    });
-
-    _formKey .currentState!.save();
+    _formKey.currentState!.save();
 
     final boothSession = Session(
-      title: _title ?? '',
-      description: _description ?? '',
-      time: _time ?? '',
-      locationDescription: _locationDescription ?? '',
-      seatsAvailable: _seatsAvailable ?? 0,
-      subject: _subject ?? '',
+      title: _titleController.text,
+      description: _descController.text,
+      time: _timeController.text,
+      locationDescription: _locationController.text,
+      seatsAvailable: int.parse(_seatsController.text),
+      subject: _classController.text,
       isPublic: _isPublic,
       field: "field",
       level: 1000,
@@ -186,18 +219,11 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     if (student.session != "") {
       await widget.controller.removeUserFromSession(student.session, student.sessionKey);
     }
-    widget.controller.addSession(boothSession, student);
-
-    if (context.mounted) {
-      Navigator.pop(context);
-      Navigator.pop(context);
-    }
+    await widget.controller.addSession(boothSession, student);
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController classController = TextEditingController();
-    classController.text = _subject ?? "";
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -209,11 +235,12 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(widget.session != null ? 'Edit Session' : 'Create Session',
+              Text(isEditing ? 'Edit Session' : 'Create Session',
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
+                controller: _titleController,
                 maxLength: 40,
                 decoration: const InputDecoration(labelText: 'Title'),
                 validator: (value) {
@@ -222,11 +249,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   }
                   return null;
                 },
-                onSaved: (value) => _title = value,
-                initialValue: _title, 
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                controller: _descController,
                 maxLength: 150,
                 decoration: const InputDecoration(labelText: 'Description'),
                 validator: (value) {
@@ -235,11 +261,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   }
                   return null;
                 },
-                onSaved: (value) => _description = value,
-                initialValue: _description, 
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                controller: _timeController,
                 decoration: const InputDecoration(labelText: 'Time'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -247,11 +272,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   }
                   return null;
                 },
-                onSaved: (value) => _time = value,
-                initialValue: _time, 
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                controller: _locationController,
                 maxLength: 40,
                 decoration:
                     const InputDecoration(labelText: 'Location Description'),
@@ -261,11 +285,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   }
                   return null;
                 },
-                onSaved: (value) => _locationDescription = value,
-                initialValue: _locationDescription, 
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                controller: _seatsController,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp("[0-9]")),
                 ],
@@ -282,19 +305,17 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
                 keyboardType: TextInputType.number,
-                onSaved: (value) => _seatsAvailable = int.tryParse(value!),
-                initialValue: _seatsAvailable?.toString(), 
               ),
               const SizedBox(height: 8.0),
               TextFormField(
-                controller: classController,
+                controller: _classController,
                 inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
                   ],
                   maxLength: 5,
                 decoration: const InputDecoration(labelText: 'Class'),
                 onChanged: (value) {
-                    classController.text = value.toUpperCase();
+                    _classController.text = value.toUpperCase();
                   },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -302,8 +323,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   }
                   return null;
                 },
-                onSaved: (value) => _subject = value,
-                // initialValue: _subject, 
               ),
               const SizedBox(height: 8.0),
               DropdownButtonFormField<bool>(
@@ -328,9 +347,20 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               SwitchListTile(
                 title: const Text('Share Location'),
                 value: _shareLocation,
-                onChanged: (bool value) {
-                  setState(() {
+                onChanged: (bool value) async {
+                  // Change UI then ask for permission
+                  setState((){
                     _shareLocation = value;
+                  });
+
+                  // Ask for permission when toggled on
+                  var hasPermission = false;
+                  if (value){
+                    hasPermission = await _handleLocationPermission();
+                  }
+
+                  setState(() {
+                    _shareLocation = hasPermission;
                   });
                 },
                 subtitle:
@@ -339,13 +369,15 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
+                  // TODO: fix crash
                   if (_formKey.currentState!.validate()) {
                     await _handleSessionCreation();
+
                   }
                 },
                 style: const ButtonStyle(
                     backgroundColor: WidgetStatePropertyAll(Color(0xFF0d4073))),
-                child: Text(widget.session != null ? 'Update Session' : 'Create Session'),
+                child: Text(isEditing ? 'Update Session' : 'Create Session'),
               ),
             ],
           ),

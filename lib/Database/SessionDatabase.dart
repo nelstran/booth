@@ -39,7 +39,7 @@ class SessionDatabase {
   }
 
   /// Change field values of existing user
-  void updateUser(String key, Map<String, Object?> values) async {
+  Future<void> updateUser(String key, Map<String, Object?> values) async {
     if (key == "") return;
     final newRef = ref.child("users/$key");
     await newRef.update(values);
@@ -62,6 +62,12 @@ class SessionDatabase {
   /// Get user entry in database
   Future<Object?> getUser(String key) async {
     final newRef = ref.child("users/$key");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
+
+  Future<Object?> getSession(String key) async {
+    final newRef = ref.child("institutions/$institution/sessions/$key");
     final event = await newRef.once();
     return event.snapshot.value;
   }
@@ -91,7 +97,7 @@ class SessionDatabase {
   }
 
   /// Change field values of existing session
-  void updateSession(String key, Map<String, Object?> values) async {
+  Future<void> updateSession(String key, Map<String, Object?> values) async {
     if (key == "") return;
     final newRef = ref.child("institutions/$institution/sessions/$key");
     await newRef.update(values);

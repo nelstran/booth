@@ -79,7 +79,6 @@ class _SessionPage extends State<SessionPage> with AutomaticKeepAliveClientMixin
               
                   // Extract title and description from the session map
                   String title = json['title'] ?? '';
-                  String description = json['description'] ?? '';
               
                   int colorIndex =
                       ((session.seatsTaken / session.seatsAvailable) * 100).floor();

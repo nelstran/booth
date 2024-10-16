@@ -14,7 +14,6 @@ class Session {
   late final String locationDescription;
   late final int seatsAvailable;
   late final bool isPublic;
-  late int dist;
   late int seatsTaken;
 
   double? latitude;
@@ -39,22 +38,20 @@ class Session {
     this.longitude,
     this.address,
   })  : key = key ?? "NaN",
-        dist = 10 + Random().nextInt(100 - 10 + 1), //Random for now
         seatsTaken = 1,
         ownerKey = "";
 
   /// Json Constructor (Maybe not required/used)
   Session.fromJson(Map json) {
-    field = json['field'];
-    level = json['level'];
-    subject = json['subject'];
-    title = json['title'];
-    description = json['description'];
-    time = json['time'];
-    locationDescription = json['locationDescription'];
-    seatsAvailable = json['seatsAvailable'];
-    isPublic = json['isPublic'];
-    dist = 10 + Random().nextInt(100 - 10 + 1);
+    field = json['field'] ?? "N/A";
+    level = json['level'] ?? "N/A";
+    subject = json['subject'] ?? "N/A";
+    title = json['title'] ?? "N/A";
+    description = json['description'] ?? "N/A";
+    time = json['time'] ?? "N/A";
+    locationDescription = json['locationDescription'] ?? "N/A";
+    seatsAvailable = json.containsKey('seatsAvailable') ? json['seatsAvailable'] : 0;
+    isPublic = json['isPublic'] ?? "N/A";
     seatsTaken = (json['users'] as Map).length;
     if (json.containsKey('ownerKey')) ownerKey = json['ownerKey'];
 

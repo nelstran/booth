@@ -42,8 +42,6 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    DatabaseReference ref = FirebaseDatabase.instance.ref();
-    String institution = controller.studentInstitution;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booth'),
@@ -53,16 +51,16 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
               icon: const Icon(Icons.edit),
               onPressed: () async {
                 // Navigate to Edit Session Page
-                final data = await controller.sessionRef.child(widget.sessionKey).once();
+                if (!context.mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => CreateSessionPage(
-                      widget.controller,
-                      session: Session.fromJson(data.snapshot.value as Map<dynamic, dynamic>),
+                      widget.controller, 
+                      sessionKey: widget.sessionKey
                     ),
-                )
-              );
+                  )
+                );
             },
           ),
         ],
@@ -267,18 +265,19 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                           ? "Delete"
                           : buttonText),
                       onPressed: () async {
-                        // ------ THIS INTERRUPTS THE BUTTON FUNCTIONALITY ------
+                        // Delete owned session
                         if (controller.student.ownedSessionKey != "") {
-                          // Put the pop at the top to prevent async gaps
-                          Navigator.of(context).pop();
                           var sessionToDelete =
                               controller.student.ownedSessionKey;
                           await controller.removeUserFromSession(
                               controller.student.session,
                               controller.student.sessionKey);
                           controller.removeSession(sessionToDelete);
+                          if(!mounted) return;
+                          Navigator.of(context).pop();
+                          return;
                         }
-                        // -------------------------------------------------------
+                        // Kicks user of old session when joining new one
                         if (isInThisSession) {
                           controller.removeUserFromSession(
                               widget.sessionKey, controller.student.sessionKey);
@@ -288,7 +287,6 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                           controller.startSessionLogging(
                               controller.student.uid, session);
                         }
-                        if(!context.mounted) return;
                         setState(() {
                           isInThisSession =
                               !isInThisSession; // Janky way to update state UI

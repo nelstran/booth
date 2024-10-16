@@ -46,7 +46,7 @@ extension SessionExtension on BoothController{
 
   /// Add the session to the database, the user who made it
   /// automatically joins the session
-  void addSession(Session session, Student owner) async {
+  Future<void> addSession(Session session, Student owner) async {
     // We just want name and uid instead all of its fields
     Map studentValues = {
       "name": owner.fullname,
@@ -73,19 +73,32 @@ extension SessionExtension on BoothController{
     // Set session the user owns
     student.ownedSessionKey = sessionKey;
     //Sets the owner's session key to the session key in the database
-    db.updateUser(owner.key, {
+    await db.updateUser(owner.key, {
       "session": sessionKey,
       "sessionKey": userKey,
       "ownedSessionKey": sessionKey,
     });
 
     // Update session in db to state who owns that session
-    db.updateSession(sessionKey, {"ownerKey": userKey});
+    await db.updateSession(sessionKey, {"ownerKey": userKey});
     startSessionLogging(owner.uid, session);
   }
 
   /// Given a key, remove the session from the database
   void removeSession(String key) {
     db.removeSession(key);
+  }
+
+  Future<void> editSession(String key, Map<String, Object?> values) async {
+    await db.updateSession(key, values);
+  }
+
+  Future<Map<dynamic, dynamic>> getSession(String key) async {
+    Object? json =  await db.getSession(key);
+    if (json == null) {
+      return {};
+    }
+    
+    return json as Map<dynamic, dynamic>;
   }
 }
