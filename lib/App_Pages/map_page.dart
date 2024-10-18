@@ -20,15 +20,19 @@ class MapPage extends StatefulWidget {
   State<MapPage> createState() => MapPageState();
 }
 
-class MapPageState extends State<MapPage> {
+class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
+  @override
+  bool get wantKeepAlive => true;
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
 
   Map<String, Marker> markers = {};
+  LatLng? maxPos;
+  LatLng? minPos;
 
   static const CameraPosition currentLocation = CameraPosition(
     target: LatLng(40.763444, -111.844182),
-    zoom: 1,
+    zoom: 8,
   );
 
   @override
@@ -38,7 +42,8 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _loadSessionsAndAddMarkers() async {
-    widget.controller.sessionRef.once().then((DatabaseEvent event) {
+    widget.controller.sessionRef.onValue.listen((DatabaseEvent event) {
+      markers.clear();
       final dataSnapshot = event.snapshot;
       final Map<dynamic, dynamic>? sessions =
           dataSnapshot.value as Map<dynamic, dynamic>?;
@@ -48,7 +53,6 @@ class MapPageState extends State<MapPage> {
           if (session['latitude'] != null && session['longitude'] != null) {
             final LatLng sessionLocation =
                 LatLng(session['latitude'], session['longitude']);
-
             _addMarker(key, sessionLocation, session['title']);
           }
         });
@@ -72,6 +76,7 @@ class MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: GoogleMap(
         mapType: MapType.hybrid,
@@ -84,4 +89,5 @@ class MapPageState extends State<MapPage> {
       ),
     );
   }
+  
 }

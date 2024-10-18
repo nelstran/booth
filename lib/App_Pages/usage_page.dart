@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -124,7 +126,7 @@ class UsagePage extends StatelessWidget {
                   }
                 ),
               ),
-              maxY: 24,
+              maxY: weeklyBarData.getMax()+1,
               minY: 0,
               gridData: FlGridData(show: false),
               borderData: FlBorderData(show: false),
@@ -146,10 +148,10 @@ class UsagePage extends StatelessWidget {
                     toY: data.y, 
                     color: Colors.blue,
                     width:25,
-                    //borderRadius: BorderRadius.circular(5),
+                    // borderRadius: BorderRadius.circular(15),
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
-                      toY: 24,
+                      toY: weeklyBarData.getMax()+1,
                       color: Colors.grey[200],
                     ),
                   ),
@@ -346,6 +348,15 @@ class BarData{
 
   List<IndivididualBar> barData = [];
 
+  double getMax(){
+    return ([sunAmount,
+      monAmount,
+      tueAmount,
+      wedAmount,
+      thurAmount,
+      friAmount,
+      satAmount]).reduce(max);
+  }
   void initializeBarData() {
     barData = [
       IndivididualBar(x: 0, y: sunAmount),
@@ -355,7 +366,6 @@ class BarData{
       IndivididualBar(x: 4, y: thurAmount),
       IndivididualBar(x: 5, y: friAmount),
       IndivididualBar(x: 6, y: satAmount)
-
     ];
   }
 
