@@ -13,10 +13,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/session_extension.dart';
-import 'package:flutter_application_1/MVC/session_model.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/session_extension.dart';
+import 'package:Booth/MVC/session_model.dart';
+import 'package:Booth/MVC/student_model.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -45,7 +45,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   final TextEditingController _seatsController = TextEditingController();
   final TextEditingController _currAddrController = TextEditingController();
 
-
   bool showingSnack = false;
   bool isEditing = false;
 
@@ -55,39 +54,38 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     if (widget.sessionKey != null) {
       isEditing = true;
       widget.controller.getSession(widget.sessionKey!).then((value) {
-        if (value.isEmpty){
+        if (value.isEmpty) {
           return;
         }
         Session session = Session.fromJson(value);
-      // Prepopulate fields with session values if editing
-      setState((){
-        _titleController.text = session.title;
-        _descController.text = session.description;
-        _timeController.text = session.time;
-        _classController.text = session.subject;
-        _locationController.text = session.locationDescription;
-        _seatsController.text = session.seatsAvailable.toString();
-        _classController.text = session.subject;
-        _isPublic = session.isPublic;
-        _currAddrController.text = session.address ?? '';
-        _shareLocation = session.address != null;
+        // Prepopulate fields with session values if editing
+        setState(() {
+          _titleController.text = session.title;
+          _descController.text = session.description;
+          _timeController.text = session.time;
+          _classController.text = session.subject;
+          _locationController.text = session.locationDescription;
+          _seatsController.text = session.seatsAvailable.toString();
+          _classController.text = session.subject;
+          _isPublic = session.isPublic;
+          _currAddrController.text = session.address ?? '';
+          _shareLocation = session.address != null;
+        });
       });
-    });
     }
   }
 
-  // Method to display snackbar warning while also preventing it from 
+  // Method to display snackbar warning while also preventing it from
   // being loaded multiple times when users spam the toggle
-  void displayWarning(String text){
-    if(showingSnack) {
+  void displayWarning(String text) {
+    if (showingSnack) {
       return;
     }
     showingSnack = true;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(text)
-      )
-    ).closed
-    .then((reason){
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(text)))
+        .closed
+        .then((reason) {
       showingSnack = false;
     });
   }
@@ -98,7 +96,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      displayWarning('Location services are disabled. Please enable the services');
+      displayWarning(
+          'Location services are disabled. Please enable the services');
       return false;
     }
     permission = await Geolocator.checkPermission();
@@ -110,7 +109,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      displayWarning('Please enable location permissions in your phone\'s settings');
+      displayWarning(
+          'Please enable location permissions in your phone\'s settings');
       return false;
     }
     return true;
@@ -153,24 +153,24 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         await _createSession();
       }
       // Pop loading circle
-      if (mounted){
+      if (mounted) {
         Navigator.of(context).pop();
       }
     } catch (e) {
       // Handle error
       debugPrint(e.toString());
-    }
-    finally{
+    } finally {
       // Pop current screen
-      if (mounted){
+      if (mounted) {
         Navigator.of(context).pop();
       }
     }
   }
 
   Future<void> _updateSession() async {
-    if(_shareLocation){
-      await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+    if (_shareLocation) {
+      await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high)
           .then((Position position) async {
         setState(() => _currentPosition = position);
         String? address = await _getAddressFromLatLng(position);
@@ -182,7 +182,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         debugPrint(e);
       });
     }
-    
+
     Map<String, Object?> values = {
       'title': _titleController.text,
       'description': _descController.text,
@@ -196,14 +196,15 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     values.addAll({
       'latitude': _shareLocation ? _currentPosition?.latitude : null,
       'longitude': _shareLocation ? _currentPosition?.longitude : null,
-      'address':_shareLocation ?  _currentAddress : null,
+      'address': _shareLocation ? _currentAddress : null,
     });
     await widget.controller.editSession(widget.sessionKey!, values);
   }
 
   Future<void> _createSession() async {
-    if(_shareLocation){
-      await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+    if (_shareLocation) {
+      await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high)
           .then((Position position) async {
         setState(() => _currentPosition = position);
         String? address = await _getAddressFromLatLng(position);
@@ -235,7 +236,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
 
     Student student = widget.controller.student;
     if (student.session != "") {
-      await widget.controller.removeUserFromSession(student.session, student.sessionKey);
+      await widget.controller
+          .removeUserFromSession(student.session, student.sessionKey);
     }
     await widget.controller.addSession(boothSession, student);
   }
@@ -253,8 +255,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(isEditing ? 'Edit Session' : 'Create Session',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                isEditing ? 'Edit Session' : 'Create Session',
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
@@ -328,13 +332,13 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               TextFormField(
                 controller: _classController,
                 inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
-                  ],
-                  maxLength: 5,
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
+                ],
+                maxLength: 5,
                 decoration: const InputDecoration(labelText: 'Class'),
                 onChanged: (value) {
-                    _classController.text = value.toUpperCase();
-                  },
+                  _classController.text = value.toUpperCase();
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a class';
@@ -367,13 +371,13 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 value: _shareLocation,
                 onChanged: (bool value) async {
                   // Change UI then ask for permission
-                  setState((){
+                  setState(() {
                     _shareLocation = value;
                   });
 
                   // Ask for permission when toggled on
                   var hasPermission = false;
-                  if (value){
+                  if (value) {
                     hasPermission = await _handleLocationPermission();
                   }
 
@@ -390,7 +394,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   // TODO: fix crash
                   if (_formKey.currentState!.validate()) {
                     await _handleSessionCreation();
-
                   }
                 },
                 style: const ButtonStyle(

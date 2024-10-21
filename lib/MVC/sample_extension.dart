@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:Booth/MVC/booth_controller.dart';
 
 extension SampleExtension on BoothController {
   static String namesFilePath = 'assets/mock/names.json';
   static String sessionFilePath = 'assets/mock/sessions.json';
   static String locationFilePath = 'assets/mock/location_desc.json';
 
-
-  Future<void> createNSampleSessions(int n) async{
+  Future<void> createNSampleSessions(int n) async {
     var nameJson = await rootBundle.loadString(namesFilePath);
     var sessionjson = await rootBundle.loadString(sessionFilePath);
     var locationjson = await rootBundle.loadString(locationFilePath);
@@ -22,22 +21,22 @@ extension SampleExtension on BoothController {
 
     var sampleSession = [];
 
-    // Randomly generate N sessions 
-    for(var i = 0; i < n; i++){
+    // Randomly generate N sessions
+    for (var i = 0; i < n; i++) {
       var sampleName = [];
       var location = "";
       // Get a unique random session from json file
       var sessionIndex = rng.nextInt(sessions.length);
-      while (sampleSession.contains(sessionIndex)){
+      while (sampleSession.contains(sessionIndex)) {
         sessionIndex = rng.nextInt(sessions.length);
       }
-      sampleSession.add(sessionIndex); 
+      sampleSession.add(sessionIndex);
 
       // Grab a random amount of names to assign to the random session
       var numOfNames = rng.nextInt(10) + 1;
       var nameIndex = rng.nextInt(names.length);
-      for(var j = 0; j < numOfNames; j++){
-        while(sampleName.contains(names[nameIndex])){
+      for (var j = 0; j < numOfNames; j++) {
+        while (sampleName.contains(names[nameIndex])) {
           nameIndex = rng.nextInt(names.length);
         }
         sampleName.add(names[nameIndex]);
@@ -56,11 +55,8 @@ extension SampleExtension on BoothController {
       Map nameMap = sampleName.asMap();
       // Modify map to make it suitable for Firebase
       Map properMap = {};
-      nameMap.forEach((key, value){
-        properMap["key$key"] = {
-          "name": value,
-          "uid": "123456789"
-        };
+      nameMap.forEach((key, value) {
+        properMap["key$key"] = {"name": value, "uid": "123456789"};
       });
 
       Map sample = {

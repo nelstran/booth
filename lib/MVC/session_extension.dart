@@ -1,10 +1,9 @@
-import 'package:flutter_application_1/MVC/analytics_extension.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/session_model.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
+import 'package:Booth/MVC/analytics_extension.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/session_model.dart';
+import 'package:Booth/MVC/student_model.dart';
 
-extension SessionExtension on BoothController{
-
+extension SessionExtension on BoothController {
   /// Get all open session at the given school, if no school is given, search the user's assigned school
   Future<Map<dynamic, dynamic>> getSessions([institution]) async {
     institution = institution ?? studentInstitution;
@@ -14,7 +13,7 @@ extension SessionExtension on BoothController{
     }
     return json as Map<dynamic, dynamic>;
   }
-  
+
   /// Add the logged in user (student) to a session
   Future<void> addUserToSession(String sessionKey, Student user) async {
     // If user is in a session, remove them from it before adding them to a new one
@@ -94,11 +93,11 @@ extension SessionExtension on BoothController{
   }
 
   Future<Map<dynamic, dynamic>> getSession(String key) async {
-    Object? json =  await db.getSession(key);
+    Object? json = await db.getSession(key);
     if (json == null) {
       return {};
     }
-    
+
     return json as Map<dynamic, dynamic>;
   }
 }

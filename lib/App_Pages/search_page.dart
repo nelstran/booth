@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Pages/display_user_page.dart';
-import 'package:flutter_application_1/MVC/session_extension.dart';
+import 'package:Booth/App_Pages/display_user_page.dart';
+import 'package:Booth/MVC/session_extension.dart';
 
-import 'package:flutter_application_1/App_Pages/display_user_page.dart'; // Ensure this imports the correct user display page
-import 'package:flutter_application_1/MVC/friend_extension.dart';
+import 'package:Booth/App_Pages/display_user_page.dart'; // Ensure this imports the correct user display page
+import 'package:Booth/MVC/friend_extension.dart';
 import '../MVC/booth_controller.dart';
 import 'expanded_session_page.dart';
 
@@ -57,10 +57,10 @@ class SearchPage extends SearchDelegate<String> {
             ],
             labelColor: Colors.blue, // active tabs
             unselectedLabelColor: Colors.grey, // inactive tabs
-            indicatorSize: TabBarIndicatorSize.tab, 
+            indicatorSize: TabBarIndicatorSize.tab,
             indicator: UnderlineTabIndicator(
-              borderSide: BorderSide(width: 3.0, color: Colors.blueAccent), 
-              insets: EdgeInsets.symmetric(horizontal: 20), 
+              borderSide: BorderSide(width: 3.0, color: Colors.blueAccent),
+              insets: EdgeInsets.symmetric(horizontal: 20),
             ),
           ),
           Expanded(
@@ -81,7 +81,8 @@ class SearchPage extends SearchDelegate<String> {
       children: [
         Expanded(
           child: FutureBuilder<Map<dynamic, dynamic>>(
-            future: searchForUsers ? getUsers(controller) : getSessions(controller),
+            future:
+                searchForUsers ? getUsers(controller) : getSessions(controller),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -89,7 +90,8 @@ class SearchPage extends SearchDelegate<String> {
                 return const Center(child: Text('Error occurred'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return Center(
-                  child: Text(searchForUsers ? 'No Users Found' : 'No Sessions Found'),
+                  child: Text(
+                      searchForUsers ? 'No Users Found' : 'No Sessions Found'),
                 );
               }
 
@@ -97,14 +99,16 @@ class SearchPage extends SearchDelegate<String> {
 
               // Filter the suggestions based on the query
               final filteredSuggestions = suggestionList.entries
-                  .where((entry) => entry.value.toLowerCase().contains(query.toLowerCase()))
+                  .where((entry) =>
+                      entry.value.toLowerCase().contains(query.toLowerCase()))
                   .toList();
 
               if (query.isEmpty) {
                 return const Center(child: Text('Start searching...'));
               } else if (filteredSuggestions.isEmpty) {
                 return Center(
-                  child: Text(searchForUsers ? 'No Users Found' : 'No Sessions Found'),
+                  child: Text(
+                      searchForUsers ? 'No Users Found' : 'No Sessions Found'),
                 );
               }
 

@@ -1,6 +1,6 @@
-import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:Booth/MVC/booth_controller.dart';
 
-extension FriendExtension on BoothController{
+extension FriendExtension on BoothController {
   Future<Map<dynamic, dynamic>> getFriends() async {
     Object? json = await db.getFriends(student.key);
     if (json == null) {
@@ -63,10 +63,10 @@ extension FriendExtension on BoothController{
   void sendFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key)){
+    if (requests.containsKey(key)) {
       return; // Do nothing if user already sent a request
     }
-    if (friends.containsKey(key)){
+    if (friends.containsKey(key)) {
       return; // Do nothing if user is already friends
     }
 

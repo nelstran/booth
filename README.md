@@ -1,4 +1,4 @@
-# flutter_application_1
+# Booth
 
 A new Flutter project.
 

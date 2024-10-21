@@ -1,10 +1,10 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Pages/create_session_page.dart';
-import 'package:flutter_application_1/MVC/analytics_extension.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/profile_extension.dart';
-import 'package:flutter_application_1/MVC/session_extension.dart';
+import 'package:Booth/App_Pages/create_session_page.dart';
+import 'package:Booth/MVC/analytics_extension.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/profile_extension.dart';
+import 'package:Booth/MVC/session_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:http/http.dart' as http;
 
@@ -53,16 +53,13 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 // Navigate to Edit Session Page
                 if (!context.mounted) return;
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CreateSessionPage(
-                      widget.controller, 
-                      sessionKey: widget.sessionKey
-                    ),
-                  )
-                );
-            },
-          ),
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateSessionPage(widget.controller,
+                          sessionKey: widget.sessionKey),
+                    ));
+              },
+            ),
         ],
       ),
       body: Padding(
@@ -185,8 +182,9 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                                                 );
                                               }
                                               return FutureBuilder(
-                                                future: widget.controller.getProfilePictureByUID(
-                                                    memberUIDs[index]),
+                                                future: widget.controller
+                                                    .getProfilePictureByUID(
+                                                        memberUIDs[index]),
                                                 builder: (context, snapshot) {
                                                   if (snapshot.connectionState ==
                                                           ConnectionState

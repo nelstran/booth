@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Pages/institutions_page.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/profile_extension.dart';
+import 'package:Booth/App_Pages/institutions_page.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/profile_extension.dart';
 
 class CreateProfilePage extends StatefulWidget {
   final BoothController controller;
-  const CreateProfilePage(
-    this.controller,
-    {super.key}
-  );
+  const CreateProfilePage(this.controller, {super.key});
 
   @override
   State<CreateProfilePage> createState() => _CreateProfilePageState();
@@ -43,19 +40,19 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: widget.controller.getUserProfile(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          if (snapshot.data is Map<dynamic, dynamic> && snapshot.data!.length > 1) {
-            return createUI(snapshot.data);
+        future: widget.controller.getUserProfile(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data is Map<dynamic, dynamic> &&
+                snapshot.data!.length > 1) {
+              return createUI(snapshot.data);
+            } else {
+              return createUI();
+            }
           } else {
-            return createUI();
+            return const Center(child: CircularProgressIndicator());
           }
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      }
-    );
+        });
   }
 
   Scaffold createUI([profile]) {
@@ -68,9 +65,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
     listOfCourses[0] = '${_courses.join(", ")} ';
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text(edit ? 'Edit Profile' : 'Create Profile')
-      ),
+      appBar: AppBar(title: Text(edit ? 'Edit Profile' : 'Create Profile')),
       body: Column(
         children: [
           changeInstitutionUI(),
@@ -108,8 +103,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               decoration: const InputDecoration(labelText: 'Year'),
               items: const [
                 DropdownMenuItem(value: "Freshman", child: Text("Freshman")),
-                DropdownMenuItem(
-                    value: "Sophomore", child: Text("Sophomore")),
+                DropdownMenuItem(value: "Sophomore", child: Text("Sophomore")),
                 DropdownMenuItem(value: "Junior", child: Text("Junior")),
                 DropdownMenuItem(value: "Senior", child: Text("Senior")),
               ],
@@ -121,7 +115,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
             //   decoration: const InputDecoration(labelText: 'Courses'),
             //   onSaved: (value) => _courses = value,
             // ),
-    
+
             // FOR TESTING
             DropdownButtonFormField(
               isExpanded: true,
@@ -152,12 +146,11 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 });
               },
             ),
-    
+
             const SizedBox(height: 8.0),
             TextFormField(
               initialValue: edit ? profile['studyPref'] : null,
-              decoration:
-                  const InputDecoration(labelText: 'Study Preferences'),
+              decoration: const InputDecoration(labelText: 'Study Preferences'),
               onSaved: (value) => _study_pref = value,
             ),
             TextFormField(
@@ -178,77 +171,60 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                     "courses": _courses.asMap(),
                     "studyPref": _study_pref,
                     "availability": _availability
-                };
-                widget.controller.updateUserProfile(values);
-                Navigator.pop(context);
-              }
-            },
-            style: ButtonStyle(
-              backgroundColor:
-                  MaterialStateProperty.resolveWith<Color>((states) {
-                return Colors.blue;
-              }),
-            ),
-            child: const Text('Save'),
-          ),
-          const SizedBox(height: 16.0),
-          if (!edit)
-            Center(
-              child: GestureDetector(
-                onTap: () {
+                  };
+                  widget.controller.updateUserProfile(values);
                   Navigator.pop(context);
-                },
-                child: const Text(
-                  "Skip for now",
+                }
+              },
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.resolveWith<Color>((states) {
+                  return Colors.blue;
+                }),
+              ),
+              child: const Text('Save'),
+            ),
+            const SizedBox(height: 16.0),
+            if (!edit)
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Skip for now",
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   ListTile changeInstitutionUI() {
     return ListTile(
-      title: const Text(
-        "Institution",
-        style: TextStyle(
-          fontSize: 13
-        )),
-      subtitle: Text(
-        widget.controller.studentInstitution,
-        style: const TextStyle(
-          fontSize: 20
-        )
-      ),
+      title: const Text("Institution", style: TextStyle(fontSize: 13)),
+      subtitle: Text(widget.controller.studentInstitution,
+          style: const TextStyle(fontSize: 20)),
       trailing: const SizedBox(
         width: 80,
         height: double.infinity,
         child: Row(
-          // mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              "Change",
-              style: TextStyle(
-                fontSize: 13
-              )),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16)
-          ]
-        ),
+            // mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Change", style: TextStyle(fontSize: 13)),
+              Icon(Icons.arrow_forward_ios_rounded, size: 16)
+            ]),
       ),
       contentPadding: const EdgeInsets.only(left: 16, right: 8),
       tileColor: Colors.grey.shade900,
       onTap: () async {
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => InstitutionsPage(widget.controller, 'Profile')
-          )
-        );
-        setState((){});
+        await Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) =>
+                InstitutionsPage(widget.controller, 'Profile')));
+        setState(() {});
       },
     );
   }

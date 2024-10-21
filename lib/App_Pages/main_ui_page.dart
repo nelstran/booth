@@ -3,28 +3,24 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Pages/admin_page.dart';
-import 'package:flutter_application_1/App_Pages/create_profile_page.dart';
-import 'package:flutter_application_1/App_Pages/create_session_page.dart';
-import 'package:flutter_application_1/App_Pages/display_profile_page.dart';
-import 'package:flutter_application_1/App_Pages/institutions_page.dart';
-import 'package:flutter_application_1/App_Pages/map_page.dart';
-import 'package:flutter_application_1/App_Pages/session_page.dart';
-import 'package:flutter_application_1/App_Pages/settings_page.dart';
-import 'package:flutter_application_1/App_Pages/usage_page.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/sample_extension.dart';
+import 'package:Booth/App_Pages/admin_page.dart';
+import 'package:Booth/App_Pages/create_profile_page.dart';
+import 'package:Booth/App_Pages/create_session_page.dart';
+import 'package:Booth/App_Pages/display_profile_page.dart';
+import 'package:Booth/App_Pages/institutions_page.dart';
+import 'package:Booth/App_Pages/map_page.dart';
+import 'package:Booth/App_Pages/session_page.dart';
+import 'package:Booth/App_Pages/settings_page.dart';
+import 'package:Booth/App_Pages/usage_page.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/sample_extension.dart';
 
 /// This is the home page - defaults to the session page
 class MainUIPage extends StatefulWidget {
   final User? user;
   final bool isLoggingIn;
 
-  const MainUIPage(
-    this.user, 
-    this.isLoggingIn,
-    {super.key}
-  );
+  const MainUIPage(this.user, this.isLoggingIn, {super.key});
 
   @override
   State<MainUIPage> createState() => _MainUIPageState();
@@ -45,35 +41,32 @@ class _MainUIPageState extends State<MainUIPage> {
   Widget build(BuildContext context) {
     // Get user profile before loading everything
     return FutureBuilder(
-      future: appSetup(widget.user),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return createUI();
-        }
-        else if (snapshot.hasError){
-          return errorDialog();
-        } else {
-          return const Center(child: CircularProgressIndicator());
-          // return const SizedBox.shrink();
-        }
-      }
-    );
+        future: appSetup(widget.user),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return createUI();
+          } else if (snapshot.hasError) {
+            return errorDialog();
+          } else {
+            return const Center(child: CircularProgressIndicator());
+            // return const SizedBox.shrink();
+          }
+        });
   }
 
   Future<String> appSetup(user) async {
     String data = await controller.fetchAccountInfo(user);
     String institution = controller.studentInstitution;
     // Make sure users are assigned an institution
-    if (institution == "" && mounted){
+    if (institution == "" && mounted) {
       await Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => InstitutionsPage(controller, widget.isLoggingIn ? "Login" : "Register")
-        ),
-        (route) => false
-      );
+          MaterialPageRoute(
+              builder: (context) => InstitutionsPage(
+                  controller, widget.isLoggingIn ? "Login" : "Register")),
+          (route) => false);
     }
     Map sessions = await controller.getInstitute(institution);
-    if (sessions.isEmpty){
+    if (sessions.isEmpty) {
       // Create dummy data
       var numOfSessions = Random().nextInt(9) + 6;
       controller.createNSampleSessions(numOfSessions);
@@ -236,11 +229,9 @@ class _MainUIPageState extends State<MainUIPage> {
         IconButton(
           icon: const Icon(Icons.edit),
           onPressed: () async {
-            Navigator.of(context).push(
-              MaterialPageRoute(
+            Navigator.of(context).push(MaterialPageRoute(
                 settings: const RouteSettings(name: '/Profile'),
-                builder: (context) => CreateProfilePage(controller))
-            );
+                builder: (context) => CreateProfilePage(controller)));
             // await Navigator.pushNamed(
             //   context,
             //   '/create_profile',

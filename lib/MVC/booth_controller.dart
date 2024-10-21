@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/Database/SessionDatabase.dart';
-import 'package:flutter_application_1/Database/firestore_database.dart';
-import 'package:flutter_application_1/MVC/friend_extension.dart';
-import 'package:flutter_application_1/MVC/session_extension.dart';
-import 'package:flutter_application_1/MVC/student_model.dart';
+import 'package:Booth/Database/SessionDatabase.dart';
+import 'package:Booth/Database/firestore_database.dart';
+import 'package:Booth/MVC/friend_extension.dart';
+import 'package:Booth/MVC/session_extension.dart';
+import 'package:Booth/MVC/student_model.dart';
 import 'package:logger/web.dart';
 
 /// Controller will act as a bridge from front end to back end.
@@ -18,8 +18,9 @@ class BoothController {
   Student student;
   String _studentInstitution = "";
   String get studentInstitution => _studentInstitution;
-  
-  DatabaseReference get sessionRef => ref.child("institutions/$studentInstitution/sessions");
+
+  DatabaseReference get sessionRef =>
+      ref.child("institutions/$studentInstitution/sessions");
   // Constructor
   BoothController(
     this.ref,
@@ -38,7 +39,8 @@ class BoothController {
       }
       var value = event.snapshot.value as Map;
       value['key'] = event.snapshot.key;
-      if (value.containsKey('profile') && (value['profile'] as Map).containsKey('institution')){
+      if (value.containsKey('profile') &&
+          (value['profile'] as Map).containsKey('institution')) {
         setInstitution(value['profile']['institution']);
         db.setInstitution(studentInstitution);
       }
@@ -57,8 +59,8 @@ class BoothController {
       setStudent(key, value);
       return student.fullname;
     } catch (error) {
-      if(error == 'Error fetching user info'){
-        if (FirebaseAuth.instance.currentUser != null){
+      if (error == 'Error fetching user info') {
+        if (FirebaseAuth.instance.currentUser != null) {
           await FirebaseAuth.instance.currentUser!.delete();
         }
       }
@@ -67,7 +69,7 @@ class BoothController {
     }
   }
 
-  void setInstitution(String institution){
+  void setInstitution(String institution) {
     _studentInstitution = institution;
     db.setInstitution(institution);
   }

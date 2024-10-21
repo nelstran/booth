@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1/App_Pages/main_ui_page.dart';
-import 'package:flutter_application_1/User_Authentication/login_or_register.dart';
+import 'package:Booth/App_Pages/main_ui_page.dart';
+import 'package:Booth/User_Authentication/login_or_register.dart';
 
 /// This class authenticates the user, making sure they are an existing user
 class AuthPage extends StatelessWidget {
@@ -22,7 +22,7 @@ class AuthPage extends StatelessWidget {
             return MainUIPage(snapshot.data, showLoginPage);
           }
           // Otherwise, display the login or register page
-          else{
+          else {
             return loginOrRegister;
           }
         },

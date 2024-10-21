@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:Booth/MVC/booth_controller.dart';
 
 class SettingsPage extends StatefulWidget {
   final BoothController controller;
@@ -183,7 +183,8 @@ class SettingsPageState extends State<SettingsPage> {
     return Center(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-        child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
+        child:
+            const Text("Delete Account", style: TextStyle(color: Colors.white)),
         onPressed: () {
           deletionDialog();
         },
@@ -197,7 +198,7 @@ class SettingsPageState extends State<SettingsPage> {
       title: const Text("Settings Page"),
       actions: [
         IconButton(
-          onPressed: (){
+          onPressed: () {
             Navigator.of(context).pop();
             logout();
           },
@@ -235,7 +236,8 @@ This action is permanent and cannot be undone. All your data, settings, and hist
                   await widget.controller.deleteUserAccountFB(context);
                   Navigator.of(context).pop(); // Close dialog
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Account deleted successfully.")),
+                    const SnackBar(
+                        content: Text("Account deleted successfully.")),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(

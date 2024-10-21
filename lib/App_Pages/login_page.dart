@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1/UI_components/textbox.dart';
-import 'package:flutter_application_1/Helper_Functions/helper_methods.dart';
+import 'package:Booth/UI_components/textbox.dart';
+import 'package:Booth/Helper_Functions/helper_methods.dart';
 
 /// This class is for the login page
 class LoginPage extends StatefulWidget {
@@ -22,31 +22,32 @@ class _LoginPageState extends State<LoginPage> {
   bool isPassEmpty = true;
   bool triedToLogin = false;
 
-  // This method logs a user in 
+  // This method logs a user in
   void login() async {
     // // This shows a loading circle
     // showDialog(
-    //   context: context, 
+    //   context: context,
     //   builder: (context) => const Center(
     //     child: CircularProgressIndicator(),
     //   ),
     // );
-    setState((){
+    setState(() {
       triedToLogin = true;
-    }
-    );
-    if(isEmailEmpty || isPassEmpty){
+    });
+    if (isEmailEmpty || isPassEmpty) {
       return;
     }
 
     // Try to sign the user in with the credentials they have typed
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text.trim(), password: passwordController.text);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text);
 
       // Navigate to the session page after successful login
       // Clear all routes and push SessionPage route
-      
-      if(!mounted) return;
+
+      if (!mounted) return;
       // Navigator.of(context).pop;
       Navigator.pushNamedAndRemoveUntil(
         context, '/main_ui_page',
@@ -63,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
       // Navigator.pop(context);
       // Show an error message to the user if error encountered
       String message = e.code;
-      switch(e.code){
+      switch (e.code) {
         case 'invalid-email':
         case 'invalid-credential':
           message = "Email or password is incorrect";
@@ -73,11 +74,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void enableButton(){
-    setState((){
+  void enableButton() {
+    setState(() {
       isEmailEmpty = emailController.text.isEmpty;
       isPassEmpty = passwordController.text.isEmpty;
-      if(!isPassEmpty && !isEmailEmpty){
+      if (!isPassEmpty && !isEmailEmpty) {
         triedToLogin = false;
       }
     });
@@ -93,15 +94,13 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
         child: SingleChildScrollView(
-          reverse:true,
+          reverse: true,
           padding: const EdgeInsets.all(25.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/images/lamp_logo.png',
-                width: 100,
-                height: 100),
+              Image.asset('assets/images/lamp_logo.png',
+                  width: 100, height: 100),
               // Creates a space between the logo and the app name
               const SizedBox(height: 15),
               const Text(
@@ -115,25 +114,18 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: false,
                 controller: emailController,
               ),
-              isEmailEmpty && triedToLogin ? 
-                const Padding(
-                  padding: EdgeInsets.only(left: 15, top: 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.error,
-                        size: 20,
-                        color: Colors.red),
-                      Text(
-                        "Enter an email",
-                        style:TextStyle(
-                          color: Colors.red
-                        ))
-                    ]
-                  ),
-                )
-                : const SizedBox.shrink(),
+              isEmailEmpty && triedToLogin
+                  ? const Padding(
+                      padding: EdgeInsets.only(left: 15, top: 5),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(Icons.error, size: 20, color: Colors.red),
+                            Text("Enter an email",
+                                style: TextStyle(color: Colors.red))
+                          ]),
+                    )
+                  : const SizedBox.shrink(),
               const SizedBox(height: 12),
 
               // Password textfield
@@ -148,24 +140,16 @@ class _LoginPageState extends State<LoginPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  isPassEmpty && triedToLogin ? 
-                  const Padding(
-                    padding: EdgeInsets.only(left: 15),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.error,
-                          size: 20,
-                          color: Colors.red),
-                        Text(
-                          "Enter a password",
-                          style:TextStyle(
-                            color: Colors.red
-                          ))
-                      ]
-                    ),
-                  )
-                  : const SizedBox.shrink(),
+                  isPassEmpty && triedToLogin
+                      ? const Padding(
+                          padding: EdgeInsets.only(left: 15),
+                          child: Row(children: [
+                            Icon(Icons.error, size: 20, color: Colors.red),
+                            Text("Enter a password",
+                                style: TextStyle(color: Colors.red))
+                          ]),
+                        )
+                      : const SizedBox.shrink(),
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -186,15 +170,12 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(75),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)
-                    ),
-                    backgroundColor: 
-                    isEmailEmpty || isPassEmpty ? 
-                    Colors.grey[800]
-                    : const Color.fromARGB(255, 28, 125, 204)
-                  ),
+                      minimumSize: const Size.fromHeight(75),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      backgroundColor: isEmailEmpty || isPassEmpty
+                          ? Colors.grey[800]
+                          : const Color.fromARGB(255, 28, 125, 204)),
                   onPressed: login,
                   child: const Text("Login"),
                 ),
@@ -202,21 +183,20 @@ class _LoginPageState extends State<LoginPage> {
 
               const SizedBox(height: 25),
 
-              // Register here 
+              // Register here
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Don't have an account? ",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary
-                    ),
+                        color: Theme.of(context).colorScheme.inversePrimary),
                   ),
-                  // 
+                  //
                   GestureDetector(
                     onTap: widget.onTap,
                     child: const Text(
-                      "Register Here", 
+                      "Register Here",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),

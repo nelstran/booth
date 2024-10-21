@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
+import 'package:Booth/MVC/booth_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapPage extends StatefulWidget {
@@ -20,7 +20,7 @@ class MapPage extends StatefulWidget {
   State<MapPage> createState() => MapPageState();
 }
 
-class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
+class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final Completer<GoogleMapController> _controller =
@@ -32,7 +32,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
 
   static const CameraPosition currentLocation = CameraPosition(
     target: LatLng(40.763444, -111.844182),
-    zoom: 8,
+    zoom: 15,
   );
 
   @override
@@ -89,5 +89,4 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin{
       ),
     );
   }
-  
 }

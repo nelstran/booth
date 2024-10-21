@@ -1,8 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/User_Authentication/auth.dart';
-import 'package:flutter_application_1/firebase_options.dart';
-import 'package:flutter_application_1/App_Theme/dark_mode.dart';
+import 'package:Booth/User_Authentication/auth.dart';
+import 'package:Booth/firebase_options.dart';
+import 'package:Booth/App_Theme/dark_mode.dart';
 
 /// The main page where the app initializes
 void main() async {

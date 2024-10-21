@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/session_model.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/session_model.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/web.dart';
 

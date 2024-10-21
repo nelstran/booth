@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/App_Pages/display_user_page.dart';
-import 'package:flutter_application_1/MVC/booth_controller.dart';
-import 'package:flutter_application_1/MVC/friend_extension.dart';
+import 'package:Booth/App_Pages/display_user_page.dart';
+import 'package:Booth/MVC/booth_controller.dart';
+import 'package:Booth/MVC/friend_extension.dart';
 
 class RequestsPage extends StatelessWidget {
   final BoothController controller;
@@ -11,11 +11,9 @@ class RequestsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Friend Requests')
-      ),
+      appBar: AppBar(title: const Text('Friend Requests')),
       body: FutureBuilder<Map<dynamic, dynamic>>(
-        future: controller.getRequests(false), 
+        future: controller.getRequests(false),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -48,8 +46,8 @@ class RequestsPage extends StatelessWidget {
                       icon: const Icon(Icons.check, color: Colors.green),
                       onPressed: () async {
                         await controller.acceptFriendRequest(requestId);
-                        if(context.mounted){
-                          return Navigator.of(context).pop(); 
+                        if (context.mounted) {
+                          return Navigator.of(context).pop();
                         }
                       },
                     ),
@@ -57,17 +55,18 @@ class RequestsPage extends StatelessWidget {
                       icon: const Icon(Icons.close, color: Colors.red),
                       onPressed: () async {
                         await controller.declineFriendRequest(requestId);
-                        if(context.mounted){
-                          Navigator.of(context).pop(); 
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
                         }
                       },
                     ),
                   ],
                 ),
-                onTap: (){
+                onTap: () {
                   Navigator.of(context).push(
-                            MaterialPageRoute(
-                      builder: (context) => UserDisplayPage(controller, requestId, true),
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          UserDisplayPage(controller, requestId, true),
                     ),
                   );
                 },
