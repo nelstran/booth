@@ -104,9 +104,9 @@ class SessionDatabase {
   }
 
   /// Remove session by key
-  void removeSession(String key) {
+  Future<void> removeSession(String key) async {
     if (key == "") return; // Prevent removing all sessions
-    ref.child('institutions/$institution/sessions/$key').remove();
+    await ref.child('institutions/$institution/sessions/$key').remove();
   }
 
   /// Add user to existing session

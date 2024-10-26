@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/create_session_page.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
@@ -6,7 +5,7 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
-import 'package:http/http.dart' as http;
+import 'package:synchronized/synchronized.dart';
 
 import '../MVC/session_model.dart';
 
@@ -14,6 +13,7 @@ class ExpandedSessionPage extends StatefulWidget {
   final BoothController controller;
   final String sessionKey;
   const ExpandedSessionPage(this.sessionKey, this.controller, {super.key});
+  
 
   @override
   State<ExpandedSessionPage> createState() {
@@ -26,6 +26,8 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   late bool isInThisSession;
   late bool isOwner;
   late Color buttonColor;
+  var lock = Lock();
+
 
   @override
   void initState() {
@@ -259,39 +261,46 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: Text(key == controller.student.ownedSessionKey
-                          ? "Delete"
-                          : buttonText),
-                      onPressed: () async {
-                        // Delete owned session
-                        if (controller.student.ownedSessionKey != "") {
-                          var sessionToDelete =
-                              controller.student.ownedSessionKey;
-                          await controller.removeUserFromSession(
-                              controller.student.session,
-                              controller.student.sessionKey);
-                          controller.removeSession(sessionToDelete);
-                          if (key == controller.student.ownedSessionKey && mounted){
-                            Navigator.of(context).pop();
-                            return;
+                      onPressed: lock.locked ? null : () async {
+                        if (lock.locked){
+                          return;
+                        }
+                        await lock.synchronized(() async {
+                          // Delete owned session
+                          if (controller.student.ownedSessionKey != "") {
+                            var sessionToDelete =
+                                controller.student.ownedSessionKey;
+                            await controller.removeUserFromSession(
+                                controller.student.session,
+                                controller.student.sessionKey);
+                            await controller.removeSession(sessionToDelete);
+                            if (key == sessionToDelete && mounted){
+                              Navigator.of(context).pop();
+                              return;
+                            }
                           }
-                        }
-                        // Kicks user of old session when joining new one
-                        if (isInThisSession) {
-                          controller.removeUserFromSession(
-                              widget.sessionKey, controller.student.sessionKey);
-                        } else {
-                          await controller.addUserToSession(
-                              widget.sessionKey, controller.student);
-                          controller.startSessionLogging(
-                              controller.student.uid, session);
-                        }
-                        setState(() {
-                          isInThisSession =
-                              !isInThisSession; // Janky way to update state UI
-                          updateState();
+                          // Kicks user of old session when joining new one
+                          if (isInThisSession) {
+                            await controller.removeUserFromSession(
+                                widget.sessionKey, controller.student.sessionKey);
+                          } else {
+                            await controller.addUserToSession(
+                                widget.sessionKey, controller.student);
+                            controller.startSessionLogging(
+                                controller.student.uid, session);
+                          }
+                          setState(() {
+                            isInThisSession =
+                                !isInThisSession; // Janky way to update state UI
+                            updateState();
+                          });
                         });
                       },
+                    child: Text(
+                      key == controller.student.ownedSessionKey
+                      ? "Delete"
+                      : buttonText
+                    ),
                     ))),
     );
   }

@@ -84,8 +84,8 @@ extension SessionExtension on BoothController {
   }
 
   /// Given a key, remove the session from the database
-  void removeSession(String key) {
-    db.removeSession(key);
+  Future<void> removeSession(String key) async {
+    await db.removeSession(key);
   }
 
   Future<void> editSession(String key, Map<String, Object?> values) async {
