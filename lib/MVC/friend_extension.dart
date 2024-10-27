@@ -1,6 +1,7 @@
 import 'package:Booth/MVC/booth_controller.dart';
 
 extension FriendExtension on BoothController {
+  /// Get list logged in user's friends
   Future<Map<dynamic, dynamic>> getFriends() async {
     Object? json = await db.getFriends(student.key);
     if (json == null) {
@@ -22,6 +23,7 @@ extension FriendExtension on BoothController {
     return friends;
   }
 
+  /// Get list of keys of user's friends
   Future<Map<dynamic, dynamic>> getFriendsKeys() async {
     Object? json = await db.getFriends(student.key);
     if (json == null) {
@@ -39,10 +41,12 @@ extension FriendExtension on BoothController {
     return friendsKeys;
   }
 
+  /// Remove friend from friends list
   void removeFriend(String key) {
     db.removeFriend(student.key, key);
   }
 
+  /// Get friend requests, [isOutgoing] to specify incoming or outgoing friend requests
   Future<Map<dynamic, dynamic>> getRequests(bool isOutgoing) async {
     Object? json = await db.getRequests(student.key);
     String outgoing = isOutgoing ? "outgoing" : "incoming";
@@ -60,6 +64,7 @@ extension FriendExtension on BoothController {
     return requests;
   }
 
+  /// Method to send a friend request given a user's [key]
   void sendFriendRequest(String key) async {
     Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
@@ -73,20 +78,28 @@ extension FriendExtension on BoothController {
     db.sendFriendRequest(student.key, key);
   }
 
+  /// Method to decline a friend request
   Future<void> declineFriendRequest(String sender, [String? receiver]) async {
     receiver = receiver ?? student.key;
     return db.declineFriendRequest(receiver, sender);
   }
 
+  /// Method to accept a friend request
   Future<void> acceptFriendRequest(String key) async {
-    Map<dynamic, dynamic> requests = await getRequests(true);
+    // Map<dynamic, dynamic> requests = await getRequests(true);
     Map<dynamic, dynamic> friends = await getFriends();
-    if (requests.containsKey(key)) {
-      return; // Do nothing if user already sent a request
+    if(!friends.containsKey(key)){
+      return db.acceptFriendRequest(student.key, key);
     }
-    if (friends.containsKey(key)) {
-      return; // Do nothing if user is already friends
-    }
-    return db.acceptFriendRequest(student.key, key);
+    // if (requests.containsKey(key)) {
+    //   if (friends.containsKey(key)) {
+    //   return; // Do nothing if user is already friends
+    //   }
+    //   return; // Do nothing if user already sent a request
+    // }
+    // if (friends.containsKey(key)) {
+    //   return; // Do nothing if user is already friends
+    // }
+    // return db.acceptFriendRequest(student.key, key);
   }
 }

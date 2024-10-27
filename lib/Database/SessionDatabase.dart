@@ -140,31 +140,30 @@ class SessionDatabase {
   }
 
   //----- FRIEND SYSTEM ---- //
+
+  /// Get list friends by user key
   Future<Object?> getFriends(String key) async {
     if (key == '') return null;
     var event = await ref.child('users/$key/friends').once();
     return event.snapshot.value;
   }
 
+  /// Remove 2 user's from their friends list
   void removeFriend(String studentKey, String friendKey) {
     if (studentKey == '' || friendKey == '') return;
     ref.child('users/$studentKey/friends/$friendKey').remove();
     ref.child('users/$friendKey/friends/$studentKey').remove();
   }
 
+  /// Get list of friend requests
   Future<Object?> getRequests(String key) async {
     if (key == "") return null;
     final newRef = ref.child("users/$key/friends/requests");
     final event = await newRef.once();
     return event.snapshot.value;
-    // if (snapshot.exists){
-    //   return snapshot.value;
-    // }
-    // else{
-    //   return null;
-    // }
   }
 
+  /// Send friend request to user given by their [receiverKey]
   void sendFriendRequest(String senderKey, String receiverKey) async {
     if (senderKey == '' || receiverKey == '') return;
     final senderRef = ref.child('users/$senderKey/friends/requests/outgoing');
@@ -174,6 +173,7 @@ class SessionDatabase {
     await receiverRef.update({senderKey: ""});
   }
 
+  /// Decline a friend request, removing their entry in the requests list
   void declineFriendRequest(String studentKey, String strangerKey) async {
     if (studentKey == '' || strangerKey == '') return;
     await ref
@@ -184,6 +184,7 @@ class SessionDatabase {
         .remove();
   }
 
+  /// Accept a friend request and remove users from the requests list
   void acceptFriendRequest(String studentKey, String friendKey) async {
     if (studentKey == '' || friendKey == '') return;
     final studentRef = ref.child('users/$studentKey/friends/');
@@ -191,10 +192,14 @@ class SessionDatabase {
     studentRef.child('requests/incoming/$friendKey').remove();
     friendRef.child('requests/outgoing/$studentKey').remove();
 
+    studentRef.child('requests/outgoing/$friendKey').remove();
+    friendRef.child('requests/incoming/$studentKey').remove();
+
     await studentRef.update({friendKey: ""});
     await friendRef.update({studentKey: ""});
   }
 
+  /// Given a user's database [key], grab their name
   Future<Object?> getNameByKey(String key) async {
     if (key == "") return null;
     final newRef = ref.child("users/$key/name");
@@ -202,12 +207,15 @@ class SessionDatabase {
     return event.snapshot.value ?? "";
   }
 
+  /// Given an [institute] name, grab their entry from the database
   Future<Object?> getInstitute(String institute) async {
     final newRef = ref.child("institutions/$institute");
     final event = await newRef.once();
     return event.snapshot.value;
   }
 
+  /// Create mock data for presentation purposes
+  /// TODO: Delete in final release
   Future<void> createSampleSession(Map sample) async {
     final newRef = ref.child('institutions/$institution/sessions').push();
     await newRef.set(sample);
