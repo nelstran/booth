@@ -23,6 +23,7 @@ extension SessionExtension on BoothController {
 
     Map studentValues = {
       "name": user.fullname,
+      "key": user.key,
       "uid": user.uid,
     };
 

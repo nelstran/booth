@@ -1,3 +1,4 @@
+import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/create_session_page.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
@@ -26,6 +27,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   late bool isInThisSession;
   late bool isOwner;
   late Color buttonColor;
+  bool showingSnack = false;
   var lock = Lock();
 
 
@@ -159,65 +161,90 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                                 itemCount: memberNames.length,
                                 itemBuilder: (context, index) {
                                   List<String> memberUIDs = [];
+                                  List<String> memberKeys = [];
                                   Map<String, dynamic> usersInFS =
                                       Map<String, dynamic>.from(json['users']);
                                   usersInFS.forEach((key, value) {
                                     memberUIDs.add(value['uid']);
+                                    if ((value as Map).containsKey('key')){
+                                      memberKeys.add(value['key']);
+                                  }
+                                  else{
+                                      memberKeys.add("");
+                                  }
                                   });
-                                  return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 8.0),
-                                      child: Row(
-                                        children: [
-                                          StreamBuilder(
-                                            stream: controller
-                                                .pfpRef(memberUIDs[index])
-                                                .snapshots(),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                      ConnectionState.waiting ||
-                                                  !snapshot.hasData) {
-                                                return ProfilePicture(
-                                                  name: memberNames[index],
-                                                  radius: 15.0,
-                                                  fontsize: 13.0,
-                                                );
-                                              }
-                                              return FutureBuilder(
-                                                future: widget.controller
-                                                    .getProfilePictureByUID(
-                                                        memberUIDs[index]),
-                                                builder: (context, snapshot) {
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .waiting ||
-                                                      snapshot.hasError) {
-                                                    return const CircleAvatar(
-                                                      backgroundColor:
-                                                          Colors.grey,
-                                                      radius: 15.0,
-                                                      child:
-                                                          CircularProgressIndicator(),
-                                                    );
-                                                  }
+                                  return GestureDetector(
+                                    onTap: () {
+                                      if (memberKeys[index].isEmpty){
+                                        displayWarning("Cannot find ${memberNames[index]}'s profile!");
+                                        return;
+                                      }
+                                      if (showingSnack) {
+                                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                      }
+                                      // Navigate to the profile page of the selected friend
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => UserDisplayPage(
+                                              widget.controller, memberKeys[index], false),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8.0),
+                                        child: Row(
+                                          children: [
+                                            StreamBuilder(
+                                              stream: controller
+                                                  .pfpRef(memberUIDs[index])
+                                                  .snapshots(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                        ConnectionState.waiting ||
+                                                    !snapshot.hasData) {
                                                   return ProfilePicture(
                                                     name: memberNames[index],
                                                     radius: 15.0,
                                                     fontsize: 13.0,
-                                                    img: snapshot.data,
                                                   );
-                                                },
-                                              );
-                                            },
-                                          ),
-                                          const SizedBox(width: 8.0),
-                                          Text(
-                                            memberNames[index],
-                                            style:
-                                                const TextStyle(fontSize: 16.0),
-                                          ),
-                                        ],
-                                      ));
+                                                }
+                                                return FutureBuilder(
+                                                  future: widget.controller
+                                                      .getProfilePictureByUID(
+                                                          memberUIDs[index]),
+                                                  builder: (context, snapshot) {
+                                                    if (snapshot.connectionState ==
+                                                            ConnectionState
+                                                                .waiting ||
+                                                        snapshot.hasError) {
+                                                      return const CircleAvatar(
+                                                        backgroundColor:
+                                                            Colors.grey,
+                                                        radius: 15.0,
+                                                        child:
+                                                            CircularProgressIndicator(),
+                                                      );
+                                                    }
+                                                    return ProfilePicture(
+                                                      name: memberNames[index],
+                                                      radius: 15.0,
+                                                      fontsize: 13.0,
+                                                      img: snapshot.data,
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                            const SizedBox(width: 8.0),
+                                            Text(
+                                              memberNames[index],
+                                              style:
+                                                  const TextStyle(fontSize: 16.0),
+                                            ),
+                                          ],
+                                        )),
+                                  );
                                 },
                               ),
                             ),
@@ -303,5 +330,17 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                     ),
                     ))),
     );
+  }
+  void displayWarning(String text) {
+    if (showingSnack) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    }
+    showingSnack = true;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(text)))
+        .closed
+        .then((reason) {
+      showingSnack = false;
+    });
   }
 }
