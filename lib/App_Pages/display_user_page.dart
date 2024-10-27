@@ -121,10 +121,10 @@ class _UserProfilePage extends State<UserProfilePage> {
         appBar: AppBar(
           title: Text('${data['name'] as String}\'s Profile Page'),
           actions: [
-            // Remove the trailing icon in the app bar if came from request page
-            !widget.fromRequest
-                ? trailingIcons[iconIndex]
-                : const SizedBox.shrink()
+            // Remove the trailing icon in the app bar if came from request page or if viewing self
+            widget.fromRequest || widget.controller.student.key == widget.userKey
+                ? const SizedBox.shrink()
+                : trailingIcons[iconIndex]
           ],
         ),
         body: Padding(

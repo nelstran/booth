@@ -117,7 +117,6 @@ class SearchPage extends SearchDelegate<String> {
                 itemBuilder: (context, index) {
                   var name = filteredSuggestions[index].value;
                   var key = filteredSuggestions[index].key;
-
                   return ListTile(
                     title: Text(name),
                     onTap: () {
