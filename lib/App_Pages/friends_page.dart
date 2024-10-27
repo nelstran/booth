@@ -51,7 +51,7 @@ class _FriendsPage extends State<FriendsPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                RequestsPage(controller: widget.controller),
+                                RequestsPage(widget.controller),
                           ),
                         );
                         setState(() {
