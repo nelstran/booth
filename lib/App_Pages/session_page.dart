@@ -30,7 +30,24 @@ class _SessionPage extends State<SessionPage>
   @override
   bool get wantKeepAlive => true;
   Map filters = {};
+  bool friendsOnly = false;
+  List friendsList = [];
 
+  @override
+  void initState(){
+    super.initState();
+    widget.controller.friendsOnlyNotifier.addListener(setFriendsTab);
+    widget.controller.getFriends().then((data){
+      friendsList = data.keys.toList();
+    });
+  }
+
+  void setFriendsTab(){
+    setState((){
+      friendsOnly = widget.controller.friendsOnlyNotifier.value;
+    });
+  }
+  
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -64,6 +81,7 @@ class _SessionPage extends State<SessionPage>
                   return Center(child: Text('Error: ${snap.error}'));
                 }
                 String institution = widget.controller.studentInstitution;
+                
                 return FirebaseAnimatedList(
                   key: Key(institution),
                   query: widget.controller.sessionRef,
@@ -89,6 +107,22 @@ class _SessionPage extends State<SessionPage>
                     }
 
                     Session session = Session.fromJson(json);
+                    // Control the max number of users to display on the front page
+                    int numOfPFPs = 4;
+                    bool isInSession = widget.controller.student.session == snapshot.key!;
+                    if(friendsOnly && !isInSession){
+                      if (session.ownerKey != ''){
+                        Map ownerEntry = json['users'][session.ownerKey];
+                        if (ownerEntry.containsKey('key')){
+                          if (!friendsList.contains(ownerEntry['key'])){
+                            return const SizedBox.shrink();
+                          }
+                        }
+                        else{
+                          return const SizedBox.shrink();
+                        }
+                      }
+                    }
                     // if (!session.isPublic && await widget.controller.isFriends(session.ownerKey)){
 
                     // }
@@ -123,10 +157,6 @@ class _SessionPage extends State<SessionPage>
                     // } else {
                     //   fullness = sessionColor[0];
                     // }
-
-                    // Control the max number of users to display on the front page
-                    int numOfPFPs = 4;
-                    bool isInSession = widget.controller.student.session == snapshot.key!;
                     return Column(
                       children: [
                         if (isInSession) const Padding(
@@ -206,7 +236,10 @@ class _SessionPage extends State<SessionPage>
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text("${widget.controller.studentInstitution}'s sessions")),
+                                child: !friendsOnly ? 
+                                Text('${widget.controller.studentInstitution} sessions')
+                                : const Text('Friends\' sessions'),
+                              ),
                               const Expanded(child: Divider())
                             ],
                           ),

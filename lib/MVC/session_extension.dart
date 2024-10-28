@@ -50,6 +50,7 @@ extension SessionExtension on BoothController {
     // We just want name and uid instead all of its fields
     Map studentValues = {
       "name": owner.fullname,
+      "key": owner.key,
       "uid": owner.uid,
     };
 

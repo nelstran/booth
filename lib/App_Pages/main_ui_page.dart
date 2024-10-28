@@ -37,6 +37,10 @@ class _MainUIPageState extends State<MainUIPage> {
   late List<Widget> pages = [];
   late List<Widget> destinations = [];
 
+  late List<PopupMenuItem<bool>> sessionOptions = [];
+  late List<Icon> optionIcons = [];
+  bool friendsOnly = false;
+
   @override
   Widget build(BuildContext context) {
     // Get user profile before loading everything
@@ -129,12 +133,55 @@ class _MainUIPageState extends State<MainUIPage> {
       usageNav,
       profileNav,
     ];
+
+    sessionOptions = [
+      const PopupMenuItem(
+        value: true,
+        padding: EdgeInsets.only(left: 8.0),
+        child: SizedBox(
+          width: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Text("Friends"),
+              Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Icon(Icons.people),
+              )
+            ],
+          ),
+        )
+      ),
+      const PopupMenuItem(
+        value: false,
+        padding: EdgeInsets.only(left: 8.0),
+        child: SizedBox(
+          width: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Text("School"),
+              Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Icon(Icons.school),
+              )
+            ],
+          ),
+        )
+      ),
+    ];
+    optionIcons = const [
+      Icon(Icons.people),
+      Icon(Icons.school),
+    ];
   }
 
   void accountSpecificSetup() {
     // Change the appbar depending on what page the user is on
     appBars = [
-      mainAppBar(), // Session
+      sessionAppBar(), // Session
       mainAppBar(), // Map
       mainAppBar(), // Usage
       profileAppBar(), // Profile
@@ -205,6 +252,45 @@ class _MainUIPageState extends State<MainUIPage> {
           destinations: destinations,
         ),
       ),
+    );
+  }
+
+  AppBar sessionAppBar() {    
+    return AppBar(
+      // title: Text("Booth | Welcome ${controller.student.fullname}!"),
+      title: Theme(
+        data: Theme.of(context).copyWith(
+          // splashFactory: NoSplash.splashFactory
+          highlightColor: Colors.transparent,
+          splashColor: Colors.transparent
+        ),
+        child: PopupMenuButton<bool>(
+          onSelected: (bool value) {
+            setState((){
+              controller.setFriendsTab(value);
+            });
+          },
+          color: const Color.fromARGB(255, 32, 32, 32),
+          position: PopupMenuPosition.under,
+          itemBuilder: (context){
+            return sessionOptions;
+          },
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Booth"),
+              Icon(Icons.keyboard_arrow_down)
+            ]
+          ),
+        )
+      ),
+      actions: [
+        // This button is linked to the logout method
+        IconButton(
+          onPressed: logout,
+          icon: const Icon(Icons.logout),
+        ),
+      ],
     );
   }
 
