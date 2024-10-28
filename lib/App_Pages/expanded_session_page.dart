@@ -258,7 +258,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                 ],
               );
             } else {
-              return const CircularProgressIndicator();
+              return const Center(child: CircularProgressIndicator());
             }
           },
         ),
@@ -297,12 +297,14 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                           if (controller.student.ownedSessionKey != "") {
                             var sessionToDelete =
                                 controller.student.ownedSessionKey;
+                            if (key == sessionToDelete){
+                              Navigator.of(context).pop();
+                            }
                             await controller.removeUserFromSession(
                                 controller.student.session,
                                 controller.student.sessionKey);
                             await controller.removeSession(sessionToDelete);
-                            if (key == sessionToDelete && mounted){
-                              Navigator.of(context).pop();
+                            if (key == sessionToDelete){
                               return;
                             }
                           }

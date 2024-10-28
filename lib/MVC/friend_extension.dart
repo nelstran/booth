@@ -102,4 +102,15 @@ extension FriendExtension on BoothController {
     // }
     // return db.acceptFriendRequest(student.key, key);
   }
+
+  Future<bool> isFriends(String userA, [String? userB]) async {
+    userB = userB ?? student.key;
+    Object? json = await db.getFriends(userB);
+    if (json == null){
+      return false;
+    }
+    Map<dynamic, dynamic> friends = json as Map<dynamic, dynamic>;
+    return friends.containsKey(userA);
+
+  }
 }

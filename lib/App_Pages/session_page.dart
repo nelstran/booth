@@ -1,3 +1,5 @@
+import 'package:Booth/App_Pages/admin_page.dart';
+import 'package:Booth/MVC/friend_extension.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:Booth/App_Pages/search_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+import 'package:rainbow_color/rainbow_color.dart';
 import '../MVC/session_model.dart';
 
 class SessionPage extends StatefulWidget {
@@ -31,12 +34,21 @@ class _SessionPage extends State<SessionPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    List<Color> sessionColor = [
-      Colors.red,
-      Colors.orange,
-      Colors.yellow,
-      Colors.green
-    ];
+    // List<Color> sessionColor = [
+    //   Colors.red,
+    //   Colors.orange,
+    //   Colors.yellow,
+    //   Colors.green
+    // ];
+
+    Rainbow sessionColor = Rainbow(
+      spectrum: [
+        Colors.green,
+        Colors.yellow,
+        Colors.orange,
+        Colors.red
+      ]
+    );
 
     return Column(
       children: [
@@ -55,6 +67,15 @@ class _SessionPage extends State<SessionPage>
                 return FirebaseAnimatedList(
                   key: Key(institution),
                   query: widget.controller.sessionRef,
+                  sort:(a, b) {
+                    if (a.key == widget.controller.student.session){
+                      return -1;
+                    }
+                    if (b.key == widget.controller.student.session){
+                      return 1;
+                    }
+                    return 0;
+                  },
                   // Build each item in the list view
                   itemBuilder: (BuildContext context, DataSnapshot snapshot,
                       Animation<double> animation, int index) {
@@ -63,10 +84,14 @@ class _SessionPage extends State<SessionPage>
                         snapshot.value as Map<dynamic, dynamic>;
 
                     // Here to avoid exception while debugging
-                    if (!json.containsKey("users"))
+                    if (!json.containsKey("users")){
                       return const SizedBox.shrink();
+                    }
 
                     Session session = Session.fromJson(json);
+                    // if (!session.isPublic && await widget.controller.isFriends(session.ownerKey)){
+
+                    // }
                     if (isFiltered(session)) {
                       return const SizedBox.shrink();
                     }
@@ -84,71 +109,109 @@ class _SessionPage extends State<SessionPage>
                     // Extract title and description from the session map
                     String title = json['title'] ?? '';
 
-                    int colorIndex =
-                        ((session.seatsTaken / session.seatsAvailable) * 100)
-                            .floor();
+                    // int colorIndex =
+                    //     ((session.seatsTaken / session.seatsAvailable) * 100)
+                    //         .floor();
                     Color fullness;
-                    if (colorIndex <= 33) {
-                      fullness = sessionColor[3];
-                    } else if (colorIndex <= 66) {
-                      fullness = sessionColor[2];
-                    } else if (colorIndex <= 99) {
-                      fullness = sessionColor[1];
-                    } else {
-                      fullness = sessionColor[0];
-                    }
+                    fullness = sessionColor[session.seatsTaken / session.seatsAvailable];
+                    // if (colorIndex <= 33) {
+                    //   fullness = sessionColor[3];
+                    // } else if (colorIndex <= 66) {
+                    //   fullness = sessionColor[2];
+                    // } else if (colorIndex <= 99) {
+                    //   fullness = sessionColor[1];
+                    // } else {
+                    //   fullness = sessionColor[0];
+                    // }
 
                     // Control the max number of users to display on the front page
                     int numOfPFPs = 4;
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Card(
-                        elevation: 2,
-                        child: ClipPath(
-                          clipper: ShapeBorderClipper(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10))),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                border: Border(
-                                    left: BorderSide(
-                              color: fullness,
-                              width: 10,
-                            ))),
-                            child: ListTile(
-                              // Display title and description
-                              title: Text(
-                                title,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                    bool isInSession = widget.controller.student.session == snapshot.key!;
+                    return Column(
+                      children: [
+                        if (isInSession) const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Divider(),
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                // Show list and the people in that session represented by their pfp
-                                children: [
-                                  Text(session.locationDescription),
-                                  const SizedBox(height: 2),
-                                  rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
-                                ],
-                              ),
-                              trailing: Text(
-                                  "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 14)),
-                              onTap: () {
-                                // Expand session
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ExpandedSessionPage(
-                                        snapshot.key!, widget.controller),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text("Your session")),
+                              Expanded(child: Divider())
+                            ],
+                          ),
+                        ) else const SizedBox.shrink(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Card(
+                            elevation: 2,
+                            child: ClipPath(
+                              clipper: ShapeBorderClipper(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)
+                                    )
                                   ),
-                                );
-                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: fullness,
+                                        width: 10,
+                                      )
+                                    )
+                                ),
+                                child: ListTile(
+                                  // Display title and description
+                                  title: Text(
+                                    title,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    // Show list and the people in that session represented by their pfp
+                                    children: [
+                                      Text(session.locationDescription),
+                                      const SizedBox(height: 2),
+                                      rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
+                                    ],
+                                  ),
+                                  trailing: Text(
+                                      "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontSize: 14)),
+                                  onTap: () {
+                                    // Expand session
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ExpandedSessionPage(
+                                            snapshot.key!, widget.controller),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        if (isInSession) Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                child: Divider(),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("${widget.controller.studentInstitution}'s sessions")),
+                              const Expanded(child: Divider())
+                            ],
+                          ),
+                        ) else const SizedBox.shrink()
+                      ],
                     );
                   },
                 );

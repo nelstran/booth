@@ -51,6 +51,7 @@ dependencies:
   geolocator: ^12.0.0
   geocoding: ^3.0.0
   synchronized: ^3.3.0+3
+  rainbow_color: ^2.0.1
 
 dev_dependencies:
   flutter_test:
