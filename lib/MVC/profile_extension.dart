@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
 extension ProfileExtension on BoothController {
-  DatabaseReference get profileRef => ref.child("users/${student.key}/profile");
+  DatabaseReference get profileRef => studentRef.child("profile");
 
   DocumentReference pfpRef([String? userKey]) {
     userKey = userKey ?? student.uid;

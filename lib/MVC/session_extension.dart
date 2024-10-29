@@ -27,12 +27,10 @@ extension SessionExtension on BoothController {
       "uid": user.uid,
     };
 
+    // Update user profile first before adding them to have session UI pin their session at the top
+    await db.updateUser(user.key, {'session': sessionKey});
     String? key = await db.addStudentToSession(sessionKey, studentValues);
-    db.updateUser(user.key, {'session': sessionKey, 'sessionKey': key});
-    // Check to see if user has a session that they own
-    // if (user.session != user.ownedSessionKey) {
-    //   db.removeSession(user.ownedSessionKey);
-    // }
+    db.updateUser(user.key, {'sessionKey': key});
   }
 
   /// Remove the logged in user (student) from the session

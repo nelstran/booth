@@ -21,6 +21,8 @@ class BoothController extends ValueNotifier{
 
   DatabaseReference get sessionRef =>
       ref.child("institutions/$studentInstitution/sessions");
+  DatabaseReference get studentRef => ref.child("users/${student.key}");
+
   // Constructor
   BoothController(
     this.ref,
@@ -31,8 +33,8 @@ class BoothController extends ValueNotifier{
   Future<String> fetchAccountInfo(User user) async {
     try {
       String key = await db.fetchUserKey(user);
-      DatabaseReference studentRef = ref.child("users/$key");
-      final event = await studentRef.once();
+      DatabaseReference entryRef = ref.child("users/$key");
+      final event = await entryRef.once();
       final doc = await firestoreDb.getUserData(user.uid);
       if (doc == null) {
         firestoreDb.addUserData(user.uid);
@@ -45,7 +47,7 @@ class BoothController extends ValueNotifier{
         db.setInstitution(studentInstitution);
       }
       // Modify student on change
-      studentRef.onValue.listen((event) {
+      entryRef.onValue.listen((event) {
         // In an event the user deletes their account
         if (!event.snapshot.exists) {
           return;

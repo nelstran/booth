@@ -168,7 +168,7 @@ class _SessionPage extends State<SessionPage>
                               ),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text("Your session")),
+                                child: Text("My session")),
                               Expanded(child: Divider())
                             ],
                           ),
