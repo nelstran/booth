@@ -31,15 +31,11 @@ class _SessionPage extends State<SessionPage>
   bool get wantKeepAlive => true;
   Map filters = {};
   bool friendsOnly = false;
-  List friendsList = [];
 
   @override
   void initState(){
     super.initState();
     widget.controller.friendsOnlyNotifier.addListener(setFriendsTab);
-    widget.controller.getFriends().then((data){
-      friendsList = data.keys.toList();
-    });
   }
 
   void setFriendsTab(){
@@ -73,182 +69,186 @@ class _SessionPage extends State<SessionPage>
         Expanded(
           // Update list of sessions when user changes schools
           child: StreamBuilder(
-              stream: widget.controller.profileRef.child("institution").onValue,
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snap.hasError) {
-                  return Center(child: Text('Error: ${snap.error}'));
-                }
-                String institution = widget.controller.studentInstitution;
-                
-                return FirebaseAnimatedList(
-                  key: Key(institution),
-                  query: widget.controller.sessionRef,
-                  sort:(a, b) {
-                    if (a.key == widget.controller.student.session){
-                      return -1;
-                    }
-                    if (b.key == widget.controller.student.session){
-                      return 1;
-                    }
-                    return 0;
-                  },
-                  // Build each item in the list view
-                  itemBuilder: (BuildContext context, DataSnapshot snapshot,
-                      Animation<double> animation, int index) {
-                    // Convert the snapshot to a Map
-                    Map<dynamic, dynamic> json =
-                        snapshot.value as Map<dynamic, dynamic>;
+            stream: widget.controller.studentRef.child("friends").onValue,
+            builder: (c, s){
+              if (s.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (s.hasError) {
+                return Center(child: Text('Error: ${s.error}'));
+              }
+              // Get list of friends when it updates
+              Map? friendsEntry = s.data!.snapshot.value as Map<dynamic, dynamic>;
+              // Remove the requests
+              friendsEntry.remove("requests");
 
-                    // Here to avoid exception while debugging
-                    if (!json.containsKey("users")){
-                      return const SizedBox.shrink();
-                    }
-
-                    Session session = Session.fromJson(json);
-                    // Control the max number of users to display on the front page
-                    int numOfPFPs = 4;
-                    bool isInSession = widget.controller.student.session == snapshot.key!;
-                    if(friendsOnly && !isInSession){
-                      if (session.ownerKey != ''){
-                        Map ownerEntry = json['users'][session.ownerKey];
-                        if (ownerEntry.containsKey('key')){
-                          if (!friendsList.contains(ownerEntry['key'])){
-                            return const SizedBox.shrink();
-                          }
-                        }
-                        else{
-                          return const SizedBox.shrink();
-                        }
+              List friendsList = friendsEntry.keys.toList();
+              
+              return StreamBuilder(
+                stream: widget.controller.profileRef.child("institution").onValue,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snap.hasError) {
+                    return Center(child: Text('Error: ${snap.error}'));
+                  }
+                  String institution = widget.controller.studentInstitution;
+                  
+                  return FirebaseAnimatedList(
+                    key: Key(institution),
+                    query: widget.controller.sessionRef,
+                    sort:(a, b) {
+                      if (a.key == widget.controller.student.session){
+                        return -1;
                       }
-                    }
-                    // if (!session.isPublic && await widget.controller.isFriends(session.ownerKey)){
+                      if (b.key == widget.controller.student.session){
+                        return 1;
+                      }
+                      return 0;
+                    },
+                    // Build each item in the list view
+                    itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                        Animation<double> animation, int index) {
+                      // Convert the snapshot to a Map
+                      Map<dynamic, dynamic> json =
+                          snapshot.value as Map<dynamic, dynamic>;
+            
+                      // Here to avoid exception while debugging
+                      if (!json.containsKey("users")){
+                        return const SizedBox.shrink();
+                      }
+            
+                      Session session = Session.fromJson(json);
+                      // Control the max number of users to display on the front page
+                      int numOfPFPs = 4;
+                      bool isInSession = widget.controller.student.session == snapshot.key!;
 
-                    // }
-                    if (isFiltered(session)) {
-                      return const SizedBox.shrink();
-                    }
-
-                    List<String> memberNames = [];
-                    List<String> memberUIDs = [];
-
-                    Map<String, dynamic> usersInFS =
-                        Map<String, dynamic>.from(json['users']);
-                    usersInFS.forEach((key, value) {
-                      memberNames.add(value['name']);
-                      memberUIDs.add(value['uid']);
-                    });
-
-                    // Extract title and description from the session map
-                    String title = json['title'] ?? '';
-
-                    // int colorIndex =
-                    //     ((session.seatsTaken / session.seatsAvailable) * 100)
-                    //         .floor();
-                    Color fullness;
-                    fullness = sessionColor[session.seatsTaken / session.seatsAvailable];
-                    // if (colorIndex <= 33) {
-                    //   fullness = sessionColor[3];
-                    // } else if (colorIndex <= 66) {
-                    //   fullness = sessionColor[2];
-                    // } else if (colorIndex <= 99) {
-                    //   fullness = sessionColor[1];
-                    // } else {
-                    //   fullness = sessionColor[0];
-                    // }
-                    return Column(
-                      children: [
-                        if (isInSession) const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Divider(),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text("My session")),
-                              Expanded(child: Divider())
-                            ],
-                          ),
-                        ) else const SizedBox.shrink(),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Card(
-                            elevation: 2,
-                            child: ClipPath(
-                              clipper: ShapeBorderClipper(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)
-                                    )
-                                  ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    border: Border(
-                                      left: BorderSide(
-                                        color: fullness,
-                                        width: 10,
-                                      )
-                                    )
+                      // Always show the session the user is in, otherwise check if session should be visible to user
+                      if (!isInSession && (isFiltered(session) || isNotViewable(json, friendsList))) {
+                        return const SizedBox.shrink();
+                      }
+            
+                      List<String> memberNames = [];
+                      List<String> memberUIDs = [];
+            
+                      Map<String, dynamic> usersInFS =
+                          Map<String, dynamic>.from(json['users']);
+                      usersInFS.forEach((key, value) {
+                        memberNames.add(value['name']);
+                        memberUIDs.add(value['uid']);
+                      });
+            
+                      // Extract title and description from the session map
+                      String title = json['title'] ?? '';
+            
+                      // int colorIndex =
+                      //     ((session.seatsTaken / session.seatsAvailable) * 100)
+                      //         .floor();
+                      Color fullness;
+                      fullness = sessionColor[session.seatsTaken / session.seatsAvailable];
+                      // if (colorIndex <= 33) {
+                      //   fullness = sessionColor[3];
+                      // } else if (colorIndex <= 66) {
+                      //   fullness = sessionColor[2];
+                      // } else if (colorIndex <= 99) {
+                      //   fullness = sessionColor[1];
+                      // } else {
+                      //   fullness = sessionColor[0];
+                      // }
+                      return Column(
+                        children: [
+                          if (isInSession) const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(),
                                 ),
-                                child: ListTile(
-                                  // Display title and description
-                                  title: Text(
-                                    title,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Text("My session")),
+                                Expanded(child: Divider())
+                              ],
+                            ),
+                          ) else const SizedBox.shrink(),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Card(
+                              elevation: 2,
+                              child: ClipPath(
+                                clipper: ShapeBorderClipper(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10)
+                                      )
+                                    ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: fullness,
+                                          width: 10,
+                                        )
+                                      )
                                   ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    // Show list and the people in that session represented by their pfp
-                                    children: [
-                                      Text(session.locationDescription),
-                                      const SizedBox(height: 2),
-                                      rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
-                                    ],
+                                  child: ListTile(
+                                    // Display title and description
+                                    title: Text(
+                                      title,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      // Show list and the people in that session represented by their pfp
+                                      children: [
+                                        Text(session.locationDescription),
+                                        const SizedBox(height: 2),
+                                        rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
+                                      ],
+                                    ),
+                                    trailing: Text(
+                                        "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(fontSize: 14)),
+                                    onTap: () {
+                                      // Expand session
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => ExpandedSessionPage(
+                                              snapshot.key!, widget.controller),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  trailing: Text(
-                                      "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 14)),
-                                  onTap: () {
-                                    // Expand session
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => ExpandedSessionPage(
-                                            snapshot.key!, widget.controller),
-                                      ),
-                                    );
-                                  },
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        if (isInSession) Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              const Expanded(
-                                child: Divider(),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: !friendsOnly ? 
-                                Text('${widget.controller.studentInstitution} sessions')
-                                : const Text('Friends\' sessions'),
-                              ),
-                              const Expanded(child: Divider())
-                            ],
-                          ),
-                        ) else const SizedBox.shrink()
-                      ],
-                    );
-                  },
-                );
-              }),
+                          if (isInSession) Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Divider(),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: !friendsOnly ? 
+                                  Text('${widget.controller.studentInstitution} sessions')
+                                  : const Text('Friends\' sessions'),
+                                ),
+                                const Expanded(child: Divider())
+                              ],
+                            ),
+                          ) else const SizedBox.shrink()
+                        ],
+                      );
+                    },
+                  );
+                }
+              );
+            }
+          ),
         ),
       ],
     );
@@ -452,6 +452,27 @@ class _SessionPage extends State<SessionPage>
       if (session.subject.toUpperCase() !=
           (filters['classFilter'] as String).toUpperCase()) {
         return true;
+      }
+    }
+    return false;
+  }
+  
+  /// Method to determine if the given session should be visible,
+  /// only show private sessions to friends
+  bool isNotViewable(Map<dynamic, dynamic> json, List friendsList) {
+    Session session = Session.fromJson(json);
+    if(friendsOnly || !session.isPublic){
+      // The ownerkey does not update fast enough and will cause an exception
+      if (session.ownerKey != ''){
+        Map ownerEntry = json['users'][session.ownerKey];
+        if (ownerEntry.containsKey('key')){
+          if (!friendsList.contains(ownerEntry['key'])){
+            return true;
+          }
+        }
+        else{
+          return true;
+        }
       }
     }
     return false;
