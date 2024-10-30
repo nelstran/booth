@@ -69,30 +69,29 @@ class _SessionPage extends State<SessionPage>
         Expanded(
           // Update list of sessions when user changes schools
           child: StreamBuilder(
-            stream: widget.controller.studentRef.child("friends").onValue,
-            builder: (c, s){
-              if (s.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (s.hasError) {
-                return Center(child: Text('Error: ${s.error}'));
-              }
-              // Get list of friends when it updates
-              Map? friendsEntry = s.data!.snapshot.value as Map<dynamic, dynamic>;
-              // Remove the requests
-              friendsEntry.remove("requests");
+            stream: widget.controller.profileRef.child("institution").onValue,
 
-              List friendsList = friendsEntry.keys.toList();
-              
+            builder: (context, snap){
+              if (snap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snap.hasError) {
+                  return Center(child: Text('Error: ${snap.error}'));
+                }
+              String institution = widget.controller.studentInstitution;
               return StreamBuilder(
-                stream: widget.controller.profileRef.child("institution").onValue,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
+                stream: widget.controller.studentRef.child("friends").onValue,
+                builder: (c, s) {
+                  if (s.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
-                  } else if (snap.hasError) {
-                    return Center(child: Text('Error: ${snap.error}'));
+                  } else if (s.hasError) {
+                    return Center(child: Text('Error: ${s.error}'));
                   }
-                  String institution = widget.controller.studentInstitution;
-                  
+                  // Get list of friends when it updates
+                  Map? friendsEntry = s.data!.snapshot.value as Map<dynamic, dynamic>;
+                  // Remove the requests
+                  friendsEntry.remove("requests");
+
+                  List friendsList = friendsEntry.keys.toList();
                   return FirebaseAnimatedList(
                     key: Key(institution),
                     query: widget.controller.sessionRef,
@@ -121,9 +120,10 @@ class _SessionPage extends State<SessionPage>
                       // Control the max number of users to display on the front page
                       int numOfPFPs = 4;
                       bool isInSession = widget.controller.student.session == snapshot.key!;
+                      bool isFriends = isFriendsWithHost(json, friendsList);
 
                       // Always show the session the user is in, otherwise check if session should be visible to user
-                      if (!isInSession && (isFiltered(session) || isNotViewable(json, friendsList))) {
+                      if (!isInSession && (isFiltered(session) || isNotViewable(json, isFriends))) {
                         return const SizedBox.shrink();
                       }
             
@@ -207,9 +207,24 @@ class _SessionPage extends State<SessionPage>
                                       ],
                                     ),
                                     trailing: Text(
-                                        "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(fontSize: 14)),
+                                      "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontSize: 14)
+                                    ),
+                                    // trailing: SizedBox(
+                                    //   height: 50,
+                                    //   child: Column(
+                                    //     crossAxisAlignment: CrossAxisAlignment.center,
+                                    //     mainAxisAlignment: MainAxisAlignment.center,
+                                    //     children: [
+                                    //       if (isFriends) const Icon(Icons.people, color: Colors.green),
+                                    //       Text(
+                                    //           "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                    //           textAlign: TextAlign.center,
+                                    //           style: const TextStyle(fontSize: 14)),
+                                    //     ],
+                                    //   ),
+                                    // ),
                                     onTap: () {
                                       // Expand session
                                       Navigator.of(context).push(
@@ -407,7 +422,7 @@ class _SessionPage extends State<SessionPage>
   }
 
   // Method to manually filter session on user's device since realtime database does not
-  // offer any filtering
+  // offer any filtering5
   bool isFiltered(Session session) {
     // Hide full sessions
     if (filters.containsKey('hideFull') && filters['hideFull']) {
@@ -459,18 +474,19 @@ class _SessionPage extends State<SessionPage>
   
   /// Method to determine if the given session should be visible,
   /// only show private sessions to friends
-  bool isNotViewable(Map<dynamic, dynamic> json, List friendsList) {
-    Session session = Session.fromJson(json);
-    if(friendsOnly || !session.isPublic){
-      // The ownerkey does not update fast enough and will cause an exception
-      if (session.ownerKey != ''){
-        Map ownerEntry = json['users'][session.ownerKey];
-        if (ownerEntry.containsKey('key')){
-          if (!friendsList.contains(ownerEntry['key'])){
-            return true;
-          }
-        }
-        else{
+  bool isNotViewable(Map<dynamic, dynamic> json, bool isFriends) {
+    if(friendsOnly || !json['isPublic']){
+      return !isFriends;
+    }
+    return false;
+  }
+
+  /// Method to check if user is friends with the host
+  bool isFriendsWithHost(Map<dynamic, dynamic> json, List friendsList){
+    if(json['ownerKey'] != ''){
+      Map ownerEntry = json['users'][json['ownerKey']];
+      if (ownerEntry.containsKey('key')){
+        if (friendsList.contains(ownerEntry['key'])){
           return true;
         }
       }
