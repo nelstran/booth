@@ -144,7 +144,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
         final double radius = width / 2;
         canvas.drawCircle(Offset(radius, radius), radius, paint);
         paint.blendMode = BlendMode.srcIn;
-        canvas.drawImage(image, const Offset(0, -10), paint);
+        canvas.drawImage(image, const Offset(0, 0), paint);
 
         final ui.Image circularImage =
             await recorder.endRecording().toImage(width, width);
