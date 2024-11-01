@@ -11,7 +11,7 @@ import 'package:logger/web.dart';
 /// Controller will act as a bridge from front end to back end.
 /// Anything needed to modify the logged in user or sessions should
 /// go through controller.
-class BoothController extends ValueNotifier{
+class BoothController extends ValueNotifier {
   final DatabaseReference ref;
   final FirestoreDatabase firestoreDb = FirestoreDatabase();
   SessionDatabase db;
@@ -27,7 +27,8 @@ class BoothController extends ValueNotifier{
   BoothController(
     this.ref,
   )   : db = SessionDatabase(ref),
-        student = Student(uid: "", firstName: "", lastName: ""), super(null);
+        student = Student(uid: "", firstName: "", lastName: ""),
+        super(null);
 
   /// Get logged in user's account information
   Future<String> fetchAccountInfo(User user) async {
@@ -359,8 +360,15 @@ class BoothController extends ValueNotifier{
   }
 
   ValueNotifier<bool> friendsOnlyNotifier = ValueNotifier<bool>(false);
-  void setFriendsTab(bool value){
+  void setFriendsTab(bool value) {
     friendsOnlyNotifier.value = value;
     notifyListeners();
-  } 
+  }
+
+  //Gets the "uid" from the "FireStore Key"
+  Future<Object?> getUid(
+      String institution, String seshKey, String ownerKey) async {
+    final uid = await db.getUid(institution, seshKey, ownerKey);
+    return uid;
+  }
 }

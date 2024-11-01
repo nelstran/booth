@@ -78,10 +78,10 @@ class SessionDatabase {
     ref.child('users/$key').remove();
   }
 
-  void setInstitution(String institute){
+  void setInstitution(String institute) {
     institution = institute;
   }
-  
+
   /// Add a session and include the user who made it into that session
   Future<Map<String, String?>> addSession(
       Map sessionValues, Map studentValues) async {
@@ -112,7 +112,8 @@ class SessionDatabase {
   /// Add user to existing session
   Future<String?> addStudentToSession(String key, Map student) async {
     // Thinking about getting session by the given key and adding student values to 'users'
-    final newRef = ref.child('institutions/$institution/sessions/$key/users').push();
+    final newRef =
+        ref.child('institutions/$institution/sessions/$key/users').push();
     await newRef.set(student);
     return newRef.key;
   }
@@ -121,7 +122,10 @@ class SessionDatabase {
   void removeStudentFromSession(String sessionKey, String studentKey) {
     if (sessionKey == "" || studentKey == "") return;
 
-    ref.child('institutions/$institution/sessions/$sessionKey/users/$studentKey').remove();
+    ref
+        .child(
+            'institutions/$institution/sessions/$sessionKey/users/$studentKey')
+        .remove();
   }
 
   // Gets all of the users recorded in the database
@@ -214,10 +218,17 @@ class SessionDatabase {
     return event.snapshot.value;
   }
 
-  /// Create mock data for presentation purposes
-  /// TODO: Delete in final release
   Future<void> createSampleSession(Map sample) async {
     final newRef = ref.child('institutions/$institution/sessions').push();
     await newRef.set(sample);
+  }
+
+  Future<Object?> getUid(
+      String institution, String seshKey, String ownerKey) async {
+    // Adjust the path to point exactly to the uid location
+    final newRef = await ref
+        .child("institutions/$institution/sessions/$seshKey/users/$ownerKey");
+    final event = await newRef.once();
+    return event.snapshot.value;
   }
 }
