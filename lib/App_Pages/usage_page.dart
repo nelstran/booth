@@ -199,7 +199,9 @@ class UsagePage extends StatelessWidget {
 
   // Gets the most visited study location of the week
   Future<String> getFreqLocation() async {
-    String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
+    // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
+    String userKey = controller.student.uid;
+
     List<String> locations = [];
     String mostFreqLoc = "";
 
@@ -208,8 +210,8 @@ class UsagePage extends StatelessWidget {
         .collection("users")
         .doc(userKey)
         .collection('session_logs')
-        //.where('week_of_year', isEqualTo: getCurrentWeek())
-        .where('week_of_year', isEqualTo: 39)
+        .where('week_of_year', isEqualTo: getCurrentWeek())
+        // .where('week_of_year', isEqualTo: 39)
         .get()
         .then(
       (querySnapshot) {
@@ -244,7 +246,8 @@ class UsagePage extends StatelessWidget {
 
 // Gets the total hours spent in booth sessions per day
   Future<Map<String, Duration>> getWeeklyHours() async {
-    String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
+    // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
+    String userKey = controller.student.uid;
 
     Map<String, Duration> weeklyHours = {
       "Sunday": Duration(hours: 0, minutes: 0, seconds: 0),
@@ -261,12 +264,15 @@ class UsagePage extends StatelessWidget {
         .collection("users")
         .doc(userKey)
         .collection('session_logs')
-        //.where('week_of_year', isEqualTo: getCurrentWeek())
-        .where('week_of_year', isEqualTo: 39)
+        .where('week_of_year', isEqualTo: getCurrentWeek())
+        // .where('week_of_year', isEqualTo: 39)
         .get()
         .then(
       (querySnapshot) {
         for (var docSnapshot in querySnapshot.docs) {
+          if (docSnapshot.id == "curr_session"){
+            continue;
+          }
           DateTime sessionStart = new DateFormat("yyyy-MM-dd hh:mm:ss")
               .parse(docSnapshot.data()["start_timestamp"]);
           DateTime sessionEnd = new DateFormat("yyyy-MM-dd hh:mm:ss")

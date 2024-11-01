@@ -286,6 +286,38 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                onTap: (){
+                  // Try to format time, if it is formatted wrong do current time
+                  try{
+                    String time = _timeController.text;
+                    // Split "H:MM AA - H:MM AA"
+                    List<String> times = time.split(" - ");
+
+                    // Get hours and times
+                    List<String> start = times[0].split(":");
+                    String startAMPM = start[1].split(" ")[1];
+                    List<String> end = times[1].split(":");
+                    String endAMPM = end[1].split(" ")[1];
+
+                    TimeOfDay startTime = TimeOfDay(
+                      // Super confusing but if its PM add 12 hours since TimeOfDay works on 24 hr time cycle
+                      hour: int.parse(start[0]) + (startAMPM == "PM" ? 12 : 0),
+                      minute: int.parse(start[1].substring(0, 2)) 
+                      
+                    );
+
+                    TimeOfDay endTime = TimeOfDay(
+                      hour: int.parse(end[0]) + (endAMPM == "PM" ? 12 : 0),
+                      minute: int.parse(end[1].substring(0, 2))
+                    );
+                    // Open up time picker with the given time
+                    selectTimeRange(startTime: startTime, endTime: endTime);
+                  }
+                  catch (e){
+                    selectTimeRange();
+                  }
+                  },
+                readOnly: true,
                 controller: _timeController,
                 decoration: const InputDecoration(labelText: 'Time'),
                 validator: (value) {
@@ -335,7 +367,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
                 ],
                 maxLength: 5,
-                decoration: const InputDecoration(labelText: 'Class'),
+                decoration: const InputDecoration(labelText: 'Class Abbreviation'),
                 onChanged: (value) {
                   _classController.text = value.toUpperCase();
                 },
@@ -405,5 +437,52 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         ),
       ),
     );
+  }
+
+  /// Custom time picker to have the same color scheme as the Booth App
+  Future<TimeOfDay?> customTimePicker({required TimeOfDay time, required String helpText, required String confirmText}) async {
+    return await showTimePicker(
+      helpText: helpText,
+      confirmText: confirmText,
+      context: context, 
+      initialTime: time,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Color.fromARGB(255, 19, 119, 201),
+              secondary: Color.fromARGB(255, 19, 119, 201)
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+  }
+
+  /// Method to set up the start and end time of a session, if [startTime] and [endTime] are empty, use current time
+  void selectTimeRange({TimeOfDay? startTime, TimeOfDay? endTime}) {
+    var localizations = MaterialLocalizations.of(context);
+    startTime = startTime ?? TimeOfDay.now();
+    endTime = endTime ?? TimeOfDay.now();
+    customTimePicker(
+      time: startTime,
+      helpText: "Select your start time",
+      confirmText: "Set start"
+    ).then((startValue){
+      if(startValue == null){
+        return;
+      }
+      customTimePicker(
+      time: endTime!,
+      helpText: "Select your end time",
+      confirmText: "Set end"
+      ).then((endValue){
+        if(endValue == null){
+          return;
+        }
+        _timeController.text = "${localizations.formatTimeOfDay(startValue)} - ${localizations.formatTimeOfDay(endValue)}";
+      });
+    });
   }
 }

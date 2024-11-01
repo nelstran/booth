@@ -1,4 +1,5 @@
 import 'package:Booth/App_Pages/admin_page.dart';
+import 'package:Booth/Helper_Functions/filter_sessions.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
@@ -70,7 +71,6 @@ class _SessionPage extends State<SessionPage>
           // Update list of sessions when user changes schools
           child: StreamBuilder(
             stream: widget.controller.profileRef.child("institution").onValue,
-
             builder: (context, snap){
               if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -123,7 +123,7 @@ class _SessionPage extends State<SessionPage>
                       bool isFriends = isFriendsWithHost(json, friendsList);
 
                       // Always show the session the user is in, otherwise check if session should be visible to user
-                      if (!isInSession && (isFiltered(session) || isNotViewable(json, isFriends))) {
+                      if (!isInSession && (isFiltered(filters, session) || isNotViewable(json, isFriends))) {
                         return const SizedBox.shrink();
                       }
             
@@ -420,57 +420,6 @@ class _SessionPage extends State<SessionPage>
       ),
     );
   }
-
-  // Method to manually filter session on user's device since realtime database does not
-  // offer any filtering5
-  bool isFiltered(Session session) {
-    // Hide full sessions
-    if (filters.containsKey('hideFull') && filters['hideFull']) {
-      if (session.seatsTaken == session.seatsAvailable) {
-        return true;
-      }
-    }
-
-    // Hide sessions with less than x free seats
-    if (filters.containsKey('currMinSliderValue')) {
-      if (filters['currMinSliderValue'] > 0) {
-        if (session.seatsAvailable - session.seatsTaken <
-            filters['currMinSliderValue']) {
-          return true;
-        }
-      }
-    }
-
-    // Hide sessions with lobbies bigger than x people
-    if (filters.containsKey('currMaxSliderValue')) {
-      if (filters['currMaxSliderValue'] != 25) {
-        if (session.seatsAvailable > filters['currMaxSliderValue']) {
-          return true;
-        }
-      }
-    }
-
-    // Show sessions that have location descriptions that contain a list of words
-    if (filters.containsKey('locationFilters')) {
-      if ((filters['locationFilters'] as List).isNotEmpty) {
-        if (!(filters['locationFilters'] as List).any((location) => session
-            .locationDescription
-            .toLowerCase()
-            .contains((location as String).toLowerCase()))) {
-          return true;
-        }
-      }
-    }
-
-    // Show only sessions that are for a certain class
-    if (filters.containsKey('classFilter')) {
-      if (session.subject.toUpperCase() !=
-          (filters['classFilter'] as String).toUpperCase()) {
-        return true;
-      }
-    }
-    return false;
-  }
   
   /// Method to determine if the given session should be visible,
   /// only show private sessions to friends
@@ -484,11 +433,16 @@ class _SessionPage extends State<SessionPage>
   /// Method to check if user is friends with the host
   bool isFriendsWithHost(Map<dynamic, dynamic> json, List friendsList){
     if(json['ownerKey'] != ''){
-      Map ownerEntry = json['users'][json['ownerKey']];
-      if (ownerEntry.containsKey('key')){
-        if (friendsList.contains(ownerEntry['key'])){
-          return true;
+      try{
+        Map ownerEntry = json['users'][json['ownerKey']];
+        if (ownerEntry.containsKey('key')){
+          if (friendsList.contains(ownerEntry['key'])){
+            return true;
+          }
         }
+      }
+      catch (e){
+        return false;
       }
     }
     return false;
