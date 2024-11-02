@@ -52,7 +52,8 @@ class Session {
     locationDescription = json['locationDescription'] ?? "N/A";
     seatsAvailable = json.containsKey('seatsAvailable') ? json['seatsAvailable'] : 0;
     isPublic = json['isPublic'] ?? "N/A";
-    seatsTaken = (json['users'] as Map).length;
+    // seatsTaken = (json['users'] as Map).length;
+    if (json.containsKey('users')) seatsTaken = (json['users'] as Map).length;
     if (json.containsKey('ownerKey')) ownerKey = json['ownerKey'];
 
     latitude = json['latitude'];

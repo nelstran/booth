@@ -38,77 +38,95 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   LatLng? maxPos;
   LatLng? minPos;
   Map filters = {};
+  StreamSubscription schoolSubscription = const Stream.empty().listen((_){});
+  StreamSubscription sessionSubscription = const Stream.empty().listen((_){});
 
   static const CameraPosition currentLocation = CameraPosition(
     target: LatLng(40.763444, -111.844182),
     zoom: 15,
   );
 
+  @override
+  void initState(){
+    super.initState();
+    _loadSessionsAndAddMarkers();
+  }
   Future<void> _loadSessionsAndAddMarkers() async {
-    Map<dynamic, dynamic> studentJson = await widget.controller.getUserEntry();
-
-    widget.controller.sessionRef.onValue.listen((DatabaseEvent event) {
-      markers.clear();
-      final dataSnapshot = event.snapshot;
-
-      if (dataSnapshot.value == null) {
-        print('No session data available.');
-        return;
-      }
-
-      final Map<dynamic, dynamic>? sessions =
-          dataSnapshot.value as Map<dynamic, dynamic>?;
-      final Map<dynamic, dynamic>? filteredSessions = {};
-
-      if (sessions != null) {
-        sessions.forEach((key, session) async {
-          Session sesh = Session.fromJson(session);
-
-          if (!isFiltered(filters, sesh) &&
-              sesh.latitude != null &&
-              sesh.longitude != null) {
-            final LatLng sessionLocation =
-                LatLng(sesh.latitude!, sesh.longitude!);
-            String sessionKey = key.toString();
-
-            // Load owner profile (if not loaded)
-            Object? result = await widget.controller.getUid(
-              studentJson["profile"]["institution"],
-              sessionKey,
-              sesh.ownerKey,
-            );
-
-            String? ownerKey;
-            if (result is Map) {
-              ownerKey = result['uid'];
-            } else {
-              print("No valid UID found, result: $result");
-            }
-
-            String? ownerPfpPath =
-                await widget.controller.retrieveProfilePicture(ownerKey!);
-
-            BitmapDescriptor customIcon;
-
-            // Load the owner's profile picture
-            if (ownerPfpPath != null) {
-              try {
-                final Uint8List? ownerPfpBytes =
-                    await loadNetworkImage(ownerPfpPath, 35);
-                customIcon = BitmapDescriptor.bytes(ownerPfpBytes!);
-              } catch (e) {
-                print("Error loading profile picture: $e");
-                customIcon = BitmapDescriptor.defaultMarker;
-              }
-            } else {
-              customIcon = BitmapDescriptor
-                  .defaultMarker; // Fallback if no path is found
-            }
-
-            _addMarker(sesh.ownerKey, sessionLocation, sesh.title, customIcon);
-          }
+    await schoolSubscription.cancel();
+    schoolSubscription = widget.controller.profileRef.onValue.listen((e) async {
+      await sessionSubscription.cancel();
+      // Rebuild after changing schools
+      setState(() {
+        markers.clear();
+      });
+      sessionSubscription = widget.controller.sessionRef.onValue.listen((DatabaseEvent event) async {
+        setState(() {
+          markers.clear();
         });
-      }
+
+        final dataSnapshot = event.snapshot;
+
+        if (dataSnapshot.value == null) {
+          print('No session data available.');
+          return;
+        }
+
+        final Map<dynamic, dynamic>? sessions =
+            dataSnapshot.value as Map<dynamic, dynamic>?;
+        final Map<dynamic, dynamic>? filteredSessions = {};
+
+        if (sessions != null) {
+          for (var json in sessions.values){
+          // sessions.forEach((key, json) async {
+            try {
+              Session session = Session.fromJson(json);
+
+              if (!isFiltered(filters, session) &&
+                  session.latitude != null &&
+                  session.longitude != null) {
+                final LatLng sessionLocation =
+                    LatLng(session.latitude!, session.longitude!);
+
+                // // Load owner profile (if not loaded)
+                // Object? result = await widget.controller.getUid(
+                //   studentJson["profile"]["institution"],
+                //   sessionKey,
+                //   session.ownerKey,
+                // );
+
+                String ownerUID = json["users"][session.ownerKey]["uid"];
+
+                String? ownerPfpPath =
+                    await widget.controller.retrieveProfilePicture(ownerUID);
+
+                BitmapDescriptor customIcon;
+
+                // Load the owner's profile picture
+                if (ownerPfpPath != null) {
+                  try {
+                    final Uint8List? ownerPfpBytes =
+                        await loadNetworkImage(ownerPfpPath, 35);
+                    customIcon = BitmapDescriptor.bytes(ownerPfpBytes!);
+                  } catch (e) {
+                    print("Error loading profile picture: $e");
+                    customIcon = BitmapDescriptor.defaultMarker;
+                  }
+                } else {
+                  customIcon = BitmapDescriptor
+                      .defaultMarker; // Fallback if no path is found
+                }
+
+                _addMarker(session.ownerKey, sessionLocation, session.title, customIcon);
+                // Rebuild after adding marker
+                setState((){});
+              }
+            }
+            catch (e) {
+              // Skip if it causes any problems
+            }
+          }
+        }
+      });
     });
   }
 
@@ -170,69 +188,60 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       infoWindow: InfoWindow(title: title),
       icon: pfpIcon,
     );
-
-    setState(() {
-      markers[id] = marker;
-    });
+    markers[id] = marker;
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return StreamBuilder(
-        stream: widget.controller.profileRef.child("institution").onValue,
-        builder: (context, snapshot) {
-          _controller = Completer<GoogleMapController>();
-          _loadSessionsAndAddMarkers();
-          return Stack(
-            children: <Widget>[
-              GoogleMap(
-                mapType: MapType.hybrid,
-                initialCameraPosition: currentLocation,
-                padding: const EdgeInsets.only(bottom: 80),
-                onMapCreated: (GoogleMapController controller) {
-                  _controller.complete(controller);
+    return Stack(
+      children: <Widget>[
+        GoogleMap(
+          mapType: MapType.hybrid,
+          initialCameraPosition: currentLocation,
+          padding: const EdgeInsets.only(bottom: 80),
+          onMapCreated: (GoogleMapController controller) {
+            _controller.complete(controller);
+          },
+          markers: markers.values.toSet(),
+        ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              showModalBottomSheet(
+                showDragHandle: true,
+                isScrollControlled: true,
+                context: context,
+                builder: (context) {
+                  return Wrap(children: [FilterUI(filters)]);
                 },
-                markers: markers.values.toSet(),
-              ),
-              Positioned(
-                top: 16,
-                right: 16,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    showModalBottomSheet(
-                      showDragHandle: true,
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (context) {
-                        return Wrap(children: [FilterUI(filters)]);
-                      },
-                    ).then((value) {
-                      if (value == null) return;
-                      setState(() {
-                        filters.clear();
-                        filters.addAll(value);
-                        markers.clear();
-                        _loadSessionsAndAddMarkers();
-                      });
-                    });
-                  },
-                  child: SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 22, 22, 22),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.filter_list, color: Colors.white),
-                    ),
-                  ),
+              ).then((value) {
+                if (value == null) return;
+                setState((){
+                  filters.clear();
+                  filters.addAll(value);
+                  markers.clear();
+                  _loadSessionsAndAddMarkers();
+                });
+              });
+            },
+            child: SizedBox(
+              height: 40,
+              width: 40,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 22, 22, 22),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: const Icon(Icons.filter_list, color: Colors.white),
               ),
-            ],
-          );
-        });
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

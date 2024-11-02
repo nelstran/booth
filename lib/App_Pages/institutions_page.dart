@@ -328,10 +328,12 @@ class _InstituionsPage extends State<InstitutionsPage> {
       list.add(inst);
     }
 
-    setState(() {
-      listOfInstitutions = list;
-      loading = false;
-    });
+    if(context.mounted){
+      setState(() {
+        listOfInstitutions = list;
+        loading = false;
+      });
+    }
   }
 
   /// Function to get logo of each institution if available
