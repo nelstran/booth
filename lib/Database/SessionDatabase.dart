@@ -46,7 +46,7 @@ class SessionDatabase {
   }
 
   /// Change field values of User's profile
-  void updateProfile(String key, Map<String, Object?> values) async {
+  Future<void> updateProfile(String key, Map<String, Object?> values) async {
     if (key == "") return;
     final newRef = ref.child("users/$key/profile");
     await newRef.update(values);
@@ -119,10 +119,10 @@ class SessionDatabase {
   }
 
   /// Remove current user from existing session
-  void removeStudentFromSession(String sessionKey, String studentKey) {
+  Future<void> removeStudentFromSession(String sessionKey, String studentKey) async {
     if (sessionKey == "" || studentKey == "") return;
 
-    ref
+    await ref
         .child(
             'institutions/$institution/sessions/$sessionKey/users/$studentKey')
         .remove();
@@ -138,7 +138,7 @@ class SessionDatabase {
   /// Get all sessions from the given institution
   Future<Object?> getAllSessions([value]) async {
     value = value ?? institution;
-    final newRef = ref.child("institutions/$institution/sessions");
+    final newRef = ref.child("institutions/$value/sessions");
     final event = await newRef.once();
     return event.snapshot.value;
   }

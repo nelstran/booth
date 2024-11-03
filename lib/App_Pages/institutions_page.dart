@@ -106,7 +106,7 @@ class _InstituionsPage extends State<InstitutionsPage> {
                   border: InputBorder.none,
                 ),
                 // onSubmitted: (value) => _getListOfInstitutions(value)
-                onChanged: (value) => _onSearchChanged(value),
+                onChanged: (value) => _onSearchChanged(value.trim()),
               ),
             ),
           ),
@@ -249,10 +249,10 @@ class _InstituionsPage extends State<InstitutionsPage> {
                       if (student.ownedSessionKey != "") {
                         await widget.controller.removeUserFromSession(
                             student.session, student.sessionKey);
-                        widget.controller
+                        await widget.controller
                             .removeSession(student.ownedSessionKey);
                       }
-                      widget.controller.updateUserProfile(
+                      await widget.controller.updateUserProfile(
                           {"institution": institute['name']});
                       widget.controller.setInstitution(institute['name']);
 

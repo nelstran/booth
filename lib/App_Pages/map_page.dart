@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:Booth/App_Pages/admin_page.dart';
+import 'package:Booth/MVC/session_extension.dart';
 import 'package:http/http.dart' as http;
 import 'package:Booth/MVC/student_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,94 +42,134 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   Map filters = {};
   StreamSubscription schoolSubscription = const Stream.empty().listen((_){});
   StreamSubscription sessionSubscription = const Stream.empty().listen((_){});
+  StreamController<Map<String, Marker>> markerStream = StreamController<Map<String, Marker>>();
 
   static const CameraPosition currentLocation = CameraPosition(
     target: LatLng(40.763444, -111.844182),
     zoom: 15,
   );
 
-  @override
-  void initState(){
-    super.initState();
-    _loadSessionsAndAddMarkers();
+  // Future<void> loadSessionsAndAddMarkers(event) async {
+  //   if (event == null){
+  //     return;
+  //   }
+  //   final dataSnapshot = event.snapshot;
+
+  //   if (dataSnapshot.value == null) {
+  //     print('No session data available.');
+  //     return;
+  //   }
+
+  //   final Map<dynamic, dynamic>? sessions =
+  //       dataSnapshot.value as Map<dynamic, dynamic>?;
+
+  //   if (sessions != null) {
+  //     for (var json in sessions.values){
+  //     // sessions.forEach((key, json) async {
+  //       try {
+  //         Session session = Session.fromJson(json);
+
+  //         if (!isFiltered(filters, session) &&
+  //             session.latitude != null &&
+  //             session.longitude != null) {
+          
+  //               const BitmapDescriptor customIcon = BitmapDescriptor.defaultMarker;
+  //               final LatLng sessionLocation = LatLng(session.latitude!, session.longitude!);
+  //               _addMarker(session.ownerKey, sessionLocation, session.title, customIcon);
+  //               addOwnerPfp(json, session);
+  //         }
+  //       }
+  //       catch (e) {
+  //         // Skip if it causes any problems
+  //       }
+  //     }
+  //     return;
+  //   }
+  //   else{
+  //     return;
+  //   }
+  // }
+
+  /// Method to add marker to the map
+  void _addSession(Object? json){
+    if (json == null){
+      return;
+    }
+
+    try {
+      Session session = Session.fromJson(json as Map);
+
+      if (!isFiltered(filters, session) &&
+          session.latitude != null &&
+          session.longitude != null) {
+            const BitmapDescriptor customIcon = BitmapDescriptor.defaultMarker;
+            final LatLng sessionLocation = LatLng(session.latitude!, session.longitude!);
+            // Add marker first and get profile picture in the background for better responsiveness
+            _addMarker(session.ownerKey, sessionLocation, session.title, customIcon);
+            // Fetch owner profile picture
+            addOwnerPfp(json, session);
+      }
+    }
+    catch (e) {
+      // Skip if it causes any problems
+    }
   }
-  Future<void> _loadSessionsAndAddMarkers() async {
-    await schoolSubscription.cancel();
-    schoolSubscription = widget.controller.profileRef.onValue.listen((e) async {
-      await sessionSubscription.cancel();
-      // Rebuild after changing schools
-      setState(() {
-        markers.clear();
-      });
-      sessionSubscription = widget.controller.sessionRef.onValue.listen((DatabaseEvent event) async {
-        setState(() {
-          markers.clear();
-        });
 
-        final dataSnapshot = event.snapshot;
+  /// Method to set marker to owner profile picture
+  Future<void> addOwnerPfp (dynamic json, Session session) async {
+    try{
+      final LatLng sessionLocation =
+          LatLng(session.latitude!, session.longitude!);
 
-        if (dataSnapshot.value == null) {
-          print('No session data available.');
-          return;
+      // // Load owner profile (if not loaded)
+      // Object? result = await widget.controller.getUid(
+      //   studentJson["profile"]["institution"],
+      //   sessionKey,
+      //   session.ownerKey,
+      // );
+
+      String ownerUID = json["users"][session.ownerKey]["uid"];
+
+      String? ownerPfpPath =
+          await widget.controller.retrieveProfilePicture(ownerUID);
+
+      BitmapDescriptor customIcon;
+
+      // Load the owner's profile picture
+      if (ownerPfpPath != null) {
+        try {
+          final Uint8List? ownerPfpBytes =
+              await loadNetworkImage(ownerPfpPath, 35);
+          customIcon = BitmapDescriptor.bytes(ownerPfpBytes!);
+        } catch (e) {
+          print("Error loading profile picture: $e");
+          customIcon = BitmapDescriptor.defaultMarker;
         }
+      } else {
+        customIcon = BitmapDescriptor
+            .defaultMarker; // Fallback if no path is found
+      }
 
-        final Map<dynamic, dynamic>? sessions =
-            dataSnapshot.value as Map<dynamic, dynamic>?;
-        final Map<dynamic, dynamic>? filteredSessions = {};
+      _addMarker(session.ownerKey, sessionLocation, session.title, customIcon);
+    }
+    catch (e) {
+      // Skip
+    }
+  }
 
-        if (sessions != null) {
-          for (var json in sessions.values){
-          // sessions.forEach((key, json) async {
-            try {
-              Session session = Session.fromJson(json);
+  /// Method to add/modify marker and add to stream to update UI
+  void _addMarker(
+      String id, LatLng location, String title, BitmapDescriptor pfpIcon) {
+    final MarkerId markerId = MarkerId(id);
 
-              if (!isFiltered(filters, session) &&
-                  session.latitude != null &&
-                  session.longitude != null) {
-                final LatLng sessionLocation =
-                    LatLng(session.latitude!, session.longitude!);
-
-                // // Load owner profile (if not loaded)
-                // Object? result = await widget.controller.getUid(
-                //   studentJson["profile"]["institution"],
-                //   sessionKey,
-                //   session.ownerKey,
-                // );
-
-                String ownerUID = json["users"][session.ownerKey]["uid"];
-
-                String? ownerPfpPath =
-                    await widget.controller.retrieveProfilePicture(ownerUID);
-
-                BitmapDescriptor customIcon;
-
-                // Load the owner's profile picture
-                if (ownerPfpPath != null) {
-                  try {
-                    final Uint8List? ownerPfpBytes =
-                        await loadNetworkImage(ownerPfpPath, 35);
-                    customIcon = BitmapDescriptor.bytes(ownerPfpBytes!);
-                  } catch (e) {
-                    print("Error loading profile picture: $e");
-                    customIcon = BitmapDescriptor.defaultMarker;
-                  }
-                } else {
-                  customIcon = BitmapDescriptor
-                      .defaultMarker; // Fallback if no path is found
-                }
-
-                _addMarker(session.ownerKey, sessionLocation, session.title, customIcon);
-                // Rebuild after adding marker
-                setState((){});
-              }
-            }
-            catch (e) {
-              // Skip if it causes any problems
-            }
-          }
-        }
-      });
-    });
+    final Marker marker = Marker(
+      markerId: markerId,
+      position: location,
+      infoWindow: InfoWindow(title: title),
+      icon: pfpIcon,
+    );
+    markers[id] = marker;
+    markerStream.add(markers);
   }
 
   Future<Uint8List> getBytesFromAsset(
@@ -178,32 +220,86 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     return null;
   }
 
-  void _addMarker(
-      String id, LatLng location, String title, BitmapDescriptor pfpIcon) {
-    final MarkerId markerId = MarkerId(id);
-
-    final Marker marker = Marker(
-      markerId: markerId,
-      position: location,
-      infoWindow: InfoWindow(title: title),
-      icon: pfpIcon,
-    );
-    markers[id] = marker;
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // Update map when changing schools
+    return StreamBuilder<DatabaseEvent>(
+      stream: widget.controller.profileRef.onValue,
+      builder: (profCon, profSnap) {
+
+        // Get all existing sessions and add to map
+        if(profSnap.hasData){
+          // Reset map
+          markers.clear();
+          markerStream.add(markers);
+
+          // Get new existing session
+          widget.controller.getSessions((profSnap.data!.snapshot.value as Map)["institution"]).then((sessions){
+            for (var json in sessions.values){
+              _addSession(json);
+            }
+          });
+        }
+
+        // Update map when sessions are added
+        return StreamBuilder<DatabaseEvent>(
+          stream: widget.controller.sessionRef.onChildAdded,
+          builder: (addedCon, addedSnap) {
+            // Add new session to map, we have to wait for ownerKey to be initialized
+            if (addedSnap.hasData){
+              widget.controller.sessionRef.child(addedSnap.data!.snapshot.key!).onValue.listen(
+                (event){
+                  if(!event.snapshot.exists){
+                    return;
+                  }
+                  Map json = event.snapshot.value as Map;
+                  if (json["ownerKey"] != ""){
+                    _addSession(json);
+                  }
+                }
+              );
+            }
+            // Update map when sessions are removed
+            return StreamBuilder<DatabaseEvent>(
+              stream: widget.controller.sessionRef.onChildRemoved,
+              builder: (removedCon, removedSnap) {
+                // Remove marker from deleted sessions
+                if (removedSnap.hasData){
+                  String id = (removedSnap.data!.snapshot.value as Map)["ownerKey"];
+                  markers.remove(id);
+                  markerStream.add(markers);
+                }
+                // Update map when markers are added
+                return StreamBuilder<Map<String, Marker>>(
+                  stream: markerStream.stream,
+                  builder: (context, snapshot) {
+                    Set<Marker> localMarkers = Set.identity();
+                    if (snapshot.hasData){
+                      localMarkers = snapshot.data!.values.toSet();
+                    }
+                    return mapUI(context, localMarkers);
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    );
+  }
+
+  Stack mapUI(BuildContext context, Set<Marker> markers) {
     return Stack(
       children: <Widget>[
         GoogleMap(
           mapType: MapType.hybrid,
           initialCameraPosition: currentLocation,
           padding: const EdgeInsets.only(bottom: 80),
-          onMapCreated: (GoogleMapController controller) {
-            _controller.complete(controller);
-          },
-          markers: markers.values.toSet(),
+          // onMapCreated: (GoogleMapController controller) {
+          //   _controller.complete(controller);
+          // },
+          markers: markers
         ),
         Positioned(
           top: 16,
@@ -224,7 +320,11 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                   filters.clear();
                   filters.addAll(value);
                   markers.clear();
-                  _loadSessionsAndAddMarkers();
+                  widget.controller.getSessions().then((sessions){
+                    for (var json in sessions.values){
+                      _addSession(json);
+                    }
+                  });
                 });
               });
             },

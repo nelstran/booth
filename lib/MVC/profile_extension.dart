@@ -17,8 +17,8 @@ extension ProfileExtension on BoothController {
   }
 
   /// Update the current user's profile
-  void updateUserProfile(Map<String, Object?> value) {
-    db.updateProfile(student.key, value);
+  Future<void> updateUserProfile(Map<String, Object?> value) async {
+    await db.updateProfile(student.key, value);
   }
 
   /// Given a user key, will delete the associated profile picture from Firebase.
