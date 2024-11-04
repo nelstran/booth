@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:Booth/App_Pages/institutions_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/student_model.dart';
 import 'package:Booth/UI_components/textbox.dart';
@@ -158,7 +157,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 10),
               // Email textfield
               TextBox(
-                hintText: "Email",
+                hintText: "School email",
                 obscureText: false,
                 controller: emailController,
               ),

@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/create_profile_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
-import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/sample_extension.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/student_model.dart';
@@ -27,13 +27,19 @@ class InstitutionsPage extends StatefulWidget {
 /// Class to repressent institution selection page,
 /// Not sure how to know the previous page in the route so previousPage is a string argument
 /// [previousPage] can be "Profile", "Login", "Register". If anything else, defaults to "Login"
-class _InstituionsPage extends State<InstitutionsPage> {
+class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateMixin{
   TextEditingController institutionController = TextEditingController();
   List<Map<dynamic, dynamic>> listOfInstitutions = [];
+  Map<dynamic, dynamic> suggestedInstitute = {};
+  bool showSuggested = true;
+  double expireSuggestion = 500;
+  late AnimationController suggestedController;
+
   Timer? _debounce;
   bool loading = false;
   bool searching = false;
   String query = '';
+  String schoolDomain = '';
 
   /// Only start searching after the user has stopped
   /// typing after a certain duration, currently 800ms
@@ -69,8 +75,33 @@ class _InstituionsPage extends State<InstitutionsPage> {
 
   @override
   void dispose() {
+    suggestedController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    suggestedController = AnimationController(
+      vsync: this, 
+      duration: Durations.long2,
+      reverseDuration: Durations.long2
+    );
+    User? user = FirebaseAuth.instance.currentUser;
+    try{
+      if (user != null && widget.previousPage == "Register"){
+      // if (user != null){
+        String email = user.email ?? "";
+        if (email.isNotEmpty){
+          String domain = email.split('@')[1];
+          suggestSchool(domain);
+        }
+      }
+    }
+    catch (e) {
+      // Do nothing
+    }
   }
 
   @override
@@ -81,37 +112,96 @@ class _InstituionsPage extends State<InstitutionsPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(106, 78, 78, 78),
-                borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4.0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: institutionController,
-                decoration: const InputDecoration(
-                  icon: Icon(Icons.search),
-                  hintText: "Search for your institution...",
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                  border: InputBorder.none,
+          Container(
+            decoration: const BoxDecoration(
+              color: Color.fromARGB(255, 22, 22, 22)
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 43, 43, 43),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
-                // onSubmitted: (value) => _getListOfInstitutions(value)
-                onChanged: (value) => _onSearchChanged(value.trim()),
+                child: TextField(
+                  autofocus: true,
+                  controller: institutionController,
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.search),
+                    hintText: "Search for your institution...",
+                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                  // onSubmitted: (value) => _getListOfInstitutions(value)
+                  onChanged: (value) => _onSearchChanged(value.trim()),
+                ),
               ),
             ),
           ),
+          if (suggestedInstitute.isNotEmpty && showSuggested) suggestResult(),
           searchResults()
         ],
+      ),
+    );
+  }
+
+  /// If the app recognizes the email domain, suggest the school it belongs to
+  Dismissible suggestResult(){
+    String website = suggestedInstitute['web_pages'];
+    String logoURL = suggestedInstitute['logo'] ?? '';
+    Image logo = Image.network(
+      logoURL,
+      fit: BoxFit.contain,
+      // If no logo is found, use icon instead
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(
+          Icons.school,
+          size: 50,
+          color: Colors.grey[700],
+        );
+      },
+    );
+
+    suggestedController.forward();
+
+    return Dismissible(
+      key: Key(website),
+      onDismissed: (direction) {
+        setState((){
+          showSuggested = false;
+        });
+      },
+      // Add a slide and fade animation to make it look nice
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(.3, 0),
+          end: Offset.zero
+        ).animate(suggestedController),
+        child: FadeTransition(
+          opacity: suggestedController,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 22, 22, 22),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("Suggested for you"),
+                ),
+                schoolTile(logoURL, logo, suggestedInstitute, website, context),
+                LinearProgressIndicator(
+                  value: expireSuggestion / 500,
+                  color: Colors.grey,
+                )
+              ],
+            )
+          ),
+        ),
       ),
     );
   }
@@ -161,7 +251,7 @@ class _InstituionsPage extends State<InstitutionsPage> {
       child: ListTile(
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(8.0))),
-        tileColor: const Color.fromARGB(55, 78, 78, 78),
+        tileColor: const Color.fromARGB(255, 29, 29, 29),
         visualDensity: const VisualDensity(vertical: 3),
         leading: Container(
           decoration: BoxDecoration(
@@ -252,9 +342,7 @@ class _InstituionsPage extends State<InstitutionsPage> {
                         await widget.controller
                             .removeSession(student.ownedSessionKey);
                       }
-                      await widget.controller.updateUserProfile(
-                          {"institution": institute['name']});
-                      widget.controller.setInstitution(institute['name']);
+                      await widget.controller.setInstitution(institute['name']);
 
                       // TODO: Delete creation of dummy data in final product
                       Map sessions = await widget.controller.getInstitute();
@@ -327,13 +415,11 @@ class _InstituionsPage extends State<InstitutionsPage> {
 
       list.add(inst);
     }
-
-    if(context.mounted){
-      setState(() {
-        listOfInstitutions = list;
-        loading = false;
-      });
-    }
+    if(!mounted) return;
+    setState(() {
+      listOfInstitutions = list;
+      loading = false;
+    });
   }
 
   /// Function to get logo of each institution if available
@@ -418,6 +504,51 @@ class _InstituionsPage extends State<InstitutionsPage> {
               .pushReplacement(// pushReplacement prevents user from going back
                   MaterialPageRoute(builder: (context) => const AuthPage()));
         }
+    }
+  }
+  
+  Future<void> suggestSchool(String domain) async {
+    // Encode the query to be URL-friendly
+    var encoded = Uri.encodeFull(domain);
+
+    var response = await http.get(Uri.parse(
+      'http://universities.hipolabs.com/search?domain=$encoded'));
+
+    // Compile information from json
+    List json = jsonDecode(response.body);
+
+    if (json.isNotEmpty){
+      Map entry = json.first;
+      Map inst = {};
+
+      inst['name'] = entry['name'];
+      inst['web_pages'] = (entry['web_pages'] as List).first;
+
+      String? logoUrl = await _getLogoOfInstitution(entry['name']);
+
+      if (logoUrl != null) {
+        inst['logo'] = logoUrl;
+      }
+      if(!mounted) return;
+      setState(() {  
+        suggestedInstitute = inst;
+      });
+
+      Timer.periodic(const Duration(milliseconds: 10), (expire){
+      if(expireSuggestion <= 0){
+        if(!mounted) return;
+        setState((){
+          showSuggested = false;
+          expire.cancel();
+        });
+      }
+      else{
+        if(!mounted) return;
+        setState((){
+          expireSuggestion -= 1;
+        });
+      }
+    });
     }
   }
 }
