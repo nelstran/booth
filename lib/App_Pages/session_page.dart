@@ -1,6 +1,4 @@
-import 'package:Booth/App_Pages/admin_page.dart';
 import 'package:Booth/Helper_Functions/filter_sessions.dart';
-import 'package:Booth/MVC/friend_extension.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +85,10 @@ class _SessionPage extends State<SessionPage>
                     return Center(child: Text('Error: ${s.error}'));
                   }
                   // Get list of friends when it updates
-                  Map? friendsEntry = s.data!.snapshot.value as Map<dynamic, dynamic>;
+                  Map? friendsEntry = {};
+                  if (s.hasData && s.data!.snapshot.value != null){
+                    friendsEntry = s.data!.snapshot.value as Map;
+                  }
                   // Remove the requests
                   friendsEntry.remove("requests");
 

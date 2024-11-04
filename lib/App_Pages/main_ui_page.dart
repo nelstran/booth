@@ -258,13 +258,15 @@ class _MainUIPageState extends State<MainUIPage> {
   AppBar sessionAppBar() {    
     return AppBar(
       // title: Text("Booth | Welcome ${controller.student.fullname}!"),
-      title: Theme(
-        data: Theme.of(context).copyWith(
-          // splashFactory: NoSplash.splashFactory
-          highlightColor: Colors.transparent,
-          splashColor: Colors.transparent
-        ),
-        child: PopupMenuButton<bool>(
+      title: 
+      // Theme(
+      //   data: Theme.of(context).copyWith(
+      //     // splashFactory: NoSplash.splashFactory
+      //     highlightColor: Colors.transparent,
+      //     splashColor: Colors.transparent
+      //   ),
+      //   child: 
+        PopupMenuButton<bool>(
           onSelected: (bool value) {
             setState((){
               controller.setFriendsTab(value);
@@ -282,7 +284,7 @@ class _MainUIPageState extends State<MainUIPage> {
               Icon(Icons.keyboard_arrow_down)
             ]
           ),
-        )
+        // )
       ),
       actions: [
         // This button is linked to the logout method
