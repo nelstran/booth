@@ -2,10 +2,8 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:Booth/MVC/booth_controller.dart';
-import 'package:Booth/MVC/analytics_extension.dart';
 import 'package:intl/intl.dart';
 
 class UsagePage extends StatelessWidget {
@@ -204,44 +202,48 @@ class UsagePage extends StatelessWidget {
 
     List<String> locations = [];
     String mostFreqLoc = "";
+    try{
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      await firestore
+          .collection("users")
+          .doc(userKey)
+          .collection('session_logs')
+          .where('week_of_year', isEqualTo: getCurrentWeek())
+          // .where('week_of_year', isEqualTo: 39)
+          .get()
+          .then(
+        (querySnapshot) {
+          for (var docSnapshot in querySnapshot.docs) {
+            locations.add(docSnapshot.data()["location_desc"]);
+          }
+        },
+        onError: (e) => print("Error completing: $e"),
+      );
 
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore
-        .collection("users")
-        .doc(userKey)
-        .collection('session_logs')
-        .where('week_of_year', isEqualTo: getCurrentWeek())
-        // .where('week_of_year', isEqualTo: 39)
-        .get()
-        .then(
-      (querySnapshot) {
-        for (var docSnapshot in querySnapshot.docs) {
-          locations.add(docSnapshot.data()["location_desc"]);
+      var map = Map();
+
+      locations.forEach((element) {
+        if (map.containsKey(element)) {
+          map[element] += 1;
+        } else {
+          map[element] = 1;
         }
-      },
-      onError: (e) => print("Error completing: $e"),
-    );
+      });
 
-    var map = Map();
+      List sortedCounts = map.values.toList()..sort();
+      int mostFreqCount = sortedCounts.last;
 
-    locations.forEach((element) {
-      if (map.containsKey(element)) {
-        map[element] += 1;
-      } else {
-        map[element] = 1;
-      }
-    });
+      map.forEach((k, v) {
+        if (v == mostFreqCount) {
+          mostFreqLoc = k;
+        }
+      });
 
-    List sortedCounts = map.values.toList()..sort();
-    int mostFreqCount = sortedCounts.last;
-
-    map.forEach((k, v) {
-      if (v == mostFreqCount) {
-        mostFreqLoc = k;
-      }
-    });
-
-    return mostFreqLoc;
+      return mostFreqLoc;
+    }
+    catch (e) {
+      return "";
+    }
   }
 
 // Gets the total hours spent in booth sessions per day
