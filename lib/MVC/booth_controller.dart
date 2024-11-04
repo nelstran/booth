@@ -1,3 +1,4 @@
+import 'package:Booth/MVC/profile_extension.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,29 @@ class BoothController extends ValueNotifier {
         student = Student(uid: "", firstName: "", lastName: ""),
         super(null);
 
+  void setListeners(key) async {
+    // Modify student on change
+    DatabaseReference entryRef = ref.child("users/$key");
+    DatabaseReference schoolRef = ref.child("users/$key/profile/institution");
+    entryRef.onValue.listen((event) {
+      // In an event the user deletes their account
+      if (!event.snapshot.exists) {
+        return;
+      }
+      var value = event.snapshot.value as Map;
+      value['key'] = event.snapshot.key;
+
+      setStudent(key, value);
+    });
+    schoolRef.onValue.listen((event){
+      if (!event.snapshot.exists){
+        return;
+      }
+      var value = event.snapshot.value.toString();
+      setInstitution(value);
+    });
+  }
+
   /// Get logged in user's account information
   Future<String> fetchAccountInfo(User user) async {
     try {
@@ -44,21 +68,9 @@ class BoothController extends ValueNotifier {
       value['key'] = event.snapshot.key;
       if (value.containsKey('profile') &&
           (value['profile'] as Map).containsKey('institution')) {
-        setInstitution(value['profile']['institution']);
-        db.setInstitution(studentInstitution);
+        await setInstitution(value['profile']['institution']);
       }
-      // Modify student on change
-      entryRef.onValue.listen((event) {
-        // In an event the user deletes their account
-        if (!event.snapshot.exists) {
-          return;
-        }
-        var value = event.snapshot.value as Map;
-        value['key'] = event.snapshot.key;
-
-        setStudent(key, value);
-      });
-
+      setListeners(key);
       setStudent(key, value);
       return student.fullname;
     } catch (error) {
@@ -72,9 +84,10 @@ class BoothController extends ValueNotifier {
     }
   }
 
-  void setInstitution(String institution) {
+  Future<void> setInstitution(String institution) async  {
     _studentInstitution = institution;
     db.setInstitution(institution);
+    await updateUserProfile({"institution": institution});
   }
 
   ///  Deletes the User account in FireBase

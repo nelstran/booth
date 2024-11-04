@@ -43,9 +43,7 @@ class AdminPage extends StatelessWidget {
             await controller
                 .removeSession(student.ownedSessionKey);
           }
-          await controller.updateUserProfile(
-              {"institution": newSchool});
-          controller.setInstitution(newSchool);
+          await controller.setInstitution(newSchool);
         }, child: const Text("Switch school")),
         ElevatedButton(onPressed: () async {
           final boothSession = Session(
