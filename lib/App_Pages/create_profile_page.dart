@@ -1,3 +1,5 @@
+import 'package:Booth/App_Pages/add_courses_pages.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/institutions_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
@@ -13,29 +15,12 @@ class CreateProfilePage extends StatefulWidget {
 
 class _CreateProfilePageState extends State<CreateProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  String? _name;
-  String? _major;
-  // Freshman, Sophomore, Junior, Senior
-  String? _year;
-  // String? _courses;
-
-  // TESTING
-  List<String?> _courses = <String>[];
-  List<Object?> listOfCourses = <Object?>[
-    null,
-    "CS 2420",
-    "CS 3500",
-    "CS 3550",
-    "CS 1410",
-    "MATH 1000",
-    "ENG 1010"
-  ];
-
-  // Study Preferences
-  String? _study_pref;
-  String? _availability;
-
-  Map<dynamic, dynamic> profile = {};
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _majorController = TextEditingController();
+  final TextEditingController _yearController = TextEditingController();
+  final TextEditingController _coursesController = TextEditingController();
+  final TextEditingController _studyPrefController = TextEditingController();
+  final TextEditingController _availabilityController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -55,27 +40,40 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
         });
   }
 
-  Scaffold createUI([profile]) {
-    var edit = profile !=
-        null; // Page will change depending on if its a new profile or existing
-    if (edit) {
-      profile = profile as Map;
-      edit = profile.isNotEmpty;
+  bool setTextValues(Map<dynamic, dynamic> profile){
+    String courses = "";
+    if (profile.containsKey("courses")){
+      try{
+      courses = (profile["courses"] as List).join(", ");
+      }
+      catch (e){
+        // Do nothing if it causes problems
+      }
     }
-    listOfCourses[0] = '${_courses.join(", ")} ';
+    _nameController.text = profile["name"] ?? "";
+    _majorController.text = profile["major"] ?? "";
+    _yearController.text = profile["year"] ?? "";
+    _coursesController.text = courses;
+    _studyPrefController.text = profile["studyPref"] ?? "";
+    _availabilityController.text = profile["availability"] ?? "";
+    return profile.isNotEmpty;
+  }
+  Scaffold createUI([Map<dynamic, dynamic>? profile]) {
+    bool edit = setTextValues(profile ?? {});
+    
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text(edit ? 'Edit Profile' : 'Create Profile')),
       body: Column(
         children: [
           changeInstitutionUI(),
-          profileForm(edit, profile),
+          profileForm(edit),
         ],
       ),
     );
   }
 
-  Form profileForm(bool edit, profile) {
+  Form profileForm(bool edit) {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
@@ -84,22 +82,23 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 16.0),
+            // Name Field
             TextFormField(
-              initialValue: edit ? profile['name'] : null,
+              maxLength: 40,
               decoration: const InputDecoration(labelText: 'Name'),
-              onSaved: (value) => _name = value,
+              controller: _nameController,
             ),
             const SizedBox(height: 8.0),
+            // Major field
             TextFormField(
-              initialValue: edit ? profile['major'] : null,
+              maxLength: 40,
               decoration: const InputDecoration(labelText: 'Major'),
-              onSaved: (value) => _major = value,
+              controller: _majorController
             ),
             const SizedBox(height: 8.0),
+            // Year field
             DropdownButtonFormField(
-              value: edit && profile.containsKey('year')
-                  ? profile['year'] as String
-                  : null,
+              value: _yearController.text,
               decoration: const InputDecoration(labelText: 'Year'),
               items: const [
                 DropdownMenuItem(value: "Freshman", child: Text("Freshman")),
@@ -107,70 +106,63 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 DropdownMenuItem(value: "Junior", child: Text("Junior")),
                 DropdownMenuItem(value: "Senior", child: Text("Senior")),
               ],
-              onChanged: (value) => _year = value,
-              onSaved: (value) => _year = value,
+              onChanged: (value) => _yearController.text = value ?? "",
             ),
             const SizedBox(height: 8.0),
-            // TextFormField(
-            //   decoration: const InputDecoration(labelText: 'Courses'),
-            //   onSaved: (value) => _courses = value,
-            // ),
-
-            // FOR TESTING
-            DropdownButtonFormField(
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Courses'),
-              value: listOfCourses[0],
-              menuMaxHeight: 250,
-              icon: const Icon(Icons.add),
-              items: listOfCourses.whereType<String>().map((String value) {
-                if (listOfCourses.indexOf(value) == 0) {
-                  return DropdownMenuItem<String>(
-                      enabled: false, value: value, child: Text(value));
-                } else {
-                  return DropdownMenuItem<String>(
-                      value: value, child: Text(value));
+            TextFormField(
+              readOnly: true,
+              decoration: const InputDecoration(
+                labelText: 'Courses',
+                suffixIcon: Icon(Icons.add)
+                ),
+              controller: _coursesController,
+              onTap:(){
+                List<String> courses = [];
+                if (_coursesController.text.isNotEmpty){
+                  courses = _coursesController.text.split(", ");
                 }
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  if (value == listOfCourses[0]) {
+                Navigator.of(context).push(
+                  // Use Cupertino for slide transition (I'm too lazy to make my own)
+                  CupertinoPageRoute(
+                      builder: (_) => AddCoursesPage(courses)))
+                    .then((value) {
+                  if (value == null) {
                     return;
                   }
-                  if (_courses.contains(value)) {
-                    _courses.remove(value);
-                  } else {
-                    _courses.add(value.toString());
-                  }
-                  listOfCourses[0] = '${_courses.join(", ")} ';
+                  _coursesController.text = (value as List).join(", ");
                 });
-              },
+              }
             ),
-
             const SizedBox(height: 8.0),
+            // Preferences Field
             TextFormField(
-              initialValue: edit ? profile['studyPref'] : null,
+              maxLength: 40,
               decoration: const InputDecoration(labelText: 'Study Preferences'),
-              onSaved: (value) => _study_pref = value,
+              controller: _studyPrefController,
             ),
+            // Availability Field
             TextFormField(
-              initialValue: edit ? profile['availability'] : null,
+              maxLength: 40,
               decoration: const InputDecoration(labelText: 'Availability'),
-              onSaved: (value) => _availability = value,
+              controller: _availabilityController,
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
+                Map courses = {};
+                if (_coursesController.text.isNotEmpty){
+                  courses = _coursesController.text.split(", ").asMap();
+                }
                 // Add user details to database
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
                   Map<String, Object?> values = {
-                    "name": _name,
-                    "major": _major,
-                    "year": _year,
-                    "courses": _courses.asMap(),
-                    "studyPref": _study_pref,
-                    "availability": _availability
+                    "name": _nameController.text,
+                    "major": _majorController.text,
+                    "year": _yearController.text,
+                    "courses": courses.isNotEmpty ? courses : null,
+                    "studyPref": _studyPrefController.text,
+                    "availability": _availabilityController.text
                   };
                   widget.controller.updateUserProfile(values);
                   Navigator.pop(context);
