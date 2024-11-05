@@ -36,9 +36,9 @@ extension SessionExtension on BoothController {
   /// Remove the logged in user (student) from the session
   Future<void> removeUserFromSession(
       String sessionKey, String userSessionKey) async {
-    await db.removeStudentFromSession(sessionKey, userSessionKey);
     await db.updateUser(
         student.key, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
+    await db.removeStudentFromSession(sessionKey, userSessionKey);
     await endSessionLogging(student.uid);
   }
 
