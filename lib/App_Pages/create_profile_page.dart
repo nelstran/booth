@@ -1,4 +1,6 @@
 import 'package:Booth/App_Pages/add_courses_pages.dart';
+import 'package:Booth/App_Pages/admin_page.dart';
+import 'package:Booth/MVC/session_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/institutions_page.dart';
@@ -50,7 +52,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
         // Do nothing if it causes problems
       }
     }
-    _nameController.text = profile["name"] ?? "";
+    _nameController.text = profile["name"] ?? widget.controller.student.fullname;
     _majorController.text = profile["major"] ?? "";
     _yearController.text = profile["year"] ?? "";
     _coursesController.text = courses;
@@ -87,6 +89,16 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               maxLength: 40,
               decoration: const InputDecoration(labelText: 'Name'),
               controller: _nameController,
+              validator: (value) {
+                if (value == null){
+                  return "Name cannot be empty";
+                }
+                value = value.trim();
+                if (value.isEmpty){
+                  return "Name cannot be empty";
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 8.0),
             // Major field
@@ -157,14 +169,15 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
                   Map<String, Object?> values = {
-                    "name": _nameController.text,
-                    "major": _majorController.text,
-                    "year": _yearController.text,
+                    "name": _nameController.text.trim(),
+                    "major": _majorController.text.trim(),
+                    "year": _yearController.text.trim(),
                     "courses": courses.isNotEmpty ? courses : null,
-                    "studyPref": _studyPrefController.text,
-                    "availability": _availabilityController.text
+                    "studyPref": _studyPrefController.text.trim(),
+                    "availability": _availabilityController.text.trim()
                   };
                   widget.controller.updateUserProfile(values);
+                  widget.controller.updateUserEntry({"name": _nameController.text.trim()});
                   Navigator.pop(context);
                 }
               },

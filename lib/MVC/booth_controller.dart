@@ -52,6 +52,32 @@ class BoothController extends ValueNotifier {
       var value = event.snapshot.value.toString();
       setInstitution(value);
     });
+    profileRef.onValue.listen((event) async {
+      if (!event.snapshot.exists){
+        return;
+      }
+      var value = event.snapshot.value as Map;
+      if (student.session != ""){
+        try{
+          Map json = await db.getSession(student.session) as Map;
+          // Get list of users from session
+          Map users = Map.from(json["users"]);
+          // Get user from user list
+          Map currUser = users[student.sessionKey] as Map;
+          // Update name
+          currUser["name"] = value["name"];
+          json["users"] = users;
+          // I HATE CASTING
+          Map<String, Object?> session = json.cast<String, Object?>();
+          // Update session
+          db.updateSession(student.session, session);
+        }
+        catch (e){
+          // Skip
+          print(e);
+        }
+      }
+    });
   }
 
   /// Get logged in user's account information
@@ -66,12 +92,12 @@ class BoothController extends ValueNotifier {
       }
       var value = event.snapshot.value as Map;
       value['key'] = event.snapshot.key;
+      setListeners(key);
+      setStudent(key, value);
       if (value.containsKey('profile') &&
           (value['profile'] as Map).containsKey('institution')) {
         await setInstitution(value['profile']['institution']);
       }
-      setListeners(key);
-      setStudent(key, value);
       return student.fullname;
     } catch (error) {
       if (error == 'Error fetching user info') {
@@ -353,6 +379,11 @@ class BoothController extends ValueNotifier {
       return {};
     }
     return json as Map<dynamic, dynamic>;
+  }
+
+  Future<void> updateUserEntry(Map<String, Object?> values, [String? key]) async {
+    key = key ?? student.key;
+    db.updateUser(key, values);
   }
 
   Future<Map<dynamic, dynamic>> getUsers() async {

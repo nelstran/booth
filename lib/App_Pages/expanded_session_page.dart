@@ -257,6 +257,9 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                       ),
                 ],
               );
+            } else if (snapshot.hasData && !snapshot.data!.snapshot.exists){
+              // Set text instead of automatically going back otherwise would confuse users
+              return const Center(child: Text("This session no longer exists..."));
             } else {
               return const Center(child: CircularProgressIndicator());
             }

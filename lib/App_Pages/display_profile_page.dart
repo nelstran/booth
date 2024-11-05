@@ -44,7 +44,7 @@ class ProfilePage extends StatefulWidget {
   final BoothController controller;
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage>
@@ -72,6 +72,8 @@ class _ProfilePageState extends State<ProfilePage>
   Widget build(BuildContext context) {
     super.build(context);
     String? profilePicture;
+    profileName =
+        "${widget.data["name"] ?? widget.controller.student.fullname}";
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
