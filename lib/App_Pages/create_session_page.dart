@@ -286,6 +286,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
               ),
               const SizedBox(height: 8.0),
               TextFormField(
+                canRequestFocus: false,
                 onTap: (){
                   // Try to format time, if it is formatted wrong do current time
                   try{

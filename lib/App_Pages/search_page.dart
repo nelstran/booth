@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/session_extension.dart';
-
-import 'package:Booth/App_Pages/display_user_page.dart'; // Ensure this imports the correct user display page
-import 'package:Booth/MVC/friend_extension.dart';
 import '../MVC/booth_controller.dart';
 import 'expanded_session_page.dart';
 

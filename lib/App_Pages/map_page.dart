@@ -1,16 +1,11 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-import 'package:Booth/App_Pages/admin_page.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:http/http.dart' as http;
-import 'package:Booth/MVC/student_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:Booth/App_Pages/filter_ui.dart';
-import 'package:Booth/App_Pages/session_page.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/Helper_Functions/filter_sessions.dart';
-import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';

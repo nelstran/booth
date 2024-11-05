@@ -1,12 +1,9 @@
-import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/student_model.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
-import 'package:Booth/MVC/friend_extension.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({

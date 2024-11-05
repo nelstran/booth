@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:Booth/App_Pages/create_profile_page.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/App_Pages/requests_page.dart';

@@ -98,7 +98,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
             const SizedBox(height: 8.0),
             // Year field
             DropdownButtonFormField(
-              value: _yearController.text,
+              value: _yearController.text == "" ? null : _yearController.text,
               decoration: const InputDecoration(labelText: 'Year'),
               items: const [
                 DropdownMenuItem(value: "Freshman", child: Text("Freshman")),

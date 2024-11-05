@@ -1,13 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:Booth/App_Pages/create_profile_page.dart';
 import 'package:Booth/App_Pages/friends_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:image_picker/image_picker.dart';
-
-import 'package:http/http.dart' as http;
 
 class ProfileDisplayPage extends StatefulWidget {
   final BoothController controller;
@@ -34,25 +31,6 @@ class _ProfileDisplayPage extends State<ProfileDisplayPage>
           } else if (snap.hasError) {
             return Center(child: Text('Error: ${snap.error}'));
           }
-          // else if (!snap.hasData || snap.data?.snapshot.value == null ||
-          //             (snap.data?.snapshot.value as Map).length <= 1) {
-          //   return Center(
-          //       child: ElevatedButton(
-          //     onPressed: () {
-          //       Navigator.of(context).push(
-          //         MaterialPageRoute(
-          //           builder: (context) => CreateProfilePage(widget.controller))
-          //       );
-          //     },
-          //     style: ElevatedButton.styleFrom(
-          //       backgroundColor: Colors.blue,
-          //     ),
-          //     child: const Text(
-          //       "Create Profile",
-          //       style: TextStyle(color: Colors.black),
-          //     ),
-          //   ));
-          // }
           Map<dynamic, dynamic> data = snap.data!.snapshot.value as Map;
           return ProfilePage(widget.controller, data);
         });
