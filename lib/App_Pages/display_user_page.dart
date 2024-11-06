@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
+import 'package:Booth/MVC/block_extension.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 
 class UserDisplayPage extends StatefulWidget {
@@ -110,7 +111,29 @@ class _UserProfilePage extends State<UserProfilePage> {
           // Request sent
           onPressed: null, // TODO: Cancel friend request
           icon: Icon(Icons.mark_email_read_outlined)),
-    ];
+      // More options button 
+      IconButton(       
+        onPressed: () {
+          showModalBottomSheet(
+          context: context, 
+          builder: (context){
+          return SizedBox(
+            height: 95,
+            child:
+            // Block user button
+            ListTile(
+              onTap: () {
+                  widget.controller.blockUser(widget.userKey);
+                },
+                contentPadding: const EdgeInsets.only(left: 16, right: 8),
+                title: const Text("Block", style: TextStyle(color: Colors.red, fontSize: 20)),
+                leading: Icon(Icons.block, color: Colors.red)
+              )
+          );
+          });
+        }, 
+        icon: Icon(Icons.more_vert))
+      ];
     if (widget.friends.containsKey(widget.userKey)) {
       iconIndex = 1;
     }
@@ -124,7 +147,7 @@ class _UserProfilePage extends State<UserProfilePage> {
             // Remove the trailing icon in the app bar if came from request page or if viewing self
             widget.fromRequest || widget.controller.student.key == widget.userKey
                 ? const SizedBox.shrink()
-                : trailingIcons[iconIndex]
+                : trailingIcons[iconIndex], trailingIcons[3]
           ],
         ),
         body: Padding(

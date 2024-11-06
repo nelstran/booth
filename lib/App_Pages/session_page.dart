@@ -30,6 +30,8 @@ class _SessionPage extends State<SessionPage>
   bool get wantKeepAlive => true;
   Map filters = {};
   bool friendsOnly = false;
+  List blockedList = [];
+  List blockedFromList = [];
 
   @override
   void initState(){
@@ -93,6 +95,38 @@ class _SessionPage extends State<SessionPage>
                   friendsEntry.remove("requests");
 
                   List friendsList = friendsEntry.keys.toList();
+
+              // Getting list of blocked users --------------------------------------------  
+              return StreamBuilder(
+                stream: widget.controller.studentRef.child("blocked_from").onValue,
+                builder: (c, s) {
+                  if (s.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (s.hasError) {
+                    return Center(child: Text('Error: ${s.error}'));
+                  }
+                  // Get list of blocked from users when it updates
+                  Map? blockedFromEntry = {};
+                  if (s.hasData && s.data!.snapshot.value != null){
+                    blockedFromEntry = s.data!.snapshot.value as Map;
+                  }
+                  blockedFromList = blockedFromEntry.keys.toList();
+              
+              return StreamBuilder(
+                stream: widget.controller.studentRef.child("blocked").onValue,
+                builder: (c, s) {
+                  if (s.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (s.hasError) {
+                    return Center(child: Text('Error: ${s.error}'));
+                  }
+                  // Get list of blocked users when it updates
+                  Map? blockedEntry = {};
+                  if (s.hasData && s.data!.snapshot.value != null){
+                    blockedEntry = s.data!.snapshot.value as Map;
+                  }
+                  blockedList = blockedEntry.keys.toList();
+                // --------------------------------------------------------------------------
                   return FirebaseAnimatedList(
                     key: Key(institution),
                     query: widget.controller.sessionRef,
@@ -122,9 +156,10 @@ class _SessionPage extends State<SessionPage>
                       int numOfPFPs = 4;
                       bool isInSession = widget.controller.student.session == snapshot.key!;
                       bool isFriends = isFriendsWithHost(json, friendsList);
+                      bool isBlocked = isBlockedUserinSession(json, blockedList);
 
                       // Always show the session the user is in, otherwise check if session should be visible to user
-                      if (!isInSession && (isFiltered(filters, session) || isNotViewable(json, isFriends))) {
+                      if (!isInSession && (isFiltered(filters, session) || isNotViewable(json, isFriends) || isBlocked)) {
                         return const SizedBox.shrink();
                       }
             
@@ -262,9 +297,13 @@ class _SessionPage extends State<SessionPage>
                     },
                   );
                 }
+                );
+                }
               );
             }
-          ),
+           );
+          }
+         ),
         ),
       ],
     );
@@ -448,4 +487,24 @@ class _SessionPage extends State<SessionPage>
     }
     return false;
   }
+
+  /// Method to hide sessions that contain blocked users
+  bool isBlockedUserinSession(Map<dynamic, dynamic> json, List blockedList){
+    // Look at all students in a session
+    List usersInSession = json['users'].values.toList();
+    for(var i = 0; i < usersInSession.length; i++){
+      // If a student in a session is blocked, hide that session
+      if (blockedList.contains(usersInSession[i]['key'])){
+        return true;
+      }
+      
+      // If the student who has blocked the blocked user is in a session,
+      // hide that session from the blocked user 
+      if(blockedFromList.contains(usersInSession[i]['key'])){
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

@@ -203,6 +203,27 @@ class SessionDatabase {
     await friendRef.update({studentKey: ""});
   }
 
+  /// Add user to blocked list
+  void addToBlocked(String studentKey, String strangerKey) async {
+    if (studentKey == '' || strangerKey == '') return;
+    final studentRef = ref.child('users/$studentKey/blocked/');
+    final strangerRef = ref.child('users/$strangerKey/blocked_from/');
+
+    await studentRef.update({strangerKey: ""});
+    await strangerRef.update({studentKey: ""});
+  }
+
+  /// Remove user from blocked list
+  void removeFromBlocked(String studentKey, String strangerKey) async {
+    if (studentKey == '' || strangerKey == '') return;
+    await ref
+        .child('users/$studentKey/blocked/$strangerKey')
+        .remove();
+    await ref
+        .child('users/$strangerKey/blocked_from/$studentKey')
+        .remove();
+  }
+
   /// Given a user's database [key], grab their name
   Future<Object?> getNameByKey(String key) async {
     if (key == "") return null;
