@@ -129,7 +129,7 @@ class _FriendsPage extends State<FriendsPage> {
                                       builder: (context, snapshot) {
                                         return FutureBuilder(
                                           future: widget.controller
-                                              .getProfilePictureByKey(userKey),
+                                              .getProfilePictureByKey(userKey, true),
                                           builder: (context, snapshot) {
                                             return Padding(
                                               padding: const EdgeInsets.all(3.0),

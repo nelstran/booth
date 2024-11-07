@@ -81,19 +81,8 @@ class _ProfilePageState extends State<ProfilePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FutureBuilder(
-            future: widget.controller.getProfilePictureByUID(),
+            future: widget.controller.getProfilePictureByUID(null, true),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    radius: profileRadius,
-                    child: const CircularProgressIndicator(),
-                  ),
-                );
-              } else if (snapshot.hasError) {
-                profileImg = null;
-              }
               profileImg = snapshot.data;
               return Center(
                 child: InkWell(
