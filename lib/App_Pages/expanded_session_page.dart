@@ -1,11 +1,11 @@
 import 'package:Booth/App_Pages/display_user_page.dart';
+import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/create_session_page.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/session_extension.dart';
-import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:synchronized/synchronized.dart';
 
 import '../MVC/session_model.dart';
@@ -200,37 +200,14 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                                                   .pfpRef(memberUIDs[index])
                                                   .snapshots(),
                                               builder: (context, snapshot) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.waiting ||
-                                                    !snapshot.hasData) {
-                                                  return ProfilePicture(
-                                                    name: memberNames[index],
-                                                    radius: 15.0,
-                                                    fontsize: 13.0,
-                                                  );
-                                                }
                                                 return FutureBuilder(
-                                                  future: widget.controller
-                                                      .getProfilePictureByUID(
-                                                          memberUIDs[index]),
+                                                  future: widget.controller.getProfilePictureByUID(memberUIDs[index], true),
                                                   builder: (context, snapshot) {
-                                                    if (snapshot.connectionState ==
-                                                            ConnectionState
-                                                                .waiting ||
-                                                        snapshot.hasError) {
-                                                      return const CircleAvatar(
-                                                        backgroundColor:
-                                                            Colors.grey,
-                                                        radius: 15.0,
-                                                        child:
-                                                            CircularProgressIndicator(),
-                                                      );
-                                                    }
-                                                    return ProfilePicture(
+                                                    return CachedProfilePicture(
                                                       name: memberNames[index],
-                                                      radius: 15.0,
-                                                      fontsize: 13.0,
-                                                      img: snapshot.data,
+                                                      imageUrl: snapshot.data,
+                                                      radius: 15, 
+                                                      fontSize: 13
                                                     );
                                                   },
                                                 );

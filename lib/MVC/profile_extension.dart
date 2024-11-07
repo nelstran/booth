@@ -63,10 +63,14 @@ extension ProfileExtension on BoothController {
   /// Helper future method to fetch the profile picture Image URL from the database and checks
   /// if the URL is valid; if it is not valid, return null, else return the valid URL
   /// [uid] defaults to logged in user's UID if none is given
-  Future<String?> getProfilePictureByUID([String? uid]) async {
+  Future<String?> getProfilePictureByUID([String? uid, bool? canNull]) async {
+    canNull = canNull ?? false;
     uid = uid ?? student.uid;
     // Get URL from Firestore
     String? pfp = await retrieveProfilePicture(uid);
+    if (canNull){
+      return pfp;
+    }
     if (pfp == null) {
       return pfp;
     } else {
@@ -81,10 +85,11 @@ extension ProfileExtension on BoothController {
   }
 
   /// Helper method to get profile picture by user's key in the database
-  Future<String?> getProfilePictureByKey([String? key]) async {
+  Future<String?> getProfilePictureByKey([String? key, bool? canNull]) async {
+    canNull = canNull ?? false;
     key = key ?? student.key;
     Map json = await getUserEntry(key);
     // Get URL from Firestore
-    return await getProfilePictureByUID(json['uid']);
+    return await getProfilePictureByUID(json['uid'], canNull);
   }
 }

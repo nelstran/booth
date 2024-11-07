@@ -1,4 +1,5 @@
 import 'package:Booth/Helper_Functions/filter_sessions.dart';
+import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:Booth/App_Pages/filter_ui.dart';
 import 'package:Booth/App_Pages/search_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
-import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:rainbow_color/rainbow_color.dart';
 import '../MVC/session_model.dart';
 
@@ -142,158 +142,163 @@ class _SessionPage extends State<SessionPage>
                     // Build each item in the list view
                     itemBuilder: (BuildContext context, DataSnapshot snapshot,
                         Animation<double> animation, int index) {
-                      // Convert the snapshot to a Map
-                      Map<dynamic, dynamic> json =
-                          snapshot.value as Map<dynamic, dynamic>;
-            
-                      // Here to avoid exception while debugging
-                      if (!json.containsKey("users")){
-                        return const SizedBox.shrink();
-                      }
-            
-                      Session session = Session.fromJson(json);
-                      // Control the max number of users to display on the front page
-                      int numOfPFPs = 4;
-                      bool isInSession = widget.controller.student.session == snapshot.key!;
-                      bool isFriends = isFriendsWithHost(json, friendsList);
-                      bool isBlocked = isBlockedUserinSession(json, blockedList);
+                          try{
+                            // Convert the snapshot to a Map
+                            Map<dynamic, dynamic> json =
+                                snapshot.value as Map<dynamic, dynamic>;
+                  
+                            // Here to avoid exception while debugging
+                            if (!json.containsKey("users")){
+                              return const SizedBox.shrink();
+                            }
+                  
+                            Session session = Session.fromJson(json);
+                            // Control the max number of users to display on the front page
+                            int numOfPFPs = 4;
+                            bool isInSession = widget.controller.student.session == snapshot.key!;
+                            bool isFriends = isFriendsWithHost(json, friendsList);
+                            bool isBlocked = isBlockedUserinSession(json, blockedList);
 
-                      // Always show the session the user is in, otherwise check if session should be visible to user
-                      if (!isInSession && (isFiltered(filters, session) || isNotViewable(json, isFriends) || isBlocked)) {
-                        return const SizedBox.shrink();
-                      }
-            
-                      List<String> memberNames = [];
-                      List<String> memberUIDs = [];
-            
-                      Map<String, dynamic> usersInFS =
-                          Map<String, dynamic>.from(json['users']);
-                      usersInFS.forEach((key, value) {
-                        memberNames.add(value['name']);
-                        memberUIDs.add(value['uid']);
-                      });
-            
-                      // Extract title and description from the session map
-                      String title = json['title'] ?? '';
-            
-                      // int colorIndex =
-                      //     ((session.seatsTaken / session.seatsAvailable) * 100)
-                      //         .floor();
-                      Color fullness;
-                      fullness = sessionColor[session.seatsTaken / session.seatsAvailable];
-                      // if (colorIndex <= 33) {
-                      //   fullness = sessionColor[3];
-                      // } else if (colorIndex <= 66) {
-                      //   fullness = sessionColor[2];
-                      // } else if (colorIndex <= 99) {
-                      //   fullness = sessionColor[1];
-                      // } else {
-                      //   fullness = sessionColor[0];
-                      // }
-                      return Column(
-                        children: [
-                          if (isInSession) const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Row(
+                            // Always show the session the user is in, otherwise check if session should be visible to user
+                            if (!isInSession && (isFiltered(filters, session) || isNotViewable(json, isFriends) || isBlocked)) {
+                              return const SizedBox.shrink();
+                            }
+                  
+                            List<String> memberNames = [];
+                            List<String> memberUIDs = [];
+                  
+                            Map<String, dynamic> usersInFS =
+                                Map<String, dynamic>.from(json['users']);
+                            usersInFS.forEach((key, value) {
+                              memberNames.add(value['name']);
+                              memberUIDs.add(value['uid']);
+                            });
+                  
+                            // Extract title and description from the session map
+                            String title = json['title'] ?? '';
+                  
+                            // int colorIndex =
+                            //     ((session.seatsTaken / session.seatsAvailable) * 100)
+                            //         .floor();
+                            Color fullness;
+                            fullness = sessionColor[session.seatsTaken / session.seatsAvailable];
+                            // if (colorIndex <= 33) {
+                            //   fullness = sessionColor[3];
+                            // } else if (colorIndex <= 66) {
+                            //   fullness = sessionColor[2];
+                            // } else if (colorIndex <= 99) {
+                            //   fullness = sessionColor[1];
+                            // } else {
+                            //   fullness = sessionColor[0];
+                            // }
+                            return Column(
                               children: [
-                                Expanded(
-                                  child: Divider(),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Text("My session")),
-                                Expanded(child: Divider())
-                              ],
-                            ),
-                          ) else const SizedBox.shrink(),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Card(
-                              elevation: 2,
-                              child: ClipPath(
-                                clipper: ShapeBorderClipper(
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10)
-                                      )
-                                    ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                          color: fullness,
-                                          width: 10,
-                                        )
-                                      )
+                                if (isInSession) const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Text("My session")),
+                                      Expanded(child: Divider())
+                                    ],
                                   ),
-                                  child: ListTile(
-                                    // Display title and description
-                                    title: Text(
-                                      title,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      // Show list and the people in that session represented by their pfp
-                                      children: [
-                                        Text(session.locationDescription),
-                                        const SizedBox(height: 2),
-                                        rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
-                                      ],
-                                    ),
-                                    trailing: Text(
-                                      "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 14)
-                                    ),
-                                    // trailing: SizedBox(
-                                    //   height: 50,
-                                    //   child: Column(
-                                    //     crossAxisAlignment: CrossAxisAlignment.center,
-                                    //     mainAxisAlignment: MainAxisAlignment.center,
-                                    //     children: [
-                                    //       if (isFriends) const Icon(Icons.people, color: Colors.green),
-                                    //       Text(
-                                    //           "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                    //           textAlign: TextAlign.center,
-                                    //           style: const TextStyle(fontSize: 14)),
-                                    //     ],
-                                    //   ),
-                                    // ),
-                                    onTap: () {
-                                      // Expand session
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => ExpandedSessionPage(
-                                              snapshot.key!, widget.controller),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (isInSession) Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                  child: Divider(),
-                                ),
+                                ) else const SizedBox.shrink(),
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: !friendsOnly ? 
-                                  Text('${widget.controller.studentInstitution} sessions')
-                                  : const Text('Friends\' sessions'),
+                                  child: Card(
+                                    elevation: 2,
+                                    child: ClipPath(
+                                      clipper: ShapeBorderClipper(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10)
+                                            )
+                                          ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            border: Border(
+                                              left: BorderSide(
+                                                color: fullness,
+                                                width: 10,
+                                              )
+                                            )
+                                        ),
+                                        child: ListTile(
+                                          // Display title and description
+                                          title: Text(
+                                            title,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          subtitle: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            // Show list and the people in that session represented by their pfp
+                                            children: [
+                                              Text(session.locationDescription),
+                                              const SizedBox(height: 2),
+                                              rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
+                                            ],
+                                          ),
+                                          trailing: Text(
+                                            "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontSize: 14)
+                                          ),
+                                          // trailing: SizedBox(
+                                          //   height: 50,
+                                          //   child: Column(
+                                          //     crossAxisAlignment: CrossAxisAlignment.center,
+                                          //     mainAxisAlignment: MainAxisAlignment.center,
+                                          //     children: [
+                                          //       if (isFriends) const Icon(Icons.people, color: Colors.green),
+                                          //       Text(
+                                          //           "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                          //           textAlign: TextAlign.center,
+                                          //           style: const TextStyle(fontSize: 14)),
+                                          //     ],
+                                          //   ),
+                                          // ),
+                                          onTap: () {
+                                            // Expand session
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => ExpandedSessionPage(
+                                                    snapshot.key!, widget.controller),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                const Expanded(child: Divider())
+                                if (isInSession) Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Row(
+                                    children: [
+                                      const Expanded(
+                                        child: Divider(),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: !friendsOnly ? 
+                                        Text('${widget.controller.studentInstitution} sessions')
+                                        : const Text('Friends\' sessions'),
+                                      ),
+                                      const Expanded(child: Divider())
+                                    ],
+                                  ),
+                                ) else const SizedBox.shrink()
                               ],
-                            ),
-                          ) else const SizedBox.shrink()
-                        ],
-                      );
+                            );
+                          } catch (e){
+                            // Skip
+                            return const SizedBox.shrink();
+                          }
                     },
                   );
                 }
@@ -326,41 +331,24 @@ class _SessionPage extends State<SessionPage>
               StreamBuilder(
                 stream: widget.controller.pfpRef(memberUIDs[index]).snapshots(),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting ||
-                      !snapshot.hasData) {
-                    return Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: ProfilePicture(
-                          name: memberNames[index],
-                          radius: pfpRadius,
-                          fontsize: pfpFontSize),
-                    );
-                  }
                   return FutureBuilder(
                     future: widget.controller
-                        .getProfilePictureByUID(memberUIDs[index]),
+                        .getProfilePictureByUID(memberUIDs[index], true),
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting ||
-                          snapshot.hasError) {
-                        return Padding(
-                            padding: const EdgeInsets.all(3.0),
-                            child: CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              radius: pfpRadius,
-                              child: SizedBox(
-                                  height: pfpRadius,
-                                  width: pfpRadius,
-                                  child: const CircularProgressIndicator()),
-                            ));
-                      }
                       return Padding(
                         padding: const EdgeInsets.all(3.0),
-                        child: ProfilePicture(
+                        // child: ProfilePicture(
+                        //   name: memberNames[index],
+                        //   radius: pfpRadius,
+                        //   fontsize: pfpFontSize,
+                        //   img: snapshot.data,
+                        // ),
+                        child: CachedProfilePicture(
                           name: memberNames[index],
-                          radius: pfpRadius,
-                          fontsize: pfpFontSize,
-                          img: snapshot.data,
-                        ),
+                          radius: pfpRadius, 
+                          fontSize: pfpFontSize,
+                          imageUrl: snapshot.data
+                        )
                       );
                     },
                   );

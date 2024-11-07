@@ -1,10 +1,10 @@
+import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/App_Pages/requests_page.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
-import 'package:flutter_profile_picture/flutter_profile_picture.dart'; // Import the RequestsPage
 
 class FriendsPage extends StatefulWidget {
   const FriendsPage(this.controller, {super.key});
@@ -127,46 +127,17 @@ class _FriendsPage extends State<FriendsPage> {
                                           .pfpRef(userKey)
                                           .snapshots(),
                                       builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                                ConnectionState.waiting ||
-                                            !snapshot.hasData) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(3.0),
-                                            child: ProfilePicture(
-                                                name: userName,
-                                                radius: pfpRadius,
-                                                fontsize: pfpFontSize),
-                                          );
-                                        }
                                         return FutureBuilder(
                                           future: widget.controller
                                               .getProfilePictureByKey(userKey),
                                           builder: (context, snapshot) {
-                                            if (snapshot.connectionState ==
-                                                    ConnectionState.waiting ||
-                                                snapshot.hasError) {
-                                              return Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(3.0),
-                                                  child: CircleAvatar(
-                                                    backgroundColor:
-                                                        Colors.grey,
-                                                    radius: pfpRadius,
-                                                    child: SizedBox(
-                                                        height: pfpRadius,
-                                                        width: pfpRadius,
-                                                        child:
-                                                            const CircularProgressIndicator()),
-                                                  ));
-                                            }
                                             return Padding(
-                                              padding:
-                                                  const EdgeInsets.all(3.0),
-                                              child: ProfilePicture(
+                                              padding: const EdgeInsets.all(3.0),
+                                              child: CachedProfilePicture(
                                                 name: userName,
+                                                imageUrl: snapshot.data,
                                                 radius: pfpRadius,
-                                                fontsize: pfpFontSize,
-                                                img: snapshot.data,
+                                                fontSize: pfpFontSize,
                                               ),
                                             );
                                           },

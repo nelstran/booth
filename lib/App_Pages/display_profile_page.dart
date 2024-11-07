@@ -1,9 +1,9 @@
+import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/friends_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
-import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileDisplayPage extends StatefulWidget {
@@ -49,7 +49,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage>
     with AutomaticKeepAliveClientMixin {
-  String? profileName = "";
+  String profileName = "";
   double profileRadius = 0;
   double fontSize = 0;
   String? profileImg = "";
@@ -74,6 +74,7 @@ class _ProfilePageState extends State<ProfilePage>
     String? profilePicture;
     profileName =
         "${widget.data["name"] ?? widget.controller.student.fullname}";
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -85,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage>
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
                   child: CircleAvatar(
-                    backgroundColor: Colors.grey,
+                    backgroundColor: Colors.blue,
                     radius: profileRadius,
                     child: const CircularProgressIndicator(),
                   ),
@@ -164,6 +165,7 @@ class _ProfilePageState extends State<ProfilePage>
                                         profileImg = profilePicture;
                                       });
                                     } catch (error) {
+                                      if(!context.mounted) return;
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(const SnackBar(
                                               content: Text(
@@ -189,22 +191,19 @@ class _ProfilePageState extends State<ProfilePage>
                         },
                       );
                     },
-                    child: ProfilePicture(
-                      name: profileName!,
-                      radius: profileRadius,
-                      fontsize: fontSize,
-                      img: profileImg,
-                    )
-                    // child: CircleAvatar(
-                    //   radius: 30,
-                    //   backgroundColor: Colors.grey[200],
-                    //   child: Icon(
-                    //     Icons.person,
-                    //     size: 50,
-                    //     color: Colors.grey[500],
-                    //   ),
-                    // ),
+                    // child: ProfilePicture(
+                    //   name: profileName!,
+                    //   radius: profileRadius,
+                    //   fontsize: fontSize,
+                    //   img: profileImg,
+                    // )
+                    child: CachedProfilePicture(
+                      name: profileName, 
+                      radius: profileRadius, 
+                      imageUrl: profileImg, 
+                      fontSize: fontSize
                     ),
+                  )
               );
             },
           ),

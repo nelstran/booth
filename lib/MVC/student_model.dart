@@ -21,7 +21,7 @@ class Student {
     required this.lastName,
     String? key,
     String? ownedSessionKey
-  })  : key = key ?? "NaN",
+  })  : key = key ?? "",
         ownedSessionKey = ownedSessionKey ?? "",
         _fullname = "$firstName $lastName",
         session = "",

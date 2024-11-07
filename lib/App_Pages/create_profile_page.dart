@@ -1,11 +1,10 @@
 import 'package:Booth/App_Pages/add_courses_pages.dart';
-import 'package:Booth/App_Pages/admin_page.dart';
-import 'package:Booth/MVC/session_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/institutions_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
+import 'package:flutter/services.dart';
 
 class CreateProfilePage extends StatefulWidget {
   final BoothController controller;
@@ -86,6 +85,9 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
             const SizedBox(height: 16.0),
             // Name Field
             TextFormField(
+              inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
+              ],
               maxLength: 40,
               decoration: const InputDecoration(labelText: 'Name'),
               controller: _nameController,
@@ -103,6 +105,9 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
             const SizedBox(height: 8.0),
             // Major field
             TextFormField(
+              inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
+              ],
               maxLength: 40,
               decoration: const InputDecoration(labelText: 'Major'),
               controller: _majorController

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -92,8 +94,8 @@ class BoothController extends ValueNotifier {
       }
       var value = event.snapshot.value as Map;
       value['key'] = event.snapshot.key;
-      setListeners(key);
       setStudent(key, value);
+      setListeners(key);
       if (value.containsKey('profile') &&
           (value['profile'] as Map).containsKey('institution')) {
         await setInstitution(value['profile']['institution']);

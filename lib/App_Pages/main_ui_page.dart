@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -40,26 +41,41 @@ class _MainUIPageState extends State<MainUIPage> {
   late List<PopupMenuItem<bool>> sessionOptions = [];
   late List<Icon> optionIcons = [];
   bool friendsOnly = false;
+  StreamController<bool> appSetupStream = StreamController<bool>();
 
   @override
   Widget build(BuildContext context) {
     // Get user profile before loading everything
-    return FutureBuilder(
-        future: appSetup(widget.user),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return createUI();
-          } else if (snapshot.hasError) {
-            return errorDialog();
-          } else {
-            return const Center(child: CircularProgressIndicator());
-            // return const SizedBox.shrink();
-          }
-        });
+    // return FutureBuilder(
+    //     future: appSetup(widget.user),
+    //     builder: (context, snapshot) {
+    //       if (snapshot.connectionState == ConnectionState.done) {
+    //         return createUI();
+    //       } else if (snapshot.hasError) {
+    //         return errorDialog();
+    //       } else {
+    //         return const Center(child: CircularProgressIndicator());
+    //         // return const SizedBox.shrink();
+    //       }
+    //     });
+    return StreamBuilder(
+      stream: appSetupStream.stream,
+      builder: (context, snapshot){
+        if(snapshot.hasData){
+          return createUI();
+        }
+        else{
+          return const Center(child: CircularProgressIndicator());
+        }
+      }
+    );
   }
 
-  Future<String> appSetup(user) async {
-    String data = await controller.fetchAccountInfo(user);
+  Future<void> appSetup(user) async {
+    // String data = await controller.fetchAccountInfo(user);
+    await controller.fetchAccountInfo(user);
+    accountSpecificSetup();
+
     String institution = controller.studentInstitution;
     // Make sure users are assigned an institution
     if (institution == "" && mounted) {
@@ -75,7 +91,7 @@ class _MainUIPageState extends State<MainUIPage> {
       var numOfSessions = Random().nextInt(9) + 6;
       controller.createNSampleSessions(numOfSessions);
     }
-    return data;
+    appSetupStream.sink.add(true);
   }
 
   @override
@@ -87,10 +103,10 @@ class _MainUIPageState extends State<MainUIPage> {
   @override
   void initState() {
     super.initState();
-    // accountSpecificSetup().then;
-    controller.fetchAccountInfo(widget.user!).whenComplete(() {
-      accountSpecificSetup();
-    });
+    appSetup(widget.user);
+    // controller.fetchAccountInfo(widget.user!).whenComplete(() {
+    //   accountSpecificSetup();
+    // });
 
     pageController = PageController(initialPage: currPageIndex);
 

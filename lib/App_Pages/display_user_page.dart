@@ -1,9 +1,9 @@
+import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/block_extension.dart';
-import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 
 class UserDisplayPage extends StatefulWidget {
   final BoothController controller;
@@ -156,15 +156,12 @@ class _UserProfilePage extends State<UserProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.grey[200],
-                    child: ProfilePicture(
-                      name: "${data['name']}",
-                      radius: 40,
-                      fontsize: 30,
-                      img: data["profile_picture"],
-                    )),
+                child: CachedProfilePicture(
+                  name: data['name'], 
+                  imageUrl: data["profile_picture"], 
+                  fontSize: 30,
+                  radius: 40, 
+                )
               ),
               const SizedBox(height: 16.0),
               Text(
