@@ -106,6 +106,23 @@ class FirestoreDatabase {
     }
   }
 
+  /// Uploads the given file to Firebase Storage with the given filename
+  Future<Reference> uploadSessionPictureStorage(XFile file, String filename) async {
+    // String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final refRoot = storage.ref();
+    final refDirPFP = refRoot.child("session_pictures");
+
+    Reference refUpload = refDirPFP.child(filename);
+
+    try {
+      await refUpload.putFile(File(file.path));
+      return refUpload;
+    } catch (error) {
+      return Future.error(error);
+    }
+  }
+
   /// Adds the URL of the user's profile picture to Firestore for later retrieval, [userKey] uses UID
   Future<void> uploadProfilePictureFireStore(Map<String, String> pfpStorage, String userKey) async {
     Map<String, String> data = {"profile_picture": pfpStorage['url']!};

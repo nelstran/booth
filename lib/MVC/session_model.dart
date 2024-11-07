@@ -16,6 +16,7 @@ class Session {
   double? latitude;
   double? longitude;
   String? address;
+  String? imageURL;
 
   late String ownerKey; // User key of the session owner
 
@@ -34,6 +35,7 @@ class Session {
     this.latitude,
     this.longitude,
     this.address,
+    this.imageURL
   })  : key = key ?? "NaN",
         seatsTaken = 1,
         ownerKey = "";
@@ -56,6 +58,7 @@ class Session {
     latitude = json['latitude'];
     longitude = json['longitude'];
     address = json['address'];
+    imageURL = json['imageURL'];
   }
 
   /// Converts the booth session to a JSON format
@@ -75,6 +78,7 @@ class Session {
       'latitude': latitude,
       'longitude': longitude,
       'address': address,
+      'imageURL': imageURL
     };
   }
 }

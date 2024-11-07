@@ -2,6 +2,8 @@ import 'package:Booth/MVC/analytics_extension.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/student_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
 extension SessionExtension on BoothController {
   /// Get all open session at the given school, if no school is given, search the user's assigned school
@@ -99,5 +101,15 @@ extension SessionExtension on BoothController {
     }
 
     return json as Map<dynamic, dynamic>;
+  }
+
+  // Upload a the given picture to Firebase storage for session use
+  Future<String> uploadSessionPicture(XFile file) async {
+    // Upload image and retrieve the download URL
+    final ref = await firestoreDb.uploadSessionPictureStorage(
+      file, 
+      Timestamp.now().toDate().toString()
+    );
+    return await ref.getDownloadURL();
   }
 }

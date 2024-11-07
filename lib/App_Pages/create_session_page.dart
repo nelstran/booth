@@ -10,7 +10,9 @@
 // Create a button to add the session to the session home page (can use Button from UI components)
 // Once this button is pressed, go to the session home page
 import 'dart:async';
+import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:Booth/MVC/booth_controller.dart';
@@ -19,6 +21,7 @@ import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/student_model.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CreateSessionPage extends StatefulWidget {
   final BoothController controller;
@@ -36,6 +39,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   Position? _currentPosition;
   bool _isPublic = true;
   bool _shareLocation = false;
+  XFile? sessionFile;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
@@ -51,6 +55,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   @override
   void initState() {
     super.initState();
+    sessionFile = null;
     if (widget.sessionKey != null) {
       isEditing = true;
       widget.controller.getSession(widget.sessionKey!).then((value) {
@@ -202,6 +207,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   }
 
   Future<void> _createSession() async {
+    String? imageURL;
     if (_shareLocation) {
       await Geolocator.getCurrentPosition(
               desiredAccuracy: LocationAccuracy.high)
@@ -215,6 +221,15 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       }).catchError((e) {
         debugPrint(e);
       });
+    }
+    if (sessionFile != null){
+      // upload to firebase storage
+      try {
+        // Upload image to Firebase and fetch URL
+        imageURL = await widget.controller.uploadSessionPicture(sessionFile!);
+      } catch (error) {
+        // Skip
+      }
     }
 
     _formKey.currentState!.save();
@@ -232,6 +247,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       latitude: _currentPosition?.latitude,
       longitude: _currentPosition?.longitude,
       address: _currentAddress,
+      imageURL: imageURL,
     );
 
     Student student = widget.controller.student;
@@ -260,7 +276,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 16.0),
+              // const SizedBox(height: 16.0),
               TextFormField(
                 controller: _titleController,
                 maxLength: 40,
@@ -272,7 +288,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 8.0),
+              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _descController,
                 maxLength: 150,
@@ -284,7 +300,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 8.0),
+              // const SizedBox(height: 8.0),
               TextFormField(
                 canRequestFocus: false,
                 onTap: (){
@@ -328,12 +344,29 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 8.0),
+              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _locationController,
                 maxLength: 40,
-                decoration:
-                    const InputDecoration(labelText: 'Location Description'),
+                decoration: InputDecoration(
+                  labelText: 'Location Description',
+                  suffix: GestureDetector(
+                    onTap: (){
+                      if (sessionFile == null){
+                        openCamera();
+                      }
+                      else {
+                        showPicture();
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: sessionFile == null
+                      ? const Icon(Icons.photo_camera)
+                      : const Icon(Icons.photo_outlined),
+                    )
+                  )
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a location description';
@@ -341,7 +374,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 8.0),
+              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _seatsController,
                 inputFormatters: [
@@ -361,7 +394,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 },
                 keyboardType: TextInputType.number,
               ),
-              const SizedBox(height: 8.0),
+              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _classController,
                 inputFormatters: [
@@ -379,7 +412,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 8.0),
+              // const SizedBox(height: 8.0),
               DropdownButtonFormField<bool>(
                 value: _isPublic,
                 onChanged: (value) {
@@ -398,7 +431,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16.0),
+              // const SizedBox(height: 16.0),
               SwitchListTile(
                 title: const Text('Share Location'),
                 value: _shareLocation,
@@ -421,7 +454,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 subtitle:
                     const Text('Allow your Booth to be visible on the map!'),
               ),
-              const SizedBox(height: 16.0),
+              // const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
                   // TODO: fix crash
@@ -485,5 +518,172 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
         _timeController.text = "${localizations.formatTimeOfDay(startValue)} - ${localizations.formatTimeOfDay(endValue)}";
       });
     });
+  }
+
+  Future<void> openCamera() async {
+    // Get picture from camera
+    ImagePicker imagePicker = ImagePicker();
+    XFile? file = await imagePicker.pickImage(source: ImageSource.camera);
+    bool? confirmPicture = false;
+
+    // Confirm that the user wants this picture shown
+    while(confirmPicture == false){
+      if (file == null) return;
+      confirmPicture = await previewPicture(file);
+
+      if (confirmPicture == null){
+        return;
+      }
+      if(!confirmPicture){
+        file = await imagePicker.pickImage(source: ImageSource.camera);
+      }
+    }
+    setState((){
+      sessionFile = file;
+    });
+  }
+  Future<bool?> previewPicture(XFile file) async  {
+    return await showDialog<bool?>(
+      barrierDismissible: false,
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: const Center(
+            child: Text("Are you sure?"),
+          ),
+          titlePadding: const EdgeInsets.only(bottom: 8, top: 16),
+          content: Image.file(File(file.path)),
+          // content: CachedNetworkImage(imageUrl: sessionImg!),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
+          actions:[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      shadowColor: Colors.transparent,
+                      backgroundColor: Colors.transparent,
+                      padding: EdgeInsets.zero
+                      ),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: (){
+                      Navigator.pop(context, false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        elevation: 0.0,
+                        shadowColor: Colors.transparent,
+                        backgroundColor: Colors.transparent,
+                        padding: EdgeInsets.zero
+                        ),
+                    child: const Text(
+                      "Retake",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context, true);
+                  },
+                  style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      shadowColor: Colors.transparent,
+                      // padding: EdgeInsets.zero
+                    ),
+                  child: const Text(
+                    "Confirm",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                )
+              ],
+            )
+          ]
+        );
+      }
+    );
+  }
+  Future<void> showPicture() async  {
+    await showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Preview",
+                style: TextStyle(fontSize: 30),
+              ),
+              Text(
+                "(This image will be shared with other users)",
+                style: TextStyle(fontSize: 15),
+                textAlign: TextAlign.center,
+              )
+            ]
+          ),
+          titlePadding: const EdgeInsets.only(bottom: 8, top: 16,),
+          content: Image.file(File(sessionFile!.path)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
+          actions:[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: (){
+                      setState(() {
+                        sessionFile = null;
+                      });
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        elevation: 0.0,
+                        shadowColor: Colors.transparent,
+                        backgroundColor: Colors.transparent,
+                        padding: EdgeInsets.zero
+                        ),
+                    child: const Text(
+                      "Delete",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      shadowColor: Colors.transparent,
+                      backgroundColor: Colors.transparent,
+                    ),
+                  child: const Text(
+                    "Ok",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                )
+              ],
+            )
+          ]
+        );
+      }
+    );
   }
 }
