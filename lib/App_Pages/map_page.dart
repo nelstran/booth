@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:Booth/MVC/session_extension.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:Booth/App_Pages/filter_ui.dart';
@@ -183,33 +185,59 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   Future<Uint8List?> loadNetworkImage(String imageUrl, int width) async {
     try {
-      final response = await http.get(Uri.parse(imageUrl));
+      final cacheManager = DefaultCacheManager();
+      // No need to check if url is valid since we're in a try/catch
+      final file = await cacheManager.getSingleFile(imageUrl);
+      final fileBytes = await file.readAsBytes();
+      
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        fileBytes,
+        targetWidth: 100,
+        targetHeight: 100,
+      );
+      final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      final ui.Image image = frameInfo.image;
+      final ui.PictureRecorder recorder = ui.PictureRecorder();
+      final Canvas canvas = Canvas(recorder);
+      final Paint paint = Paint()..isAntiAlias = true;
 
-      if (response.statusCode == 200) {
-        final ui.Codec codec = await ui.instantiateImageCodec(
-          response.bodyBytes,
-          targetWidth: width,
-        );
-        final ui.FrameInfo frameInfo = await codec.getNextFrame();
+      final double radius = width / 2;
+      canvas.drawCircle(Offset(radius, radius), radius, paint);
+      paint.blendMode = BlendMode.srcIn;
+      canvas.drawImage(image, const Offset(0, 0), paint);
 
-        final ui.Image image = frameInfo.image;
-        final ui.PictureRecorder recorder = ui.PictureRecorder();
-        final Canvas canvas = Canvas(recorder);
-        final Paint paint = Paint()..isAntiAlias = true;
+      final ui.Image circularImage =
+          await recorder.endRecording().toImage(width, width);
+      final ByteData? byteData =
+          await circularImage.toByteData(format: ui.ImageByteFormat.png);
+      return byteData!.buffer.asUint8List();
+      // final response = await http.get(Uri.parse(imageUrl));
 
-        final double radius = width / 2;
-        canvas.drawCircle(Offset(radius, radius), radius, paint);
-        paint.blendMode = BlendMode.srcIn;
-        canvas.drawImage(image, const Offset(0, 0), paint);
+      // if (response.statusCode == 200) {
+      //   final ui.Codec codec = await ui.instantiateImageCodec(
+      //     response.bodyBytes,
+      //     targetWidth: width,
+      //   );
+      //   final ui.FrameInfo frameInfo = await codec.getNextFrame();
 
-        final ui.Image circularImage =
-            await recorder.endRecording().toImage(width, width);
-        final ByteData? byteData =
-            await circularImage.toByteData(format: ui.ImageByteFormat.png);
-        return byteData!.buffer.asUint8List();
-      } else {
-        print("Failed to load network image: ${response.statusCode}");
-      }
+      //   final ui.Image image = frameInfo.image;
+      //   final ui.PictureRecorder recorder = ui.PictureRecorder();
+      //   final Canvas canvas = Canvas(recorder);
+      //   final Paint paint = Paint()..isAntiAlias = true;
+
+      //   final double radius = width / 2;
+      //   canvas.drawCircle(Offset(radius, radius), radius, paint);
+      //   paint.blendMode = BlendMode.srcIn;
+      //   canvas.drawImage(image, const Offset(0, 0), paint);
+
+      //   final ui.Image circularImage =
+      //       await recorder.endRecording().toImage(width, width);
+      //   final ByteData? byteData =
+      //       await circularImage.toByteData(format: ui.ImageByteFormat.png);
+      //   return byteData!.buffer.asUint8List();
+      // } else {
+      //   print("Failed to load network image: ${response.statusCode}");
+      // }
     } catch (e) {
       print("Error loading network image: $e");
     }

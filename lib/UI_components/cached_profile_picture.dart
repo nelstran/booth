@@ -63,11 +63,13 @@ class CachedProfilePicture extends StatelessWidget {
     Color profileColor = _getColorFromLetter(profileInit[0]);
     return CircleAvatar(
       radius: radius,
-      backgroundColor: profileColor,
+      backgroundColor: imageUrl != null ? Colors.grey : profileColor,
       child: imageUrl != null 
       ? CachedNetworkImage(
           memCacheHeight: 100,
           memCacheWidth: 100,
+          height: 100,
+          width: 100,
           imageUrl: imageUrl!,
           progressIndicatorBuilder: (context, url, progress) =>
             CircularProgressIndicator(value: progress.progress),
