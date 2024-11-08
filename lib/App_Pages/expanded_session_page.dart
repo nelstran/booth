@@ -1,5 +1,6 @@
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/create_session_page.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
@@ -107,6 +108,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                         ),
                         // const SizedBox(height: 20.0),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Flexible(
                               child: Text(
@@ -114,9 +116,24 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                                 style: const TextStyle(fontSize: 18.0),
                               ),
                             ),
-                            GestureDetector(
-                              onTap:(){},
-                              child: Icon(Icons.perm_media)
+                            if (session.imageURL != null) GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap:() {
+                                Navigator.of(context).push(PageRouteBuilder(
+                                  opaque: false,
+                                  pageBuilder: (context, _, __) =>
+                                    LocationImageDialog(session)
+                                ));
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.only(left:8.0, top: 8, bottom:8),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.image),
+                                    Icon(Icons.arrow_forward_ios)
+                                  ],
+                                ),
+                              )
                             )
                           ],
                         ),
@@ -337,4 +354,115 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
       showingSnack = false;
     });
   }
+
+  void showPicture(Session session){
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                session.locationDescription,
+                // style: const TextStyle(fontSize: 30),
+              ),
+            ]
+          ),
+          titlePadding: const EdgeInsets.only(bottom: 8, top: 16, left: 16, right: 16),
+          content: CachedNetworkImage(
+            imageUrl: session.imageURL!,
+            progressIndicatorBuilder: (context, url, progress) => 
+              CircularProgressIndicator(value: progress.progress),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
+          actions:[
+            ElevatedButton(
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                  elevation: 0.0,
+                  shadowColor: Colors.transparent,
+                  backgroundColor: Colors.transparent,
+                ),
+              child: const Text(
+                "Ok",
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          ]
+        );
+      }
+    );
+  }
+}
+
+class LocationImageDialog extends StatelessWidget {
+  const LocationImageDialog(
+    this.session,
+    {super.key}
+  );
+  final Session session;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withOpacity(.8),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(context),
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Tap to dismiss",
+                    style: TextStyle(
+                      fontSize: 15
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Text(
+                          session.locationDescription,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold
+                          )
+                        ),
+                      ),
+                      CachedNetworkImage(
+                        imageUrl: session.imageURL!,
+                        progressIndicatorBuilder: (context, url, progress) => 
+                          Center(
+                            child: CircularProgressIndicator(value: progress.progress),
+                          ),
+                      )
+                    ],
+                  ))
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
 }
