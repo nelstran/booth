@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Booth/MVC/analytics_extension.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_model.dart';
@@ -46,7 +48,7 @@ extension SessionExtension on BoothController {
 
   /// Add the session to the database, the user who made it
   /// automatically joins the session
-  Future<void> addSession(Session session, Student owner) async {
+  Future<void> addSession(Session session, Student owner, {File? file}) async {
     // We just want name and uid instead all of its fields
     Map studentValues = {
       "name": owner.fullname,
@@ -82,12 +84,26 @@ extension SessionExtension on BoothController {
 
     // Update session in db to state who owns that session
     await db.updateSession(sessionKey, {"ownerKey": userKey});
+
+    // Set session image if given
+    if (file != null){
+      // upload to firebase storage
+      try {
+        // Upload image to Firebase and fetch URL
+        String imageURL = await uploadSessionPicture(file, sessionKey);
+        // Give image url to session in database
+        await db.updateSession(sessionKey, {"imageURL": imageURL});
+      } catch (error) {
+        // Skip
+      }
+    }
     startSessionLogging(owner.uid, session);
   }
 
   /// Given a key, remove the session from the database
   Future<void> removeSession(String key) async {
     await db.removeSession(key);
+    await firestoreDb.deleteSessionPicture(key);
   }
 
   Future<void> editSession(String key, Map<String, Object?> values) async {
@@ -104,12 +120,17 @@ extension SessionExtension on BoothController {
   }
 
   // Upload a the given picture to Firebase storage for session use
-  Future<String> uploadSessionPicture(XFile file) async {
+  Future<String> uploadSessionPicture(File file, String sessionKey) async {
     // Upload image and retrieve the download URL
     final ref = await firestoreDb.uploadSessionPictureStorage(
       file, 
-      Timestamp.now().toDate().toString()
+      sessionKey
     );
     return await ref.getDownloadURL();
+  }
+
+  // Delete session picture from Firebase storage
+  Future<void> deleteSessionPicture(String sessionKey) async {
+    await firestoreDb.deleteSessionPicture(sessionKey);
   }
 }

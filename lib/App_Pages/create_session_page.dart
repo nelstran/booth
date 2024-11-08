@@ -19,6 +19,7 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/student_model.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -39,7 +40,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   Position? _currentPosition;
   bool _isPublic = true;
   bool _shareLocation = false;
-  XFile? sessionFile;
+  File? sessionFile;
+  bool newImage = false;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
@@ -76,8 +78,21 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
           _currAddrController.text = session.address ?? '';
           _shareLocation = session.address != null;
         });
+        if (session.imageURL != null){
+          fetchImage(session.imageURL!);
+        }
       });
     }
+  }
+
+  Future<void> fetchImage(String url) async {
+    final cacheManager = DefaultCacheManager();
+      // No need to check if url is valid since we're in a try/catch
+      final file = await cacheManager.getSingleFile(url);
+      // final fileBytes = await file.readAsBytes();
+      setState((){
+        sessionFile = file;
+      });
   }
 
   // Method to display snackbar warning while also preventing it from
@@ -173,6 +188,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
   }
 
   Future<void> _updateSession() async {
+    String? imageURL;
     if (_shareLocation) {
       await Geolocator.getCurrentPosition(
               desiredAccuracy: LocationAccuracy.high)
@@ -186,6 +202,14 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       }).catchError((e) {
         debugPrint(e);
       });
+    }
+    if (newImage && sessionFile != null){
+      try{
+        imageURL = await widget.controller.uploadSessionPicture(sessionFile!, widget.sessionKey!);
+      }
+      catch (e){
+        // Skip
+      }
     }
 
     Map<String, Object?> values = {
@@ -203,11 +227,20 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       'longitude': _shareLocation ? _currentPosition?.longitude : null,
       'address': _shareLocation ? _currentAddress : null,
     });
+    // Update image, delete image if user removes it
+    if (newImage){
+      values.addAll({
+        'imageURL': imageURL
+      });
+
+      if(sessionFile == null){
+        widget.controller.deleteSessionPicture(widget.sessionKey!);
+      }
+    }
     await widget.controller.editSession(widget.sessionKey!, values);
   }
 
   Future<void> _createSession() async {
-    String? imageURL;
     if (_shareLocation) {
       await Geolocator.getCurrentPosition(
               desiredAccuracy: LocationAccuracy.high)
@@ -221,15 +254,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       }).catchError((e) {
         debugPrint(e);
       });
-    }
-    if (sessionFile != null){
-      // upload to firebase storage
-      try {
-        // Upload image to Firebase and fetch URL
-        imageURL = await widget.controller.uploadSessionPicture(sessionFile!);
-      } catch (error) {
-        // Skip
-      }
     }
 
     _formKey.currentState!.save();
@@ -247,7 +271,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       latitude: _currentPosition?.latitude,
       longitude: _currentPosition?.longitude,
       address: _currentAddress,
-      imageURL: imageURL,
     );
 
     Student student = widget.controller.student;
@@ -255,7 +278,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       await widget.controller
           .removeUserFromSession(student.session, student.sessionKey);
     }
-    await widget.controller.addSession(boothSession, student);
+    await widget.controller.addSession(boothSession, student, file: sessionFile);
   }
 
   @override
@@ -520,6 +543,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     });
   }
 
+  /// Method to open the system camera for users to add to their 
+  /// session upon creation
   Future<void> openCamera() async {
     // Get picture from camera
     ImagePicker imagePicker = ImagePicker();
@@ -539,9 +564,14 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       }
     }
     setState((){
-      sessionFile = file;
+      // We want to replace the image if users set a new one when editing
+      newImage = true;
+      sessionFile = File(file!.path);
     });
   }
+
+  /// Method to preview the picture they just took, users can
+  /// cancel, confirm, or retake the picture if needed
   Future<bool?> previewPicture(XFile file) async  {
     return await showDialog<bool?>(
       barrierDismissible: false,
@@ -614,6 +644,10 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       }
     );
   }
+
+  /// Method that shows the image the user is about to upload for 
+  /// other users to see, it will give the option to delete it before 
+  /// creating a session
   Future<void> showPicture() async  {
     await showDialog(
       barrierDismissible: true,
@@ -637,7 +671,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
             ]
           ),
           titlePadding: const EdgeInsets.only(bottom: 8, top: 16,),
-          content: Image.file(File(sessionFile!.path)),
+          content: Image.file(sessionFile!),
           contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
           actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
           actions:[
@@ -649,6 +683,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   child: ElevatedButton(
                     onPressed: (){
                       setState(() {
+                        newImage = true;
                         sessionFile = null;
                       });
                       Navigator.pop(context);

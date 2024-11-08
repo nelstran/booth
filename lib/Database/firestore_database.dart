@@ -107,7 +107,7 @@ class FirestoreDatabase {
   }
 
   /// Uploads the given file to Firebase Storage with the given filename
-  Future<Reference> uploadSessionPictureStorage(XFile file, String filename) async {
+  Future<Reference> uploadSessionPictureStorage(File file, String filename) async {
     // String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
 
     final refRoot = storage.ref();
@@ -116,10 +116,22 @@ class FirestoreDatabase {
     Reference refUpload = refDirPFP.child(filename);
 
     try {
-      await refUpload.putFile(File(file.path));
+      await refUpload.putFile(file);
       return refUpload;
     } catch (error) {
       return Future.error(error);
+    }
+  }
+
+  /// Delete session image given the [sessionKey]
+  Future<void> deleteSessionPicture(String sessionKey) async {
+    try{
+      final refStorage = storage.ref();
+      final sessionRef = refStorage.child("session_pictures/$sessionKey");
+      await sessionRef.delete();
+    }
+    catch (e){
+      return;
     }
   }
 
