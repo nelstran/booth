@@ -91,58 +91,70 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
                   Expanded(
                     flex: 4,
                     child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Text(
-                            session.title,
-                            style: const TextStyle(
-                                fontSize: 24.0, fontWeight: FontWeight.bold),
-                          ),
-                          // const SizedBox(height: 20.0),
-                          Text(
-                            'Description: ${session.description}',
-                            style: const TextStyle(fontSize: 18.0),
-                          ),
-                          // const SizedBox(height: 20.0),
-                          Text(
-                            'Location Description: ${session.locationDescription}',
-                            style: const TextStyle(fontSize: 18.0),
-                          ),
-                          // const SizedBox(height: 20.0),
-                          Row(
-                            children: [
-                              const Icon(Icons.access_time, size: 18.0),
-                              const SizedBox(width: 5.0),
-                              Text(
-                                'Time: ${session.time}',
-                                style: const TextStyle(fontSize: 16.0),
+                      
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text(
+                          session.title,
+                          style: const TextStyle(
+                              fontSize: 24.0, fontWeight: FontWeight.bold),
+                        ),
+                        // const SizedBox(height: 20.0),
+                        Text(
+                          'Description: ${session.description}',
+                          style: const TextStyle(fontSize: 18.0),
+                        ),
+                        // const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Location Description: ${session.locationDescription}',
+                                style: const TextStyle(fontSize: 18.0),
                               ),
-                            ],
-                          ),
-                          // const SizedBox(height: 20.0),
-                          Row(
-                            children: [
-                              const Icon(Icons.people, size: 18.0),
-                              const SizedBox(width: 5.0),
-                              Text(
-                                'Seats Available: ${session.seatsAvailable - session.seatsTaken}',
-                                style: const TextStyle(fontSize: 16.0),
-                              ),
-                            ],
-                          ),
-                          // const SizedBox(height: 20.0),
-                          Row(
-                            children: [
-                              const Icon(Icons.subject, size: 18.0),
-                              const SizedBox(width: 5.0),
-                              Text(
-                                'Class: ${session.subject}',
-                                style: const TextStyle(fontSize: 16.0),
-                              ),
-                            ],
-                          ),
-                        ]),
+                            ),
+                            GestureDetector(
+                              onTap:(){},
+                              child: Icon(Icons.perm_media)
+                            )
+                          ],
+                        ),
+                        // const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.access_time, size: 18.0),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'Time: ${session.time}',
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        // const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.people, size: 18.0),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'Seats Available: ${session.seatsAvailable - session.seatsTaken}',
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                        // const SizedBox(height: 20.0),
+                        Row(
+                          children: [
+                            const Icon(Icons.subject, size: 18.0),
+                            const SizedBox(width: 5.0),
+                            Text(
+                              'Class: ${session.subject}',
+                              style: const TextStyle(fontSize: 16.0),
+                            ),
+                          ],
+                        ),
+                      ]
+                    ),
                   ),
                   // List of students in the session
                   Expanded(

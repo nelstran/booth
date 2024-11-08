@@ -79,6 +79,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
           _shareLocation = session.address != null;
         });
         if (session.imageURL != null){
+          sessionFile = File("");
           fetchImage(session.imageURL!);
         }
       });
