@@ -138,7 +138,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       if (ownerPfpPath != null) {
         try {
           final Uint8List? ownerPfpBytes =
-              await loadNetworkImage(ownerPfpPath, 35);
+              await loadNetworkImage(ownerPfpPath, 40);
           customIcon = BitmapDescriptor.bytes(ownerPfpBytes!);
         } catch (e) {
           print("Error loading profile picture: $e");
@@ -189,11 +189,11 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       // No need to check if url is valid since we're in a try/catch
       final file = await cacheManager.getSingleFile(imageUrl);
       final fileBytes = await file.readAsBytes();
-      
+
       final ui.Codec codec = await ui.instantiateImageCodec(
         fileBytes,
-        targetWidth: 100,
-        targetHeight: 100,
+        targetWidth: 40,
+        targetHeight: 40,
       );
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       final ui.Image image = frameInfo.image;
