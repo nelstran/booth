@@ -1,3 +1,4 @@
+import 'package:Booth/firebase_msg.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/User_Authentication/auth.dart';
@@ -9,6 +10,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseMsg().initNotifications();
+  //await FirebaseMsg.initPushNotifications();
   runApp(const MyApp());
 }
 
@@ -17,6 +20,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize Firebase Messaging notifications handling
+    final firebaseMsg = FirebaseMsg();
+    firebaseMsg.initNotifications();
+    firebaseMsg.initPushNotifications(context);  // Pass the context here
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       // Show authentication page first (auth.dart)

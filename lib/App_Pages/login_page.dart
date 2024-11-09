@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Booth/UI_components/textbox.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// This class is for the login page
 class LoginPage extends StatefulWidget {
@@ -17,12 +20,71 @@ class _LoginPageState extends State<LoginPage> {
   // Controllers for the textfields (these store what the user has typed)
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
+  final LocalAuthentication auth = LocalAuthentication();
   bool isEmailEmpty = true;
   bool isPassEmpty = true;
   bool triedToLogin = false;
+  bool isBiometricEnabled = false;
+  final storage = const FlutterSecureStorage();
 
   // This method logs a user in
+  // Initialize biometric authentication on startup
+//   @override
+//   void initState() {
+//     super.initState();
+//     loadBiometricPreference();
+//   }
+
+//   Future<void> loadBiometricPreference() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     isBiometricEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+
+//     if (isBiometricEnabled) {
+//       authenticateBiometric();
+//     }
+//   }
+
+//   // Prompt biometric authentication
+//   Future<void> authenticateBiometric() async {
+//   final LocalAuthentication auth = LocalAuthentication();
+
+//   try {
+//     bool authenticated = await auth.authenticate(
+//       localizedReason: 'Please authenticate to proceed',
+//       options: const AuthenticationOptions(
+//         biometricOnly: true,
+//         stickyAuth: true,
+//         useErrorDialogs: true,
+//       ),
+//     );
+
+//     if (authenticated) {
+//       // Retrieve the stored authentication token
+//       final token = await storage.read(key: 'auth_token');
+
+//       if (token != null) {
+//         // Use the token to authenticate the user (e.g., send it to your backend)
+//         Navigator.pushReplacementNamed(context, '/main_ui_page');
+//       } else {
+//         print("Authentication token not found");
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text('Authentication failed. Please try again.')),
+//         );
+//       }
+//     } else {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text('Biometric authentication failed. Please try again.')),
+//       );
+//     }
+//   } catch (e) {
+//     debugPrint("Error during biometric authentication: $e");
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(content: Text('Biometric authentication failed. Please try again.')),
+//     );
+//   }
+// }
+
+  // Login method with email and password
   void login() async {
     // // This shows a loading circle
     // showDialog(
