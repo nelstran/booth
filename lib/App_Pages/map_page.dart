@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:Booth/App_Pages/filter_ui.dart';
@@ -32,6 +33,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
+  late GoogleMapController googleMapController;
 
   Map<String, Marker> markers = {};
   LatLng? maxPos;
@@ -244,6 +246,66 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     return null;
   }
 
+  void currentPosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Checking if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled');
+    }
+
+    // Checking the location permission status
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      // Requesting permission if it is denied
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error("Location permission denied");
+      }
+    }
+
+    // Handling the case where permission is permanently denied
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied');
+    }
+
+    // Getting the current position of the user
+    Position position = await Geolocator.getCurrentPosition();
+
+    googleMapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(position.latitude, position.longitude),
+          zoom: 17,
+        ),
+      ),
+    );
+    // LocationData? currentLocation;
+    // var location = Location();
+
+    // Position position =
+
+    // try {
+    //   currentLocation = await location.getLocation();
+    // } on Exception {
+    //   currentLocation = null;
+    // }
+
+    // if (currentLocation != null) {
+    //   controller.animateCamera(CameraUpdate.newCameraPosition(
+    //     CameraPosition(
+    //       bearing: 0,
+    //       target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+    //       zoom: 17.0,
+    //     ),
+    //   ));
+    // } else {
+    //   print("Failed to get current location.");
+    // }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -324,8 +386,11 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           //   _controller.complete(controller);
           // },
           markers: markers,
-          myLocationButtonEnabled: true,
+          myLocationButtonEnabled: false,
           myLocationEnabled: true,
+          onMapCreated: (GoogleMapController controller) {
+            googleMapController = controller;
+          },
         ),
         Positioned(
           top: 16,
@@ -363,6 +428,31 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.filter_list, color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 60,
+          right: 16,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              currentPosition();
+            },
+            child: SizedBox(
+              height: 40,
+              width: 40,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 22, 22, 22),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Transform.rotate(
+                  angle: 0.75,
+                  child: const Icon(Icons.navigation_outlined,
+                      color: Colors.white),
+                ),
               ),
             ),
           ),
