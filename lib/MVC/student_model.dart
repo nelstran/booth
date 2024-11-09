@@ -29,20 +29,22 @@ class Student {
 
   // Json Constructor
   Student.fromJson(Map json) {
-    List<String> name = json['name'].toString().split(" ");
+    List<String> name = (json['name'] ?? "").toString().split(" ");
 
-    key = json['key'];
-    uid = json['uid'];
+    key = json['key'] ?? "";
+    uid = json['uid'] ?? "";
 
     firstName = name.first;
     lastName = name.last;
-    _fullname = json['name'];
-
-    if (json.containsKey('session')) session = json['session'];
-    if (json.containsKey('sessionKey')) sessionKey = json['sessionKey'];
-    if (json.containsKey('ownedSessionKey')) {
-      ownedSessionKey = json['ownedSessionKey'];
-    }
+    _fullname = json['name'] ?? "";
+    session = json['session'] ?? "";
+    sessionKey = json['sessionKey'] ?? "";
+    ownedSessionKey = json['ownedSessionKey'] ?? "";
+    // if (json.containsKey('session')) session = json['session'];
+    // if (json.containsKey('sessionKey')) sessionKey = json['sessionKey'];
+    // if (json.containsKey('ownedSessionKey')) {
+    //   ownedSessionKey = json['ownedSessionKey'];
+    // }
   }
 
   /// Converts the student to a JSON format
