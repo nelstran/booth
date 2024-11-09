@@ -1,4 +1,5 @@
 import 'package:Booth/UI_components/cached_profile_picture.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/friend_extension.dart';
@@ -111,29 +112,30 @@ class _UserProfilePage extends State<UserProfilePage> {
           // Request sent
           onPressed: null, // TODO: Cancel friend request
           icon: Icon(Icons.mark_email_read_outlined)),
-      // More options button 
-      IconButton(       
-        onPressed: () {
-          showModalBottomSheet(
-          context: context, 
-          builder: (context){
-          return SizedBox(
-            height: 95,
-            child:
-            // Block user button
-            ListTile(
-              onTap: () {
-                  widget.controller.blockUser(widget.userKey);
-                },
-                contentPadding: const EdgeInsets.only(left: 16, right: 8),
-                title: const Text("Block", style: TextStyle(color: Colors.red, fontSize: 20)),
-                leading: Icon(Icons.block, color: Colors.red)
-              )
-          );
-          });
-        }, 
-        icon: Icon(Icons.more_vert))
-      ];
+      // More options button
+      IconButton(
+          onPressed: () {
+            showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return SizedBox(
+                      height: 95,
+                      child:
+                          // Block user button
+                          ListTile(
+                              onTap: () {
+                                widget.controller.blockUser(widget.userKey);
+                              },
+                              contentPadding:
+                                  const EdgeInsets.only(left: 16, right: 8),
+                              title: const Text("Block",
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 20)),
+                              leading: Icon(Icons.block, color: Colors.red)));
+                });
+          },
+          icon: Icon(Icons.more_vert))
+    ];
     if (widget.friends.containsKey(widget.userKey)) {
       iconIndex = 1;
     }
@@ -145,9 +147,11 @@ class _UserProfilePage extends State<UserProfilePage> {
           title: Text('${data['name'] as String}\'s Profile Page'),
           actions: [
             // Remove the trailing icon in the app bar if came from request page or if viewing self
-            widget.fromRequest || widget.controller.student.key == widget.userKey
+            widget.fromRequest ||
+                    widget.controller.student.key == widget.userKey
                 ? const SizedBox.shrink()
-                : trailingIcons[iconIndex], trailingIcons[3]
+                : trailingIcons[iconIndex],
+            trailingIcons[3]
           ],
         ),
         body: Padding(
@@ -156,13 +160,22 @@ class _UserProfilePage extends State<UserProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
+                  child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  if (data["profile_picture"] != null) {
+                    Navigator.of(context).push(PageRouteBuilder(
+                        opaque: false,
+                        pageBuilder: (context, _, __) => ProfileImage(data)));
+                  }
+                },
                 child: CachedProfilePicture(
-                  name: data['name'], 
-                  imageUrl: data["profile_picture"], 
+                  name: data['name'],
+                  imageUrl: data["profile_picture"],
                   fontSize: 30,
-                  radius: 40, 
-                )
-              ),
+                  radius: 40,
+                ),
+              )),
               const SizedBox(height: 16.0),
               Text(
                 'Name: ${data["name"]}',
@@ -202,5 +215,55 @@ class _UserProfilePage extends State<UserProfilePage> {
             ],
           ),
         ));
+  }
+}
+
+class ProfileImage extends StatelessWidget {
+  const ProfileImage(this.data, {super.key});
+
+  final Map<dynamic, dynamic> data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black.withOpacity(.8),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(context),
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(
+                  flex: 1,
+                  child: Text(
+                    "Tap to dismiss",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                ),
+                Expanded(
+                    flex: 5,
+                    child: Column(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: data["profile_picture"],
+                          progressIndicatorBuilder: (context, url, progress) =>
+                              Center(
+                            child: CircularProgressIndicator(
+                                value: progress.progress),
+                          ),
+                        )
+                      ],
+                    ))
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
