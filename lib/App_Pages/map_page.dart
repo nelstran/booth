@@ -213,33 +213,6 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       final ByteData? byteData =
           await circularImage.toByteData(format: ui.ImageByteFormat.png);
       return byteData!.buffer.asUint8List();
-      // final response = await http.get(Uri.parse(imageUrl));
-
-      // if (response.statusCode == 200) {
-      //   final ui.Codec codec = await ui.instantiateImageCodec(
-      //     response.bodyBytes,
-      //     targetWidth: width,
-      //   );
-      //   final ui.FrameInfo frameInfo = await codec.getNextFrame();
-
-      //   final ui.Image image = frameInfo.image;
-      //   final ui.PictureRecorder recorder = ui.PictureRecorder();
-      //   final Canvas canvas = Canvas(recorder);
-      //   final Paint paint = Paint()..isAntiAlias = true;
-
-      //   final double radius = width / 2;
-      //   canvas.drawCircle(Offset(radius, radius), radius, paint);
-      //   paint.blendMode = BlendMode.srcIn;
-      //   canvas.drawImage(image, const Offset(0, 0), paint);
-
-      //   final ui.Image circularImage =
-      //       await recorder.endRecording().toImage(width, width);
-      //   final ByteData? byteData =
-      //       await circularImage.toByteData(format: ui.ImageByteFormat.png);
-      //   return byteData!.buffer.asUint8List();
-      // } else {
-      //   print("Failed to load network image: ${response.statusCode}");
-      // }
     } catch (e) {
       print("Error loading network image: $e");
     }
@@ -282,28 +255,19 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
         ),
       ),
     );
-    // LocationData? currentLocation;
-    // var location = Location();
+  }
 
-    // Position position =
-
-    // try {
-    //   currentLocation = await location.getLocation();
-    // } on Exception {
-    //   currentLocation = null;
-    // }
-
-    // if (currentLocation != null) {
-    //   controller.animateCamera(CameraUpdate.newCameraPosition(
-    //     CameraPosition(
-    //       bearing: 0,
-    //       target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-    //       zoom: 17.0,
-    //     ),
-    //   ));
-    // } else {
-    //   print("Failed to get current location.");
-    // }
+  void goToHomeSchool() {
+    googleMapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        const CameraPosition(
+          // University of Utah for now
+          // TODO: HAVE IT UPDATE PER INSTITUTE
+          target: LatLng(40.763444, -111.844182),
+          zoom: 15,
+        ),
+      ),
+    );
   }
 
   @override
@@ -391,6 +355,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           onMapCreated: (GoogleMapController controller) {
             googleMapController = controller;
           },
+          zoomControlsEnabled: false,
         ),
         Positioned(
           top: 16,
@@ -453,6 +418,27 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                   child: const Icon(Icons.navigation_outlined,
                       color: Colors.white),
                 ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 104,
+          right: 16,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              goToHomeSchool();
+            },
+            child: SizedBox(
+              height: 40,
+              width: 40,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 22, 22, 22),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.school_outlined, color: Colors.white),
               ),
             ),
           ),
