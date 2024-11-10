@@ -43,6 +43,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Booth'),
         actions: [

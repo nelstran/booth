@@ -1,17 +1,7 @@
 import 'package:Booth/App_Pages/chat_room_page.dart';
-import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/App_Pages/session_details_page.dart';
-import 'package:Booth/UI_components/cached_profile_picture.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:Booth/App_Pages/create_session_page.dart';
-import 'package:Booth/MVC/analytics_extension.dart';
 import 'package:Booth/MVC/booth_controller.dart';
-import 'package:Booth/MVC/profile_extension.dart';
-import 'package:Booth/MVC/session_extension.dart';
-import 'package:synchronized/synchronized.dart';
-
-import '../MVC/session_model.dart';
 
 class ExpandedSessionPage extends StatefulWidget {
   final BoothController controller;
@@ -36,7 +26,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     super.initState();
     pageController = PageController(initialPage: currPageIndex);
     var detailsPage = SessionDetailsPage(widget.sessionKey, widget.controller, pageController);
-    var chatPage = ChatRoomPage();
+    var chatPage = ChatRoomPage(widget.sessionKey, widget.controller, pageController);
     pages = [
       detailsPage,
       chatPage
@@ -44,8 +34,11 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   }
 
   void changePage(int index){
+    if (index == 0){
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
     setState(() {
-      currPageIndex = 1;
+      currPageIndex = index;
       pageController.animateToPage(
         currPageIndex, 
         duration: const Duration(milliseconds: 500),
@@ -63,9 +56,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   @override
   Widget build(BuildContext context) {
     return PageView(
-      onPageChanged: (value) => setState(() {
-        currPageIndex = value;
-      }),
+      onPageChanged: (value) => changePage(value),
       controller: pageController,
       children: pages
     );

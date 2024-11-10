@@ -53,6 +53,8 @@ dependencies:
   synchronized: ^3.3.0+3
   rainbow_color: ^2.0.1
   flutter_cache_manager: ^3.4.1
+  flutter_chat_ui: ^1.6.15
+  flutter_chat_types: ^3.6.2
 
 dev_dependencies:
   flutter_test:
