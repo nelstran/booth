@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_chat_types/src/messages/text_message.dart';
 import 'package:image_picker/image_picker.dart';
 
 class FirestoreDatabase {
@@ -185,10 +186,22 @@ class FirestoreDatabase {
     await ref.set({});
   }
 
-  Future<Map<String,dynamic>> getSessionMessages(String sessionKey) async {
-    final ref = db.collection("sessions").doc(sessionKey).collection("chat_room");
+  Future<Map<String,dynamic>> getSessionMessages(String key) async {
+    if (key.isEmpty){
+      return {};
+    }
+    final ref = db.collection("sessions").doc(key).collection("chat_room");
     return await getDataFromRef(ref);
   }
+
+  Future<void> sendMessageToSession(TextMessage message, String key) async{
+    if (key.isEmpty){
+      return;
+    }
+    final ref = db.collection("sessions").doc(key).collection("chat_room");
+    await ref.doc(message.id).set(message.toJson());
+  }
+
 
   Future<Map<String, dynamic>> getDataFromRef(CollectionReference ref) async {
     try {
@@ -202,25 +215,5 @@ class FirestoreDatabase {
       return {};
     }
   }
-}
 
-// ---- HELPER METHODS ---- //
-
-/// Helper method to add up the time from Firestore and current session
-Future<void> logDurationHelper(
-    DocumentReference ref, String userKey, String value, int duration) async {
-  final document = await ref.get();
-  final log = document.data() as Map<String, dynamic>? ?? {};
-  // Check if logs exists and if current location has any logged time
-  if (log.containsKey(value)) {
-    // Add new and old time together
-    duration += log[value] as int;
-  }
-  // Set values back to Firestore
-  Map<String, dynamic> values = {value: duration};
-
-  // Combine the data
-  log.addAll(values);
-
-  ref.set(log);
 }

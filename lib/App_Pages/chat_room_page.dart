@@ -1,6 +1,7 @@
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/chat_room_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter/material.dart';
@@ -62,9 +63,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     _addMessage(textMessage);
   }
 
-  void _addMessage(types.TextMessage message){
+  Future<void> _addMessage(types.TextMessage message) async {
+    await widget.controller.sendMessageToSession(message, widget.sessionKey);
     setState(() {
-      _messages.add(message);
+      _messages.insert(0,message);
     });
   }
   @override
@@ -84,6 +86,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       child: Scaffold(
           appBar: AppBar(),
           body: Chat(
+            timeFormat: DateFormat.jm(),
             // avatarBuilder: (author) {
             // },
             customBottomWidget: bottomInputBar(),

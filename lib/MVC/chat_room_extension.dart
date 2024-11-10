@@ -12,4 +12,8 @@ extension ChatRoomExtension on BoothController {
     .toList();
     return messages;
   }
+
+  Future<void> sendMessageToSession(types.TextMessage message, String key) async {
+    await firestoreDb.sendMessageToSession(message, key);
+  }
 }
