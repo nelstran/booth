@@ -80,15 +80,27 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FutureBuilder(
-            future: widget.controller.getProfilePictureByUID(null, true),
-            builder: (context, snapshot) {
-              profileImg = snapshot.data;
-              return Center(
-                child: InkWell(
+          Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                FutureBuilder(
+                  future: widget.controller.getProfilePictureByUID(null, true),
+                  builder: (context, snapshot) {
+                    profileImg = snapshot.data;
+                    return CachedProfilePicture(
+                      name: profileName,
+                      radius: profileRadius,
+                      imageUrl: profileImg,
+                      fontSize: fontSize,
+                    );
+                  },
+                ),
+                Positioned(
+                  bottom: 1,
+                  right: 1,
+                  child: GestureDetector(
                     onTap: () async {
-                      // Change profile picture properties on tap
-                      //String? newProfileImg = await _getProfilePictureDest(context, widget.controller);
                       showDialog<String>(
                         context: context,
                         builder: (BuildContext context) {
@@ -104,21 +116,15 @@ class _ProfilePageState extends State<ProfilePage>
                                     ImagePicker imagePicker = ImagePicker();
                                     XFile? file = await imagePicker.pickImage(
                                         source: ImageSource.gallery);
-                                    print('${file?.path}');
                                     if (file == null) return;
-                                    // upload to firebase storage
                                     try {
-                                      // Upload image to Firebase
                                       await widget.controller
                                           .uploadProfilePicture(file,
                                               widget.controller.student.uid);
-                                      // Retrieve the profile picture URL
                                       profilePicture = await widget.controller
                                           .retrieveProfilePicture(
                                               widget.controller.student.uid);
-
                                       setState(() {
-                                        // Upload new profile pictur
                                         profileImg = profilePicture;
                                       });
                                     } catch (error) {
@@ -133,28 +139,22 @@ class _ProfilePageState extends State<ProfilePage>
                                 ListTile(
                                   title: const Text("Take a Picture"),
                                   onTap: () async {
-                                    Navigator.pop(context,
-                                        "Taking a picture option selected");
+                                    Navigator.pop(context);
                                     ImagePicker imagePicker = ImagePicker();
                                     XFile? file = await imagePicker.pickImage(
                                         source: ImageSource.camera);
                                     if (file == null) return;
-                                    // upload to firebase storage
                                     try {
-                                      // Upload image to Firebase
                                       await widget.controller
-                                          .uploadProfilePicture(file);
-                                      // Retrieve the profile picture URL
+                                          .uploadProfilePicture(file,
+                                              widget.controller.student.uid);
                                       profilePicture = await widget.controller
                                           .retrieveProfilePicture(
                                               widget.controller.student.uid);
-
                                       setState(() {
-                                        // Upload new profile pictur
                                         profileImg = profilePicture;
                                       });
                                     } catch (error) {
-                                      if(!context.mounted) return;
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(const SnackBar(
                                               content: Text(
@@ -180,25 +180,29 @@ class _ProfilePageState extends State<ProfilePage>
                         },
                       );
                     },
-                    // child: ProfilePicture(
-                    //   name: profileName!,
-                    //   radius: profileRadius,
-                    //   fontsize: fontSize,
-                    //   img: profileImg,
-                    // )
-                    child: CachedProfilePicture(
-                      name: profileName, 
-                      radius: profileRadius, 
-                      imageUrl: profileImg, 
-                      fontSize: fontSize
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black, width: 1),
+                      ),
+                      child: const Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.black,
+                          size: 16.0,
+                        ),
+                      ),
                     ),
-                  )
-              );
-            },
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16.0),
           Text(
-            'Name: ${widget.data["name"] ?? widget.controller.student.fullname}',
+            'Name: $profileName',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8.0),
@@ -232,14 +236,15 @@ class _ProfilePageState extends State<ProfilePage>
             style: const TextStyle(fontSize: 16),
           ),
           ElevatedButton(
-              child: const Text("My Friends"),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => FriendsPage(widget.controller),
-                  ),
-                );
-              })
+            child: const Text("My Friends"),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => FriendsPage(widget.controller),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
