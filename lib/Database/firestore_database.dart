@@ -75,16 +75,7 @@ class FirestoreDatabase {
   /// Grabs user study data from Firestore, [userKey] uses UID
   Future<Map<String, dynamic>?> fetchuserStudyData(String userKey) async {
     final ref = db.collection("users").doc(userKey).collection("session_logs");
-    try {
-      final snapshot = await ref.get();
-      Map<String, dynamic> docs = {};
-      for (var query in snapshot.docs) {
-        docs[query.id] = query.data();
-      }
-      return docs;
-    } catch (error) {
-      return {};
-    }
+    return await getDataFromRef(ref);
   }
 
   /// Uploads the given file to Firebase Storage with the given filename
@@ -192,6 +183,24 @@ class FirestoreDatabase {
         .doc("pfp_url");
 
     await ref.set({});
+  }
+
+  Future<Map<String,dynamic>> getSessionMessages(String sessionKey) async {
+    final ref = db.collection("sessions").doc(sessionKey).collection("chat_room");
+    return await getDataFromRef(ref);
+  }
+
+  Future<Map<String, dynamic>> getDataFromRef(CollectionReference ref) async {
+    try {
+      final snapshot = await ref.get();
+      Map<String, dynamic> docs = {};
+      for (var query in snapshot.docs) {
+        docs[query.id] = query.data();
+      }
+      return docs;
+    } catch (error) {
+      return {};
+    }
   }
 }
 

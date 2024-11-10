@@ -55,6 +55,7 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   flutter_chat_ui: ^1.6.15
   flutter_chat_types: ^3.6.2
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
