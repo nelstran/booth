@@ -126,7 +126,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
                 builder: (context, snapshot) {
                   // Keep users' names up to date in chat room
                   return StreamBuilder(
-                    stream: widget.controller.studentRef.onValue,
+                    stream: widget.controller.studentRef().onValue,
                     builder: (context, snapshot) {
                       return Chat(
                         // Customize the chat to our liking

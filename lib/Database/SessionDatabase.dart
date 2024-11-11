@@ -239,11 +239,14 @@ class SessionDatabase {
     return event.snapshot.value;
   }
 
+  /// Method to create a set of mock data for presentation purposes
+  /// TODO: Delete in production
   Future<void> createSampleSession(Map sample) async {
     final newRef = ref.child('institutions/$institution/sessions').push();
     await newRef.set(sample);
   }
 
+  /// Given a [userKey] and [onlineStatus] set to user's entry in the database
   Future<void> setOnlinePresence(String userKey, Map onlineStatus) async {
     final newRef = ref.child('users/$userKey');
     await newRef.update({"onlineStatus": onlineStatus});

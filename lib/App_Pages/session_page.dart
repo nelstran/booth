@@ -79,7 +79,7 @@ class _SessionPage extends State<SessionPage>
                 }
               String institution = widget.controller.studentInstitution;
               return StreamBuilder(
-                stream: widget.controller.studentRef.child("friends").onValue,
+                stream: widget.controller.studentRef().child("friends").onValue,
                 builder: (c, s) {
                   if (s.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -98,7 +98,7 @@ class _SessionPage extends State<SessionPage>
 
               // Getting list of blocked users --------------------------------------------  
               return StreamBuilder(
-                stream: widget.controller.studentRef.child("blocked_from").onValue,
+                stream: widget.controller.studentRef().child("blocked_from").onValue,
                 builder: (c, s) {
                   if (s.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -113,7 +113,7 @@ class _SessionPage extends State<SessionPage>
                   blockedFromList = blockedFromEntry.keys.toList();
               
               return StreamBuilder(
-                stream: widget.controller.studentRef.child("blocked").onValue,
+                stream: widget.controller.studentRef().child("blocked").onValue,
                 builder: (c, s) {
                   if (s.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());

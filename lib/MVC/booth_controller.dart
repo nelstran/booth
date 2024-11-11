@@ -24,7 +24,10 @@ class BoothController extends ValueNotifier {
 
   DatabaseReference get sessionRef =>
       ref.child("institutions/$studentInstitution/sessions");
-  DatabaseReference get studentRef => ref.child("users/${student.key}");
+  DatabaseReference studentRef([String? userKey]){
+    userKey = userKey ?? student.key;
+    return ref.child("users/$userKey");
+  }
 
   // Used for disposing streams
   late StreamSubscription<DatabaseEvent> entryStream;
@@ -116,7 +119,7 @@ class BoothController extends ValueNotifier {
       // method to add a set which will only trigger once this 
       // client has disconnected by closing the app, 
       // losing internet, or any other means.
-      await studentRef.child("onlineStatus").onDisconnect().set(_isOfflineForDatabase);
+      await studentRef().child("onlineStatus").onDisconnect().set(_isOfflineForDatabase);
       setOnlinePresence(true);
     });
   }
@@ -450,6 +453,7 @@ class BoothController extends ValueNotifier {
     notifyListeners();
   }
 
+  /// Give [isOnline] value, Give the associated state to the database
   Future<void> setOnlinePresence(bool isOnline) async {
     await db.setOnlinePresence(student.key, isOnline ? _isOnlineForDatabase : _isOfflineForDatabase);
   }
