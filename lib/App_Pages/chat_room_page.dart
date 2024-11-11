@@ -36,8 +36,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
   late final types.User _user;
   late Stream<QuerySnapshot<Object?>> chatRoomStream;
 
-  StreamController<List<types.TextMessage>> messageStream = StreamController();
-  List<types.TextMessage> _messages = [];
+  StreamController<List<types.Message>> messageStream = StreamController();
+  List<types.Message> _messages = [];
   FocusNode focus = FocusNode();
   bool isInThisSession = false;
 
@@ -65,6 +65,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
       appBar: AppBar(
         title: const Text("Chat room")
       ),
+      // Get current state of messages and stream new ones
       body: StreamBuilder(
         stream: chatRoomStream,
         builder: (context, snapshot) {
@@ -94,7 +95,16 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
               }
             }
           }
-          _messages.sort((a, b) => b.createdAt! - a.createdAt!);
+          _messages.sort((a, b) {
+            if (a.createdAt == null){
+              return -2147483648;
+            }
+            if (b.createdAt == null){
+              return 0;
+            }
+            return b.createdAt! - a.createdAt!;
+          });
+          // Notifies users when the session has been deleted
           return StreamBuilder(
             stream: widget.controller.sessionRef.child(widget.sessionKey).onValue,
             builder: (context, snapshot) {
@@ -102,16 +112,20 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
               if (snapshot.hasData && !snapshot.data!.snapshot.exists){
                 _messages.clear();
                 _sendDeletionNotice();
+                isInThisSession = false;
               }
+              // This updates on local changes of the chat room, like System messages
               return StreamBuilder(
                 stream: messageStream.stream,
                 builder: (context, snapshot) {
+                  // Keep users' names up to date in chat room
                   return StreamBuilder(
                     stream: widget.controller.studentRef.onValue,
                     builder: (context, snapshot) {
                       return Chat(
                         timeFormat: DateFormat.jm(),
                         avatarBuilder: _cachedAvatarBuilder,
+                        systemMessageBuilder: _systemMessageBuilder,
                         customBottomWidget: bottomInputBar(),
                         messages: _messages,
                         theme: const DarkChatTheme(
@@ -236,7 +250,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     types.PreviewData previewData,
   ) {
     final index = _messages.indexWhere((element) => element.id == message.id);
-    final updatedMessage = (_messages[index]).copyWith(
+    final updatedMessage = (_messages[index] as types.TextMessage).copyWith(
       previewData: previewData,
     );
 
@@ -257,16 +271,21 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
   }
 
   void _sendWarning() {
+    String warning = "This chat can be read by anyone! \nDo not share sensitive and personal information over Booth!";
+    _sendSystemMessage(warning);
+  }
+
+  void _sendSystemMessage(String text){
     types.User user = const types.User(
       id: 'Booth',
       firstName: "BOOTH",
       lastName: "(automated message)",
     );
-    String warning = "This chat can be read by anyone! \nDo not share sensitive and personal information over Booth!";
+    String warning = text;
 
-    final textMessage = types.TextMessage(
+    final textMessage = types.SystemMessage(
       author: user,
-      createdAt: 0,
+      // createdAt: 0,
       id: const Uuid().v4(), // Create random id per message
       text: warning,
     );
@@ -275,21 +294,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
   }
 
   void _sendDeletionNotice(){
-    types.User user = const types.User(
-      id: 'Booth',
-      firstName: "BOOTH",
-      lastName: "(automated message)",
-    );
     String warning = "The host has deleted this session. Feel free to join a new session or create your own!";
-
-    final textMessage = types.TextMessage(
-      author: user,
-      createdAt: 0,
-      id: const Uuid().v4(), // Create random id per message
-      text: warning,
-    );
-
-    _messages.add(textMessage);
+    _sendSystemMessage(warning);
     messageStream.add(_messages);
   }
 
@@ -306,6 +312,23 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     );
     _handleSendPressed(partialText);
     messageController.clear();
+  }
+
+  Widget _systemMessageBuilder(types.SystemMessage message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          message.text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 15,
+            fontWeight: FontWeight.bold
+          )
+        ),
+      )
+    );
   }
 
   Widget _cachedAvatarBuilder(types.User author) {
@@ -415,5 +438,4 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
       }
     );
   }
-
 }

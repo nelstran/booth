@@ -270,8 +270,17 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
                 ],
               );
             } else if (snapshot.hasData && !snapshot.data!.snapshot.exists){
-              // Set text instead of automatically going back otherwise would confuse users
-              return const Center(child: Text("This session no longer exists..."));
+              return const Center(
+                child: Text(
+                  "This session no longer exists",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold
+                  )
+                )
+              );
             } else {
               return const Center(child: CircularProgressIndicator());
             }
