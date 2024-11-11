@@ -244,12 +244,8 @@ class SessionDatabase {
     await newRef.set(sample);
   }
 
-  Future<Object?> getUid(
-      String institution, String seshKey, String ownerKey) async {
-    // Adjust the path to point exactly to the uid location
-    final newRef = await ref
-        .child("institutions/$institution/sessions/$seshKey/users/$ownerKey");
-    final event = await newRef.once();
-    return event.snapshot.value;
+  Future<void> setOnlinePresence(String userKey, Map onlineStatus) async {
+    final newRef = ref.child('users/$userKey');
+    await newRef.update({"onlineStatus": onlineStatus});
   }
 }

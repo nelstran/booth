@@ -9,11 +9,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(const BoothApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BoothApp extends StatelessWidget {
+  const BoothApp({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -26,6 +26,28 @@ class BoothController extends ValueNotifier {
       ref.child("institutions/$studentInstitution/sessions");
   DatabaseReference get studentRef => ref.child("users/${student.key}");
 
+  // Used for disposing streams
+  late StreamSubscription<DatabaseEvent> entryStream;
+  late StreamSubscription<DatabaseEvent> schoolStream;
+  late StreamSubscription<DatabaseEvent> profileStream;
+
+  final Map _isOfflineForDatabase = {
+      'isOnline': false,
+      'last_changed': ServerValue.timestamp,
+  };
+  final Map _isOnlineForDatabase = {
+      'isOnline': true,
+      'last_changed': ServerValue.timestamp,
+  };
+
+  @override
+  void dispose(){
+    super.dispose();
+    entryStream.cancel();
+    schoolStream.cancel();
+    profileStream.cancel();
+  }
+
   // Constructor
   BoothController(
     this.ref,
@@ -79,6 +101,23 @@ class BoothController extends ValueNotifier {
           print(e);
         }
       }
+    });
+
+    // Create a reference to the special '.info/connected' path in 
+    // Realtime Database. This path returns `true` when connected
+    // and `false` when disconnected.
+    ref.child(".info/connected").onValue.listen((event) async {
+      if (!(event.snapshot.value as bool)){
+        setOnlinePresence(false);
+        return;
+      }
+
+      // If we are currently connected, then use the 'onDisconnect()' 
+      // method to add a set which will only trigger once this 
+      // client has disconnected by closing the app, 
+      // losing internet, or any other means.
+      await studentRef.child("onlineStatus").onDisconnect().set(_isOfflineForDatabase);
+      setOnlinePresence(true);
     });
   }
 
@@ -409,5 +448,9 @@ class BoothController extends ValueNotifier {
   void setFriendsTab(bool value) {
     friendsOnlyNotifier.value = value;
     notifyListeners();
+  }
+
+  Future<void> setOnlinePresence(bool isOnline) async {
+    await db.setOnlinePresence(student.key, isOnline ? _isOnlineForDatabase : _isOfflineForDatabase);
   }
 }

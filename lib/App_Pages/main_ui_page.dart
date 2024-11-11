@@ -27,7 +27,7 @@ class MainUIPage extends StatefulWidget {
   State<MainUIPage> createState() => _MainUIPageState();
 }
 
-class _MainUIPageState extends State<MainUIPage> {
+class _MainUIPageState extends State<MainUIPage>{
   // Reference to the Firebase Database sessions node
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   late final BoothController controller = BoothController(_ref);
@@ -44,44 +44,6 @@ class _MainUIPageState extends State<MainUIPage> {
   StreamController<bool> appSetupStream = StreamController<bool>();
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: appSetupStream.stream,
-      builder: (context, snapshot){
-        if(snapshot.hasData){
-          return createUI();
-        }
-        else{
-          return const Center(child: CircularProgressIndicator());
-        }
-      }
-    );
-  }
-
-  Future<void> appSetup(user) async {
-    // String data = await controller.fetchAccountInfo(user);
-    await controller.fetchAccountInfo(user);
-    accountSpecificSetup();
-
-    String institution = controller.studentInstitution;
-    // Make sure users are assigned an institution
-    if (institution == "" && mounted) {
-      await Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-              builder: (context) => InstitutionsPage(
-                  controller, widget.isLoggingIn ? "Login" : "Register")),
-          (route) => false);
-    }
-    Map sessions = await controller.getInstitute(institution);
-    if (sessions.isEmpty) {
-      // Create dummy data
-      var numOfSessions = Random().nextInt(9) + 6;
-      controller.createNSampleSessions(numOfSessions);
-    }
-    appSetupStream.sink.add(true);
-  }
-
-  @override
   void dispose() {
     pageController.dispose();
     super.dispose();
@@ -90,6 +52,7 @@ class _MainUIPageState extends State<MainUIPage> {
   @override
   void initState() {
     super.initState();
+
     appSetup(widget.user);
     // controller.fetchAccountInfo(widget.user!).whenComplete(() {
     //   accountSpecificSetup();
@@ -179,6 +142,44 @@ class _MainUIPageState extends State<MainUIPage> {
       Icon(Icons.people),
       Icon(Icons.school),
     ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: appSetupStream.stream,
+      builder: (context, snapshot){
+        if(snapshot.hasData){
+          return createUI();
+        }
+        else{
+          return const Center(child: CircularProgressIndicator());
+        }
+      }
+    );
+  }
+
+  Future<void> appSetup(user) async {
+    // String data = await controller.fetchAccountInfo(user);
+    await controller.fetchAccountInfo(user);
+    accountSpecificSetup();
+
+    String institution = controller.studentInstitution;
+    // Make sure users are assigned an institution
+    if (institution == "" && mounted) {
+      await Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+              builder: (context) => InstitutionsPage(
+                  controller, widget.isLoggingIn ? "Login" : "Register")),
+          (route) => false);
+    }
+    Map sessions = await controller.getInstitute(institution);
+    if (sessions.isEmpty) {
+      // Create dummy data
+      var numOfSessions = Random().nextInt(9) + 6;
+      controller.createNSampleSessions(numOfSessions);
+    }
+    appSetupStream.sink.add(true);
   }
 
   void accountSpecificSetup() {
@@ -368,6 +369,7 @@ class _MainUIPageState extends State<MainUIPage> {
   /// *********  HELPER METHODS  *****************
   // This method logs the user out
   void logout() {
+    controller.setOnlinePresence(false);
     FirebaseAuth.instance.signOut();
   }
 
