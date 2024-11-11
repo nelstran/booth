@@ -35,7 +35,7 @@ class Student {
     uid = json['uid'] ?? "";
 
     firstName = name.first;
-    lastName = name.last;
+    lastName = name.length > 1 ? name.last : "";
     _fullname = json['name'];
 
     if (json.containsKey('session')) session = json['session'];

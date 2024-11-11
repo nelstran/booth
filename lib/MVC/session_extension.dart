@@ -4,8 +4,6 @@ import 'package:Booth/MVC/analytics_extension.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/student_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 
 extension SessionExtension on BoothController {
   /// Get all open session at the given school, if no school is given, search the user's assigned school

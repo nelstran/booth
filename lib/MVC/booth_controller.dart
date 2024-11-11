@@ -410,11 +410,4 @@ class BoothController extends ValueNotifier {
     friendsOnlyNotifier.value = value;
     notifyListeners();
   }
-
-  //Gets the "uid" from the "FireStore Key"
-  Future<Object?> getUid(
-      String institution, String seshKey, String ownerKey) async {
-    final uid = await db.getUid(institution, seshKey, ownerKey);
-    return uid;
-  }
 }

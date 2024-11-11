@@ -19,8 +19,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
   late PageController pageController;
   int currPageIndex = 0;
   List<Widget> pages = [];
-
-  late Stream sessionStream;
+  
   @override
   void initState() {
     super.initState();
