@@ -117,6 +117,9 @@ class FirestoreDatabase {
 
   /// Delete session image given the [sessionKey]
   Future<void> deleteSessionPicture(String sessionKey) async {
+    if (sessionKey.isEmpty){
+      return;
+    }
     try{
       final refStorage = storage.ref();
       final sessionRef = refStorage.child("session_pictures/$sessionKey");
@@ -158,7 +161,6 @@ class FirestoreDatabase {
         return null;
       }
     } catch (error) {
-      print(error);
       return null;
     }
   }
@@ -200,6 +202,28 @@ class FirestoreDatabase {
     }
     final ref = db.collection("sessions").doc(key).collection("chat_room");
     await ref.doc(message.id).set(message.toJson());
+  }
+
+  Future<void> deleteSessionChatHistory(String key) async {
+    if (key.isEmpty){
+      return;
+    }
+    try{
+      final ref = db
+      .collection("sessions")
+      .doc(key)
+      .collection("chat_room");
+
+      // Cannot delete a whole collection at once, we need to go through each message and delete it manually
+      ref.get().then((snapshot){
+        for (var doc in snapshot.docs) {
+          doc.reference.delete();
+        }
+      });
+    }
+    catch (e){
+      return;
+    }
   }
 
 

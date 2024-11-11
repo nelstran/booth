@@ -102,6 +102,7 @@ extension SessionExtension on BoothController {
   Future<void> removeSession(String key) async {
     await db.removeSession(key);
     await firestoreDb.deleteSessionPicture(key);
+    await firestoreDb.deleteSessionChatHistory(key);
   }
 
   Future<void> editSession(String key, Map<String, Object?> values) async {

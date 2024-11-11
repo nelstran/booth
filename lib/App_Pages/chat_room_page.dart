@@ -30,12 +30,16 @@ class ChatRoomPage extends StatefulWidget {
 class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClientMixin{
   @override
   bool get wantKeepAlive => true;
+
   late TextEditingController messageController;
   late final types.User _user;
+  late Stream<QuerySnapshot<Object?>> chatRoomStream;
+
+  StreamController<List<types.TextMessage>> messageStream = StreamController();
   List<types.TextMessage> _messages = [];
   FocusNode focus = FocusNode();
-  StreamController<List<types.TextMessage>> messageStream = StreamController();
-  late Stream<QuerySnapshot<Object?>> chatRoomStream;
+  bool isInThisSession = false;
+
   @override
   void initState(){
     super.initState();
@@ -50,6 +54,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     _sendWarning();
     messageController = TextEditingController();
     chatRoomStream = widget.controller.sessionChatRef(widget.sessionKey).snapshots();
+    isInThisSession = widget.controller.student.session == widget.sessionKey;
   }
 
   @override
@@ -92,38 +97,44 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
           return StreamBuilder(
             stream: messageStream.stream,
             builder: (context, snapshot) {
-              return Chat(
-                timeFormat: DateFormat.jm(),
-                avatarBuilder: _cachedAvatarBuilder,
-                customBottomWidget: bottomInputBar(),
-                messages: _messages,
-                theme: const DarkChatTheme(
-                  userAvatarNameColors: [Colors.white],
-                  sentMessageBodyLinkTextStyle: TextStyle(
-                    decoration: TextDecoration.underline
-                  ),
-                  receivedMessageBodyLinkTextStyle: TextStyle(
-                    decoration: TextDecoration.underline
-                  ),
-                  userNameTextStyle: TextStyle(
-                    fontSize: 15,
-                    fontFamily: 'RobotoMono',
-                    // fontWeight: FontWeight.bold,
-                    fontStyle: FontStyle.italic
-                  ),
-                  backgroundColor: Color.fromARGB(255, 18, 18, 18),
-                  inputBackgroundColor: Color.fromARGB(106, 78, 78, 78),
-                  primaryColor: Color.fromARGB(106, 78, 78, 78),
-                  secondaryColor: Color.fromARGB(255, 0,51,102),
-                ),
-                // onAttachmentPressed: _handleAttachmentPressed,
-                onMessageTap: _handleMessageTap,
-                onPreviewDataFetched: _handlePreviewDataFetched,
-                usePreviewData: true,
-                onSendPressed: _handleSendPressed,
-                showUserAvatars: true,
-                showUserNames: true,
-                user: _user,
+              return StreamBuilder(
+                stream: widget.controller.studentRef.onValue,
+                builder: (context, snapshot) {
+                  isInThisSession = widget.controller.student.session == widget.sessionKey;
+                  return Chat(
+                    timeFormat: DateFormat.jm(),
+                    avatarBuilder: _cachedAvatarBuilder,
+                    customBottomWidget: bottomInputBar(),
+                    messages: _messages,
+                    theme: const DarkChatTheme(
+                      userAvatarNameColors: [Colors.white],
+                      sentMessageBodyLinkTextStyle: TextStyle(
+                        decoration: TextDecoration.underline
+                      ),
+                      receivedMessageBodyLinkTextStyle: TextStyle(
+                        decoration: TextDecoration.underline
+                      ),
+                      userNameTextStyle: TextStyle(
+                        fontSize: 15,
+                        fontFamily: 'RobotoMono',
+                        // fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic
+                      ),
+                      backgroundColor: Color.fromARGB(255, 18, 18, 18),
+                      inputBackgroundColor: Color.fromARGB(106, 78, 78, 78),
+                      primaryColor: Color.fromARGB(106, 78, 78, 78),
+                      secondaryColor: Color.fromARGB(255, 0,51,102),
+                    ),
+                    // onAttachmentPressed: _handleAttachmentPressed,
+                    onMessageTap: _handleMessageTap,
+                    onPreviewDataFetched: _handlePreviewDataFetched,
+                    usePreviewData: true,
+                    onSendPressed: _handleSendPressed,
+                    showUserAvatars: true,
+                    showUserNames: true,
+                    user: _user,
+                  );
+                }
               );
             }
           );
@@ -312,35 +323,56 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
           topRight: Radius.circular(20.0),
         ),
       ),
+      child: isInThisSession ? chatRoomInput() : disabledInput()
+    );
+  }
+  Widget disabledInput() {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
       child: TextField(
-        maxLines: 5,
-        minLines: 1,
-        focusNode: focus,
+        readOnly: true,
         textAlignVertical: TextAlignVertical.center,
-        controller: messageController,
         decoration: InputDecoration(
           isCollapsed: true,
-          hintText: "Message",
-          hintStyle: const TextStyle(
+          hintText: "Join this session to start chatting",
+          hintStyle: TextStyle(
             fontSize: 16, 
             color: Colors.grey
           ),
           border: InputBorder.none,
-          suffixIcon: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              backgroundColor: const Color.fromARGB(255, 16, 90, 151)
-            ),
-            onPressed: _onTextFieldSubmit,
-            child: const Icon(Icons.send)
-          )
         ),
-        onSubmitted: (value) {
-          _onTextFieldSubmit();
-          focus.requestFocus();
-        }
-        // onChanged: (value) => messageController.text = value.trim(),
-      )
+      ),
+    );
+  }
+
+  TextField chatRoomInput() {
+    return TextField(
+      maxLines: 5,
+      minLines: 1,
+      focusNode: focus,
+      textAlignVertical: TextAlignVertical.center,
+      controller: messageController,
+      decoration: InputDecoration(
+        isCollapsed: true,
+        hintText: "Message",
+        hintStyle: const TextStyle(
+          fontSize: 16, 
+          color: Colors.grey
+        ),
+        border: InputBorder.none,
+        suffixIcon: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            backgroundColor: const Color.fromARGB(255, 16, 90, 151)
+          ),
+          onPressed: _onTextFieldSubmit,
+          child: const Icon(Icons.send)
+        )
+      ),
+      onSubmitted: (value) {
+        _onTextFieldSubmit();
+        focus.requestFocus();
+      }
     );
   }
 
