@@ -57,6 +57,7 @@ dependencies:
   flutter_chat_types: ^3.6.2
   uuid: ^4.5.1
   url_launcher: ^6.3.1
+  custom_info_window: ^1.0.1
 
 dev_dependencies:
   flutter_test:

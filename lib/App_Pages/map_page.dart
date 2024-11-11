@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -34,6 +35,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   bool get wantKeepAlive => true;
   Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   late GoogleMapController googleMapController;
+  final customInfoWindowController = CustomInfoWindowController();
 
   Map<String, Marker> markers = {};
   LatLng? maxPos;
@@ -165,7 +167,11 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     final Marker marker = Marker(
       markerId: markerId,
       position: location,
-      infoWindow: InfoWindow(title: title),
+      // infoWindow: InfoWindow(title: title),
+      onTap: () {
+        customInfoWindowController.addInfoWindow!(
+            _buildCustomInfoWindow(), location);
+      },
       icon: pfpIcon,
     );
     markers[id] = marker;
@@ -353,9 +359,22 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           myLocationButtonEnabled: false,
           myLocationEnabled: true,
           onMapCreated: (GoogleMapController controller) {
+            customInfoWindowController.googleMapController = controller;
             googleMapController = controller;
           },
+          onTap: (location) {
+            customInfoWindowController.hideInfoWindow!();
+          },
+          onCameraMove: (position) {
+            customInfoWindowController.onCameraMove!();
+          },
           zoomControlsEnabled: false,
+        ),
+        CustomInfoWindow(
+          controller: customInfoWindowController,
+          height: 250,
+          width: 250,
+          offset: 50,
         ),
         Positioned(
           top: 16,
@@ -446,4 +465,91 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       ],
     );
   }
+}
+
+Widget _buildCustomInfoWindow() {
+  return Container(
+    padding: const EdgeInsets.all(10.0),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade800,
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Title",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
+                ),
+                SizedBox(height: 2),
+                Text("Description"),
+                SizedBox(height: 5),
+                Text("Start - End"),
+              ],
+            ),
+            CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.grey[300],
+              child: const Text("PFP"),
+            ),
+          ],
+        ),
+        const SizedBox(height: 9),
+        const Text("Users", style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            CircleAvatar(
+                radius: 17,
+                backgroundColor: Colors.grey[300],
+                child: const Text("PFP")),
+            const SizedBox(width: 5),
+            CircleAvatar(
+                radius: 17,
+                backgroundColor: Colors.grey[300],
+                child: const Text("PFP")),
+            const SizedBox(width: 5),
+            CircleAvatar(
+                radius: 17,
+                backgroundColor: Colors.grey[300],
+                child: const Text("PFP")),
+            const SizedBox(width: 5),
+            CircleAvatar(
+                radius: 17,
+                backgroundColor: Colors.grey[300],
+                child: const Text("PFP")),
+            const SizedBox(width: 5),
+            CircleAvatar(
+                radius: 17,
+                backgroundColor: Colors.grey[300],
+                child: const Text("PFP")),
+            const SizedBox(width: 5),
+            CircleAvatar(
+                radius: 17,
+                backgroundColor: Colors.grey[300],
+                child: const Text("+5")),
+          ],
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "\"Location Description\"",
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+        const ElevatedButton(
+          onPressed: null,
+          child: Text(
+            "JOIN",
+          ),
+        )
+      ],
+    ),
+  );
 }
