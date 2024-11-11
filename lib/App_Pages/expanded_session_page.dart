@@ -6,13 +6,15 @@ import 'package:Booth/MVC/booth_controller.dart';
 class ExpandedSessionPage extends StatefulWidget {
   final BoothController controller;
   final String sessionKey;
-  const ExpandedSessionPage(this.sessionKey, this.controller, {super.key});
+  const ExpandedSessionPage(
+    this.sessionKey, 
+    this.controller, 
+    {super.key}
+    );
   
 
   @override
-  State<ExpandedSessionPage> createState() {
-    return _ExpandedSessionPageState();
-  }
+  State<ExpandedSessionPage> createState() => _ExpandedSessionPageState();
 }
 
 class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
@@ -54,10 +56,28 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PageView(
-      onPageChanged: (value) => changePage(value),
-      controller: pageController,
-      children: pages
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop){
+          return;
+        }
+        if (currPageIndex == 1){
+          pageController.animateToPage(
+            0, 
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOut
+          );
+        }
+        else{
+          Navigator.of(context).pop();
+        }
+      },
+      child: PageView(
+        onPageChanged: (value) => changePage(value),
+        controller: pageController,
+        children: pages
+      ),
     );
   }
 }

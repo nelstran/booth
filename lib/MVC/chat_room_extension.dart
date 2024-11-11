@@ -16,9 +16,9 @@ extension ChatRoomExtension on BoothController {
     }
     final messages = json.values
     .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-    .toList()
-    .reversed
     .toList();
+    
+    messages.sort((a, b) => a.createdAt! - b.createdAt!);
     return messages;
   }
 

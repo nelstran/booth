@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/chat_room_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter/material.dart';
@@ -24,12 +27,15 @@ class ChatRoomPage extends StatefulWidget {
   State<ChatRoomPage> createState() => _ChatRoomPageState();
 }
 
-class _ChatRoomPageState extends State<ChatRoomPage> {
+class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClientMixin{
+  @override
+  bool get wantKeepAlive => true;
   late TextEditingController messageController;
   late final types.User _user;
   List<types.TextMessage> _messages = [];
   FocusNode focus = FocusNode();
-
+  StreamController<List<types.TextMessage>> messageStream = StreamController();
+  late Stream<QuerySnapshot<Object?>> chatRoomStream;
   @override
   void initState(){
     super.initState();
@@ -43,52 +49,49 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     );
     _sendWarning();
     messageController = TextEditingController();
+    chatRoomStream = widget.controller.sessionChatRef(widget.sessionKey).snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop){
-            return;
+    super.build(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Chat room")
+      ),
+      body: StreamBuilder(
+        stream: chatRoomStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting){
+            return const Center(child: CircularProgressIndicator());
           }
-          widget.pg.animateToPage(
-            0, 
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeOut
-          );
-        },
-      child: Scaffold(
-          appBar: AppBar(),
-          body: StreamBuilder(
-            stream: widget.controller
-            .sessionChatRef(widget.sessionKey)
-            .snapshots(),
+          if (snapshot.hasData){
+            for (var document in snapshot.data!.docChanges){
+              try{
+                if (document.type == DocumentChangeType.added){
+                  final newMessage = types.TextMessage.fromJson(document.doc.data() as Map<String, dynamic>);
+                  _messages.insert(0, newMessage);
+                }
+                if(document.type == DocumentChangeType.removed){
+                  final removedMessage = types.TextMessage.fromJson(document.doc.data() as Map<String, dynamic>);
+                  final messages = List.from(_messages);
+                  for(var entry in messages.asMap().entries){
+                    if (entry.value.id == removedMessage.id){
+                      _messages.removeAt(entry.key);
+                      break;
+                    }
+                  }
+                }
+              }
+              catch (e) {
+                // Skip
+              }
+            }
+          }
+          _messages.sort((a, b) => b.createdAt! - a.createdAt!);
+          return StreamBuilder(
+            stream: messageStream.stream,
             builder: (context, snapshot) {
-              if (snapshot.hasData){
-                for (var document in snapshot.data!.docChanges){
-                  try{
-                    if (document.type == DocumentChangeType.added){
-                      final newMessage = types.TextMessage.fromJson(document.doc.data() as Map<String, dynamic>);
-                      _messages.insert(0, newMessage);
-                    }
-                    if(document.type == DocumentChangeType.removed){
-                      final removedMessage = types.TextMessage.fromJson(document.doc.data() as Map<String, dynamic>);
-                      final messages = List.from(_messages);
-                      for(var entry in messages.asMap().entries){
-                        if (entry.value.id == removedMessage.id){
-                          _messages.removeAt(entry.key);
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  catch (e) {
-                    // Skip
-                  }
-                }
-                }
               return Chat(
                 timeFormat: DateFormat.jm(),
                 avatarBuilder: _cachedAvatarBuilder,
@@ -96,44 +99,129 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 messages: _messages,
                 theme: const DarkChatTheme(
                   userAvatarNameColors: [Colors.white],
+                  sentMessageBodyLinkTextStyle: TextStyle(
+                    decoration: TextDecoration.underline
+                  ),
+                  receivedMessageBodyLinkTextStyle: TextStyle(
+                    decoration: TextDecoration.underline
+                  ),
                   userNameTextStyle: TextStyle(
                     fontSize: 15,
                     fontFamily: 'RobotoMono',
                     // fontWeight: FontWeight.bold,
                     fontStyle: FontStyle.italic
                   ),
-                  backgroundColor: Color.fromARGB(255, 24, 24, 24),
+                  backgroundColor: Color.fromARGB(255, 18, 18, 18),
                   inputBackgroundColor: Color.fromARGB(106, 78, 78, 78),
                   primaryColor: Color.fromARGB(106, 78, 78, 78),
                   secondaryColor: Color.fromARGB(255, 0,51,102),
                 ),
                 // onAttachmentPressed: _handleAttachmentPressed,
-                // onMessageTap: _handleMessageTap,
-                // onPreviewDataFetched: _handlePreviewDataFetched,
+                onMessageTap: _handleMessageTap,
+                onPreviewDataFetched: _handlePreviewDataFetched,
+                usePreviewData: true,
                 onSendPressed: _handleSendPressed,
                 showUserAvatars: true,
                 showUserNames: true,
                 user: _user,
-                emptyState: chatWarning(),
               );
             }
-          ),
-        ),
+          );
+        }
+      ),
     );
   }
 
-  Center chatWarning() {
-    return const Center(
-      child: Text(
-        "This chat can be read by anyone! \nDo not share sensitive and personal information over Booth!",
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey
-        )
-      )
+  void _handleMessageTap(BuildContext context, types.Message message){
+    Uri url = Uri();
+    if ((message as types.TextMessage).previewData != null){
+      if(message.previewData!.link != null){
+        url = Uri.parse(message.previewData!.link!);
+        showDialog(
+          context: context, 
+          builder: (context){
+            return AlertDialog(
+          title: const Text(
+            "Navigate off Booth?",
+            // style: TextStyle(fontSize: 30),
+          ),
+          content: RichText(
+            text: TextSpan(
+              text: 'This link will take you to\n',
+              style: DefaultTextStyle.of(context).style,
+              children: [
+                TextSpan(
+                  text: url.toString(),
+                  style: const TextStyle(
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.bold
+                  )
+                ),
+                const TextSpan(
+                  text: "\n\nAre you sure you would like to proceed?"
+                )
+              ]  
+            )
+          ),
+          // contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
+          actions:[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: (){
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                        elevation: 0.0,
+                        shadowColor: Colors.transparent,
+                        backgroundColor: Colors.transparent,
+                        // padding: EdgeInsets.zero
+                        ),
+                    child: const Text(
+                      "Take me back",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (){
+                    launchUrl(url);
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      elevation: 0.0,
+                      // shadowColor: Colors.transparent,
+                      // backgroundColor: Colors.transparent,
+                    ),
+                  child: const Text(
+                    "Yes, I'm sure",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                )
+              ],
+            )
+          ]
+        );
+          });
+      }
+    }
+  }
+  void _handlePreviewDataFetched(
+    types.TextMessage message,
+    types.PreviewData previewData,
+  ) {
+    final index = _messages.indexWhere((element) => element.id == message.id);
+    final updatedMessage = (_messages[index]).copyWith(
+      previewData: previewData,
     );
+
+
+    _messages[index] = updatedMessage as types.TextMessage;
+    messageStream.sink.add(_messages);
   }
 
   void _handleSendPressed(types.PartialText message) {
@@ -151,7 +239,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     types.User user = const types.User(
       id: 'Booth',
       firstName: "BOOTH",
-      lastName: "SYSTEM",
+      lastName: "(automated message)",
     );
     String warning = "This chat can be read by anyone! \nDo not share sensitive and personal information over Booth!";
 
@@ -181,6 +269,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   }
 
   Widget _cachedAvatarBuilder(types.User author) {
+    if (author.id == 'Booth'){
+      return const Padding(
+        padding: EdgeInsets.only(right: 8.0),
+        child: Icon(Icons.gpp_maybe, size: 40),
+      );
+    }
     return FutureBuilder(
       future: widget.controller.getProfilePictureByUID(author.id, true),
       builder: (context, snapshot){
