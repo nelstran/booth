@@ -45,19 +45,6 @@ class _MainUIPageState extends State<MainUIPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get user profile before loading everything
-    // return FutureBuilder(
-    //     future: appSetup(widget.user),
-    //     builder: (context, snapshot) {
-    //       if (snapshot.connectionState == ConnectionState.done) {
-    //         return createUI();
-    //       } else if (snapshot.hasError) {
-    //         return errorDialog();
-    //       } else {
-    //         return const Center(child: CircularProgressIndicator());
-    //         // return const SizedBox.shrink();
-    //       }
-    //     });
     return StreamBuilder(
       stream: appSetupStream.stream,
       builder: (context, snapshot){

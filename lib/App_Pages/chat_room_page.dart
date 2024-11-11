@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/chat_room_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
@@ -95,44 +96,53 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
           }
           _messages.sort((a, b) => b.createdAt! - a.createdAt!);
           return StreamBuilder(
-            stream: messageStream.stream,
+            stream: widget.controller.sessionRef.child(widget.sessionKey).onValue,
             builder: (context, snapshot) {
+              isInThisSession = widget.controller.student.session == widget.sessionKey;
+              if (snapshot.hasData && !snapshot.data!.snapshot.exists){
+                _messages.clear();
+                _sendDeletionNotice();
+              }
               return StreamBuilder(
-                stream: widget.controller.studentRef.onValue,
+                stream: messageStream.stream,
                 builder: (context, snapshot) {
-                  isInThisSession = widget.controller.student.session == widget.sessionKey;
-                  return Chat(
-                    timeFormat: DateFormat.jm(),
-                    avatarBuilder: _cachedAvatarBuilder,
-                    customBottomWidget: bottomInputBar(),
-                    messages: _messages,
-                    theme: const DarkChatTheme(
-                      userAvatarNameColors: [Colors.white],
-                      sentMessageBodyLinkTextStyle: TextStyle(
-                        decoration: TextDecoration.underline
-                      ),
-                      receivedMessageBodyLinkTextStyle: TextStyle(
-                        decoration: TextDecoration.underline
-                      ),
-                      userNameTextStyle: TextStyle(
-                        fontSize: 15,
-                        fontFamily: 'RobotoMono',
-                        // fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic
-                      ),
-                      backgroundColor: Color.fromARGB(255, 18, 18, 18),
-                      inputBackgroundColor: Color.fromARGB(106, 78, 78, 78),
-                      primaryColor: Color.fromARGB(106, 78, 78, 78),
-                      secondaryColor: Color.fromARGB(255, 0,51,102),
-                    ),
-                    // onAttachmentPressed: _handleAttachmentPressed,
-                    onMessageTap: _handleMessageTap,
-                    onPreviewDataFetched: _handlePreviewDataFetched,
-                    usePreviewData: true,
-                    onSendPressed: _handleSendPressed,
-                    showUserAvatars: true,
-                    showUserNames: true,
-                    user: _user,
+                  return StreamBuilder(
+                    stream: widget.controller.studentRef.onValue,
+                    builder: (context, snapshot) {
+                      return Chat(
+                        timeFormat: DateFormat.jm(),
+                        avatarBuilder: _cachedAvatarBuilder,
+                        customBottomWidget: bottomInputBar(),
+                        messages: _messages,
+                        theme: const DarkChatTheme(
+                          userAvatarNameColors: [Colors.white],
+                          sentMessageBodyLinkTextStyle: TextStyle(
+                            decoration: TextDecoration.underline
+                          ),
+                          receivedMessageBodyLinkTextStyle: TextStyle(
+                            decoration: TextDecoration.underline
+                          ),
+                          userNameTextStyle: TextStyle(
+                            fontSize: 15,
+                            fontFamily: 'RobotoMono',
+                            // fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic
+                          ),
+                          backgroundColor: Color.fromARGB(255, 18, 18, 18),
+                          inputBackgroundColor: Color.fromARGB(106, 78, 78, 78),
+                          primaryColor: Color.fromARGB(106, 78, 78, 78),
+                          secondaryColor: Color.fromARGB(255, 0,51,102),
+                        ),
+                        // onAttachmentPressed: _handleAttachmentPressed,
+                        onMessageTap: _handleMessageTap,
+                        onPreviewDataFetched: _handlePreviewDataFetched,
+                        usePreviewData: true,
+                        onSendPressed: _handleSendPressed,
+                        showUserAvatars: true,
+                        showUserNames: true,
+                        user: _user,
+                      );
+                    }
                   );
                 }
               );
@@ -264,6 +274,25 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     _messages.add(textMessage);
   }
 
+  void _sendDeletionNotice(){
+    types.User user = const types.User(
+      id: 'Booth',
+      firstName: "BOOTH",
+      lastName: "(automated message)",
+    );
+    String warning = "The host has deleted this session. Feel free to join a new session or create your own!";
+
+    final textMessage = types.TextMessage(
+      author: user,
+      createdAt: 0,
+      id: const Uuid().v4(), // Create random id per message
+      text: warning,
+    );
+
+    _messages.add(textMessage);
+    messageStream.add(_messages);
+  }
+
   Future<void> _addMessage(types.TextMessage message) async {
     await widget.controller.sendMessageToSession(message, widget.sessionKey);
   }
@@ -286,27 +315,38 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
         child: Icon(Icons.gpp_maybe, size: 40),
       );
     }
-    return FutureBuilder(
-      future: widget.controller.getProfilePictureByUID(author.id, true),
-      builder: (context, snapshot){
-        try{
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: CachedProfilePicture(
-              name: "${author.firstName} ${author.lastName}",
-              imageUrl: snapshot.data,
-              radius: 18,
-              fontSize: 20,
-            ),
-          );
+    return GestureDetector(
+      onTap: () {
+        // Navigate to the profile page of the selected friend
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => UserDisplayPage(
+                widget.controller, author.metadata!['key'], false),
+          ),
+        );
+      },
+      child: FutureBuilder(
+        future: widget.controller.getProfilePictureByUID(author.id, true),
+        builder: (context, snapshot){
+          try{
+            return Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: CachedProfilePicture(
+                name: "${author.firstName} ${author.lastName}",
+                imageUrl: snapshot.data,
+                radius: 18,
+                fontSize: 20,
+              ),
+            );
+          }
+          catch (e){
+            return const Padding(
+              padding: EdgeInsets.only(right: 8.0),
+              child: CircleAvatar(radius: 18,),
+            );
+          }
         }
-        catch (e){
-          return const Padding(
-            padding: EdgeInsets.only(right: 8.0),
-            child: CircleAvatar(radius: 18,),
-          );
-        }
-      }
+      ),
     );
   }
   
