@@ -3,6 +3,8 @@ import 'package:Booth/App_Pages/session_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 
+/// This page will now hold the session details and the session chat room, 
+/// users will be able to navigate between the 2 freely with the Pageview
 class ExpandedSessionPage extends StatefulWidget {
   final BoothController controller;
   final String sessionKey;
@@ -10,8 +12,7 @@ class ExpandedSessionPage extends StatefulWidget {
     this.sessionKey, 
     this.controller, 
     {super.key}
-    );
-  
+  );
 
   @override
   State<ExpandedSessionPage> createState() => _ExpandedSessionPageState();
@@ -34,7 +35,9 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     ];
   }
 
+  /// Helper method to change the page
   void changePage(int index){
+    // Remove keyboard then swiping away from chat room
     if (index == 0){
       FocusManager.instance.primaryFocus?.unfocus();
     }
@@ -62,6 +65,7 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
         if (didPop){
           return;
         }
+        // Going back on the chat room goes back to the session details
         if (currPageIndex == 1){
           pageController.animateToPage(
             0, 

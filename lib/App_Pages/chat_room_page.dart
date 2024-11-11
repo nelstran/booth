@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/chat_room_extension.dart';
@@ -61,6 +60,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // Lots of streams smh
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chat room")
@@ -73,15 +73,18 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasData){
+            // Add each new message that comes in
             for (var document in snapshot.data!.docChanges){
               try{
                 if (document.type == DocumentChangeType.added){
                   final newMessage = types.TextMessage.fromJson(document.doc.data() as Map<String, dynamic>);
                   _messages.insert(0, newMessage);
                 }
+                // Remove messages from UI
                 if(document.type == DocumentChangeType.removed){
                   final removedMessage = types.TextMessage.fromJson(document.doc.data() as Map<String, dynamic>);
                   final messages = List.from(_messages);
+                  // Go through the message list and remove messages that have been deleted from database
                   for(var entry in messages.asMap().entries){
                     if (entry.value.id == removedMessage.id){
                       _messages.removeAt(entry.key);
@@ -95,8 +98,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
               }
             }
           }
+
+          // Sort messages by time
           _messages.sort((a, b) {
-            if (a.createdAt == null){
+            if (a.createdAt == null){ // System messages do not have a time stamp, put them at the top (for now)
               return -2147483648;
             }
             if (b.createdAt == null){
@@ -110,6 +115,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
             builder: (context, snapshot) {
               isInThisSession = widget.controller.student.session == widget.sessionKey;
               if (snapshot.hasData && !snapshot.data!.snapshot.exists){
+                // Delete all messages and display deletion notice
                 _messages.clear();
                 _sendDeletionNotice();
                 isInThisSession = false;
@@ -123,19 +129,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
                     stream: widget.controller.studentRef.onValue,
                     builder: (context, snapshot) {
                       return Chat(
-                        timeFormat: DateFormat.jm(),
-                        avatarBuilder: _cachedAvatarBuilder,
-                        systemMessageBuilder: _systemMessageBuilder,
-                        customBottomWidget: bottomInputBar(),
-                        messages: _messages,
+                        // Customize the chat to our liking
                         theme: const DarkChatTheme(
                           userAvatarNameColors: [Colors.white],
-                          sentMessageBodyLinkTextStyle: TextStyle(
-                            decoration: TextDecoration.underline
-                          ),
-                          receivedMessageBodyLinkTextStyle: TextStyle(
-                            decoration: TextDecoration.underline
-                          ),
                           userNameTextStyle: TextStyle(
                             fontSize: 15,
                             fontFamily: 'RobotoMono',
@@ -147,11 +143,17 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
                           primaryColor: Color.fromARGB(106, 78, 78, 78),
                           secondaryColor: Color.fromARGB(255, 0,51,102),
                         ),
+                        timeFormat: DateFormat.jm(), // Set time as XX:XX AM/PM
+                        // timeFormat: DateFormat.yMd().add_jm() // Adds date plus time
+                        avatarBuilder: _cachedAvatarBuilder,
+                        systemMessageBuilder: _systemMessageBuilder,
+                        customBottomWidget: bottomInputBar(),
+                        messages: _messages,
                         // onAttachmentPressed: _handleAttachmentPressed,
                         onMessageTap: _handleMessageTap,
                         onPreviewDataFetched: _handlePreviewDataFetched,
-                        usePreviewData: true,
                         onSendPressed: _handleSendPressed,
+                        usePreviewData: true,
                         showUserAvatars: true,
                         showUserNames: true,
                         user: _user,
@@ -167,6 +169,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     );
   }
 
+  /// Detect when messages with a link has been tapped, then 
+  /// confirm with users if they would like to proceed
   void _handleMessageTap(BuildContext context, types.Message message){
     Uri url = Uri();
     if ((message as types.TextMessage).previewData != null){
@@ -198,7 +202,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
               ]  
             )
           ),
-          // contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
           actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
           actions:[
             Row(
@@ -229,8 +232,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
                   },
                   style: ElevatedButton.styleFrom(
                       elevation: 0.0,
-                      // shadowColor: Colors.transparent,
-                      // backgroundColor: Colors.transparent,
                     ),
                   child: const Text(
                     "Yes, I'm sure",
@@ -245,6 +246,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
       }
     }
   }
+
+  /// Add preview data when it detects the message has a link
   void _handlePreviewDataFetched(
     types.TextMessage message,
     types.PreviewData previewData,
@@ -254,11 +257,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
       previewData: previewData,
     );
 
-
     _messages[index] = updatedMessage as types.TextMessage;
     messageStream.sink.add(_messages);
   }
 
+  /// Setup the message object given a partial text from the chat UI
   void _handleSendPressed(types.PartialText message) {
     final textMessage = types.TextMessage(
       author: _user,
@@ -270,39 +273,20 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     _addMessage(textMessage);
   }
 
+  /// Method to send the privacy warning
   void _sendWarning() {
     String warning = "This chat can be read by anyone! \nDo not share sensitive and personal information over Booth!";
     _sendSystemMessage(warning);
   }
 
-  void _sendSystemMessage(String text){
-    types.User user = const types.User(
-      id: 'Booth',
-      firstName: "BOOTH",
-      lastName: "(automated message)",
-    );
-    String warning = text;
-
-    final textMessage = types.SystemMessage(
-      author: user,
-      // createdAt: 0,
-      id: const Uuid().v4(), // Create random id per message
-      text: warning,
-    );
-
-    _messages.add(textMessage);
-  }
-
+  /// Method to notify users that the session has been deleted
   void _sendDeletionNotice(){
     String warning = "The host has deleted this session. Feel free to join a new session or create your own!";
     _sendSystemMessage(warning);
     messageStream.add(_messages);
   }
 
-  Future<void> _addMessage(types.TextMessage message) async {
-    await widget.controller.sendMessageToSession(message, widget.sessionKey);
-  }
-
+  /// Make sure users dont send an empty text and clear the textfield when submitting
   void _onTextFieldSubmit(){
     if(messageController.text.isEmpty){
       return;
@@ -312,6 +296,29 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     );
     _handleSendPressed(partialText);
     messageController.clear();
+  }
+
+  /// Helper method to send system message 
+  void _sendSystemMessage(String text){
+    types.User user = const types.User(
+      id: 'Booth',
+      firstName: "BOOTH",
+      lastName: "(automated message)",
+    );
+
+    final textMessage = types.SystemMessage(
+      author: user,
+      // createdAt: 0,
+      id: const Uuid().v4(), // Create random id per message
+      text: text,
+    );
+
+    _messages.add(textMessage);
+  }
+
+  /// Adds the message to the database
+  Future<void> _addMessage(types.TextMessage message) async {
+    await widget.controller.sendMessageToSession(message, widget.sessionKey);
   }
 
   Widget _systemMessageBuilder(types.SystemMessage message) {
@@ -340,7 +347,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
     }
     return GestureDetector(
       onTap: () {
-        // Navigate to the profile page of the selected friend
+        // Navigate to the profile page
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => UserDisplayPage(

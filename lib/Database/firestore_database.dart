@@ -76,7 +76,7 @@ class FirestoreDatabase {
   /// Grabs user study data from Firestore, [userKey] uses UID
   Future<Map<String, dynamic>?> fetchuserStudyData(String userKey) async {
     final ref = db.collection("users").doc(userKey).collection("session_logs");
-    return await getDataFromRef(ref);
+    return await _getDataFromRef(ref);
   }
 
   /// Uploads the given file to Firebase Storage with the given filename
@@ -188,36 +188,30 @@ class FirestoreDatabase {
     await ref.set({});
   }
 
-  Future<Map<String,dynamic>> getSessionMessages(String key) async {
-    if (key.isEmpty){
-      return {};
-    }
-    final ref = db.collection("sessions").doc(key).collection("chat_room");
-    return await getDataFromRef(ref);
-  }
-
-  Future<void> sendMessageToSession(TextMessage message, String key) async{
-    if (key.isEmpty){
+  /// Send the TextMessage to the associated [sessionKey]
+  Future<void> sendMessageToSession(TextMessage message, String sessionKey) async{
+    if (sessionKey.isEmpty){
       return;
     }
-    final ref = db.collection("sessions").doc(key).collection("chat_room");
+    final ref = db.collection("sessions").doc(sessionKey).collection("chat_room");
     await ref.doc(message.id).set(message.toJson());
   }
 
-  Future<void> deleteSessionChatHistory(String key) async {
-    if (key.isEmpty){
+  /// Delete the entire chat room of a session
+  Future<void> deleteSessionChatHistory(String sessionKey) async {
+    if (sessionKey.isEmpty){
       return;
     }
     try{
       final ref = db
       .collection("sessions")
-      .doc(key)
+      .doc(sessionKey)
       .collection("chat_room");
 
       // Cannot delete a whole collection at once, we need to go through each message and delete it manually
-      ref.get().then((snapshot){
+      ref.get().then((snapshot) async {
         for (var doc in snapshot.docs) {
-          doc.reference.delete();
+          await doc.reference.delete();
         }
       });
     }
@@ -226,8 +220,8 @@ class FirestoreDatabase {
     }
   }
 
-
-  Future<Map<String, dynamic>> getDataFromRef(CollectionReference ref) async {
+  /// Convert the data received from the given reference and convert it to a Map
+  Future<Map<String, dynamic>> _getDataFromRef(CollectionReference ref) async {
     try {
       final snapshot = await ref.get();
       Map<String, dynamic> docs = {};

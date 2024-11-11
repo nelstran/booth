@@ -9,19 +9,8 @@ extension ChatRoomExtension on BoothController {
     .doc(sessionKey)
     .collection("chat_room");
   }
-  Future<List<types.Message>> getSessionMessages(String sessionKey) async {
-    final json = await firestoreDb.getSessionMessages(sessionKey);
-    if (json.isEmpty){
-      return [];
-    }
-    final messages = json.values
-    .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-    .toList();
-    
-    messages.sort((a, b) => a.createdAt! - b.createdAt!);
-    return messages;
-  }
 
+  /// Send [message] to the session given its [key]
   Future<void> sendMessageToSession(types.TextMessage message, String key) async {
     await firestoreDb.sendMessageToSession(message, key);
   }
