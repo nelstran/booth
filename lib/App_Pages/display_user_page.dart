@@ -1,4 +1,5 @@
 import 'package:Booth/UI_components/cached_profile_picture.dart';
+import 'package:Booth/UI_components/focus_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
@@ -164,9 +165,16 @@ class _UserProfilePage extends State<UserProfilePage> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   if (data["profile_picture"] != null) {
+                    // Navigator.of(context).push(PageRouteBuilder(
+                    //     opaque: false,
+                    //     pageBuilder: (context, _, __) => ProfileImage(data)));
                     Navigator.of(context).push(PageRouteBuilder(
-                        opaque: false,
-                        pageBuilder: (context, _, __) => ProfileImage(data)));
+                      opaque: false,
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                      pageBuilder: (context, _, __) =>
+                        FocusImage(data["profile_picture"])
+                    ));
                   }
                 },
                 child: CachedProfilePicture(
@@ -218,52 +226,52 @@ class _UserProfilePage extends State<UserProfilePage> {
   }
 }
 
-class ProfileImage extends StatelessWidget {
-  const ProfileImage(this.data, {super.key});
+// class ProfileImage extends StatelessWidget {
+//   const ProfileImage(this.data, {super.key});
 
-  final Map<dynamic, dynamic> data;
+//   final Map<dynamic, dynamic> data;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black.withOpacity(.8),
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.pop(context),
-        child: SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              // mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Tap to dismiss",
-                    style: TextStyle(fontSize: 15),
-                  ),
-                ),
-                Expanded(
-                    flex: 5,
-                    child: Column(
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: data["profile_picture"],
-                          progressIndicatorBuilder: (context, url, progress) =>
-                              Center(
-                            child: CircularProgressIndicator(
-                                value: progress.progress),
-                          ),
-                        )
-                      ],
-                    ))
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.black.withOpacity(.8),
+//       body: GestureDetector(
+//         behavior: HitTestBehavior.opaque,
+//         onTap: () => Navigator.pop(context),
+//         child: SizedBox(
+//           width: double.infinity,
+//           child: Padding(
+//             padding: const EdgeInsets.all(32.0),
+//             child: Column(
+//               // mainAxisAlignment: MainAxisAlignment.center,
+//               crossAxisAlignment: CrossAxisAlignment.center,
+//               children: [
+//                 const Expanded(
+//                   flex: 1,
+//                   child: Text(
+//                     "Tap to dismiss",
+//                     style: TextStyle(fontSize: 15),
+//                   ),
+//                 ),
+//                 Expanded(
+//                     flex: 5,
+//                     child: Column(
+//                       children: [
+//                         CachedNetworkImage(
+//                           imageUrl: data["profile_picture"],
+//                           progressIndicatorBuilder: (context, url, progress) =>
+//                               Center(
+//                             child: CircularProgressIndicator(
+//                                 value: progress.progress),
+//                           ),
+//                         )
+//                       ],
+//                     ))
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

@@ -6,6 +6,7 @@ import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
+import 'package:Booth/UI_components/focus_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
@@ -127,8 +128,10 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
                               onTap:() {
                                 Navigator.of(context).push(PageRouteBuilder(
                                   opaque: false,
+                                  transitionDuration: Duration.zero,
+                                  reverseTransitionDuration: Duration.zero,
                                   pageBuilder: (context, _, __) =>
-                                    LocationImageDialog(session)
+                                    FocusImage(session.imageURL!, imageDesc: session.locationDescription)
                                 ));
                               },
                               child: const Padding(
@@ -414,68 +417,4 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
       }
     );
   }
-}
-
-class LocationImageDialog extends StatelessWidget {
-  const LocationImageDialog(
-    this.session,
-    {super.key}
-  );
-  final Session session;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black.withOpacity(.8),
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.pop(context),
-        child: SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              // mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Expanded(
-                  flex: 1,
-                  child: Text(
-                    "Tap to dismiss",
-                    style: TextStyle(
-                      fontSize: 15
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Text(
-                          session.locationDescription,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold
-                          )
-                        ),
-                      ),
-                      CachedNetworkImage(
-                        imageUrl: session.imageURL!,
-                        progressIndicatorBuilder: (context, url, progress) => 
-                          Center(
-                            child: CircularProgressIndicator(value: progress.progress),
-                          ),
-                      )
-                    ],
-                  ))
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  } 
 }
