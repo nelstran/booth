@@ -167,7 +167,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
         _addMarker(
             session.ownerKey, sessionLocation, session, customIcon, sessionID);
         // Fetch owner profile picture
-        addOwnerPfp(json, session);
+        addOwnerPfp(json, session, sessionID);
       }
     } catch (e) {
       // Skip if it causes any problems
@@ -175,7 +175,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   }
 
   /// Method to set marker to owner profile picture
-  Future<void> addOwnerPfp(dynamic json, Session session) async {
+  Future<void> addOwnerPfp(dynamic json, Session session, String sessionID) async {
     try {
       final LatLng sessionLocation =
           LatLng(session.latitude!, session.longitude!);
@@ -210,7 +210,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       }
 
       _addMarker(session.ownerKey, sessionLocation, session, customIcon,
-          widget.controller.student.session);
+          sessionID);
     } catch (e) {
       // Skip
     }
@@ -238,114 +238,132 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   Widget _buildCustomInfoWindow(Session session, String sessionID) {
     return StreamBuilder(
-      stream: widget.controller.sessionRef.onValue,
+      stream: widget.controller.sessionRef.child(sessionID).onValue,
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
           return const SizedBox.shrink(); // Display nothing if there’s no data.
         }
+        try{
+          Map<dynamic, dynamic> json =
+              snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+          List<String> memberNames = [];
+          List<String> memberUIDs = [];
 
-        Map<dynamic, dynamic> json =
-            snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-        List<String> memberNames = [];
-        List<String> memberUIDs = [];
-        json.forEach((sessionKey, sessionValue) {
-          if (sessionValue['users'] != null) {
-            Map<String, dynamic> usersInFS =
-                Map<String, dynamic>.from(sessionValue['users']);
-            usersInFS.forEach((key, value) {
-              memberNames.add(value['name']);
-              memberUIDs.add(value['uid']);
-            });
-          }
-        });
+          json['users'].forEach((key, value) {
+            memberNames.add(value['name']);
+            memberUIDs.add(value['uid']);
+          });
+            // }
 
-        // print(json);
-        // String ownerUID = json["users"][session.ownerKey]["uid"];
-        // String ownerName = json["users"][session.ownerKey]["name"];
-        String ownerName = "Brayden Neal";
-        String ownerUID = "";
+          // print(json);
+          String ownerUID = json["users"][session.ownerKey]["uid"];
+          String ownerName = json["users"][session.ownerKey]["name"];
+          // String ownerName = "Brayden Neal";
+          // String ownerUID = "";
 
-        String? ownerPfpPath = "assets/images/lamp_logo.png";
-        // String? ownerPfpPath =
-        //     widget.controller.retrieveProfilePicture(ownerUID) as String? ??
-        //         "assets/images/lamp_logo.png";
+          // String? ownerPfpPath = "assets/images/lamp_logo.png";
+          // String? ownerPfpPath =
+          //     widget.controller.retrieveProfilePicture(ownerUID) as String? ??
+          //         "assets/images/lamp_logo.png";
 
-        return Container(
-          padding: const EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade800,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          session.title,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                          maxLines: 2,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          session.description,
-                          maxLines: 2,
-                        ),
-                        const SizedBox(height: 5),
-                        Text(session.time),
-                      ],
+          return Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade800,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            session.title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 16,
+                                overflow: TextOverflow.ellipsis),
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            session.description,
+                            maxLines: 2,
+                            style: const TextStyle(
+                              overflow: TextOverflow.ellipsis
+                            )
+                          ),
+                          const SizedBox(height: 5),
+                          Text(session.time),
+                        ],
+                      ),
                     ),
-                  ),
-                  CachedProfilePicture(
-                      name: ownerName,
-                      radius: 30,
-                      fontSize: 30,
-                      imageUrl: ownerPfpPath),
-                  // CircleAvatar(
-                  //   radius: 30,
-                  //   backgroundColor: Colors.grey[300],
-                  //   child: const Text("PFP"),
-                  // ),
-                ],
-              ),
-              const SizedBox(height: 9),
-              const Text("Users",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 5),
-              rowOfPFPs(memberNames, 5, memberUIDs),
-              const SizedBox(height: 10),
-              Text(
-                "\"${session.locationDescription}\"",
-                style: const TextStyle(fontStyle: FontStyle.italic),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Add join functionality here
-                    },
-                    child: const Text("Join"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Add expand functionality here
-                    },
-                    child: const Text("Expand"),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
+                    StreamBuilder(
+                      stream: widget.controller.pfpRef(ownerUID).snapshots(),
+                      builder: (context, snapshot) {
+                        return FutureBuilder(
+                          future: widget.controller
+                              .getProfilePictureByUID(ownerUID, true),
+                              builder: (context, snapshot) {
+                                return CachedProfilePicture(
+                                    name: ownerName,
+                                    radius: 30,
+                                    fontSize: 30,
+                                    imageUrl: snapshot.data
+                                );
+                              }
+                            );
+                          }
+                        )
+                    // CircleAvatar(
+                    //   radius: 30,
+                    //   backgroundColor: Colors.grey[300],
+                    //   child: const Text("PFP"),
+                    // ),
+                  ],
+                ),
+                const SizedBox(height: 9),
+                const Text("Users",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 5),
+                rowOfPFPs(memberNames, 5, memberUIDs),
+                const SizedBox(height: 10),
+                Text(
+                  "\"${session.locationDescription}\"",
+                  style: const TextStyle(fontStyle: FontStyle.italic),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        // Add join functionality here
+                      },
+                      child: const Text("Join"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Add expand functionality here
+                      },
+                      child: const Text("Expand"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+        catch (e){
+          return const SizedBox.shrink();
+        }
       },
     );
   }
