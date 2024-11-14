@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Booth/MVC/booth_controller.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SettingsPage extends StatefulWidget {
   final BoothController controller;
@@ -15,10 +18,187 @@ class SettingsPage extends StatefulWidget {
 class SettingsPageState extends State<SettingsPage> {
   bool notificationsEnabled = true;
   bool privacyVisible = true;
-  bool faceIdEnabled = false;
+  bool isBiometricEnabled = false;
   bool locationEnabled = false;
   bool storageEnabled = false;
   bool cameraEnabled = false;
+  final storage = const FlutterSecureStorage();
+  final LocalAuthentication auth = LocalAuthentication();
+  
+  @override
+  void initState() {
+    super.initState();
+    // Load the biometric preference when the page initializes
+    loadBiometricPreference();
+  }
+
+  Future<void> loadBiometricPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Check both SharedPreferences and secure storage
+      final bool prefsEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+      final String? storedEmail = await storage.read(key: 'biometric_user_email');
+      final String? storedPassword = await storage.read(key: 'biometric_user_password');
+      
+      // Only consider biometric as enabled if we have both the preference and stored credentials
+      final bool isActuallyEnabled = prefsEnabled && storedEmail != null && storedPassword != null;
+      
+      if (mounted) {
+        setState(() {
+          isBiometricEnabled = isActuallyEnabled;
+        });
+        
+        // Sync the SharedPreferences with actual state if they're out of sync
+        if (prefsEnabled != isActuallyEnabled) {
+          await prefs.setBool('isBiometricEnabled', isActuallyEnabled);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading biometric preference: $e");
+      // Handle any potential errors during loading
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error loading biometric settings')),
+        );
+      }
+    }
+  }
+
+  Future<void> saveBiometricPreference(bool isEnabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (isEnabled) {
+      final bool? confirmed = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Enable Biometric Authentication'),
+            content: const Text('By enabling biometric authentication, you can use your fingerprint/face to sign in. Make sure you are on a trusted device, and no one else has access to your biometric data.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Confirm'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmed == true) {
+        final currentUserEmail = widget.user.email;
+        if (currentUserEmail != null) {
+          final String? password = await showPasswordConfirmationDialog();
+          if (password != null) {
+            try {
+              // Verify the password before saving
+              final credential = EmailAuthProvider.credential(
+                email: currentUserEmail,
+                password: password,
+              );
+              await widget.user.reauthenticateWithCredential(credential);
+              
+              // Save credentials in secure storage
+              await storage.write(key: 'biometric_user_email', value: currentUserEmail);
+              await storage.write(key: 'biometric_user_password', value: password);
+              
+              // Update state and SharedPreferences
+              if (mounted) {
+                setState(() {
+                  isBiometricEnabled = true;
+                });
+                await prefs.setBool('isBiometricEnabled', true);
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Biometric login enabled successfully')),
+                );
+              }
+            } catch (e) {
+              if (mounted) {
+                setState(() {
+                  isBiometricEnabled = false;
+                });
+                await prefs.setBool('isBiometricEnabled', false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Invalid password. Biometric login not enabled.')),
+                );
+              }
+            }
+          } else {
+            // User cancelled password input
+            if (mounted) {
+              setState(() {
+                isBiometricEnabled = false;
+              });
+              await prefs.setBool('isBiometricEnabled', false);
+            }
+          }
+        }
+      } else {
+        // User cancelled the confirmation dialog
+        if (mounted) {
+          setState(() {
+            isBiometricEnabled = false;
+          });
+          await prefs.setBool('isBiometricEnabled', false);
+        }
+      }
+    } else {
+      // Disabling biometric authentication
+      await storage.delete(key: 'biometric_user_email');
+      await storage.delete(key: 'biometric_user_password');
+      if (mounted) {
+        setState(() {
+          isBiometricEnabled = false;
+        });
+        await prefs.setBool('isBiometricEnabled', false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Biometric login disabled')),
+        );
+      }
+    }
+  }
+
+  Future<String?> showPasswordConfirmationDialog() async {
+    final TextEditingController passwordController = TextEditingController();
+    
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Please enter your current password to enable biometric authentication:'),
+              const SizedBox(height: 10),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  hintText: 'Enter password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(passwordController.text),
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -166,12 +346,10 @@ class SettingsPageState extends State<SettingsPage> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         SwitchListTile(
-          title: const Text("Enable FaceID/TouchID"),
-          value: faceIdEnabled,
-          onChanged: (bool value) {
-            setState(() {
-              faceIdEnabled = value;
-            });
+          title: const Text('Enable Biometric Authentication'),
+          value: isBiometricEnabled,
+          onChanged: (value) {
+            saveBiometricPreference(value);
           },
         ),
       ],

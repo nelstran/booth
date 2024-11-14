@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Booth/UI_components/textbox.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// This class is for the login page
 class LoginPage extends StatefulWidget {
@@ -17,20 +20,32 @@ class _LoginPageState extends State<LoginPage> {
   // Controllers for the textfields (these store what the user has typed)
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
+  final LocalAuthentication auth = LocalAuthentication();
+  final storage = const FlutterSecureStorage();
   bool isEmailEmpty = true;
   bool isPassEmpty = true;
   bool triedToLogin = false;
+  bool isBiometricEnabled = false;
+  bool isInitialBiometricCheckDone = false;  // New flag to track initial check
 
-  // This method logs a user in
-  void login() async {
-    // // This shows a loading circle
-    // showDialog(
-    //   context: context,
-    //   builder: (context) => const Center(
-    //     child: CircularProgressIndicator(),
-    //   ),
-    // );
+  @override
+  void initState() {
+    super.initState();
+    // Only check preference, don't authenticate automatically
+    checkBiometricPreference();
+  }
+
+  Future<void> checkBiometricPreference() async {
+    if (isInitialBiometricCheckDone) return;  // Prevent multiple checks
+    
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isBiometricEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+      isInitialBiometricCheckDone = true;
+    });
+  }
+
+  void login({bool isAutoLogin = false}) async {
     setState(() {
       triedToLogin = true;
     });
@@ -38,7 +53,6 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Try to sign the user in with the credentials they have typed
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text.trim(),
@@ -48,21 +62,22 @@ class _LoginPageState extends State<LoginPage> {
       // Clear all routes and push SessionPage route
 
       if (!mounted) return;
-      // Navigator.of(context).pop;
+      // Store credentials for biometric login if this was a manual login
+      if (!isAutoLogin && isBiometricEnabled) {
+        await storage.write(
+          key: 'biometric_user_email',
+          value: emailController.text.trim(),
+        );
+        await storage.write(
+          key: 'biometric_user_password',
+          value: passwordController.text,
+        );
+      }
       Navigator.pushNamedAndRemoveUntil(
         context, '/main_ui_page',
         (_) => false, // This clears all routes in the stack
       );
-
-      // pop loading circle
-      // if (context.mounted) Navigator.pop(context); // Had to comment this out otherwise black screen when logging in
-    }
-
-    // Display any errors
-    on FirebaseAuthException catch (e) {
-      // pop loading circle
-      // Navigator.pop(context);
-      // Show an error message to the user if error encountered
+    } on FirebaseAuthException catch (e) {
       String message = e.code;
       switch (e.code) {
         case 'invalid-email':
@@ -70,7 +85,65 @@ class _LoginPageState extends State<LoginPage> {
           message = "Email or password is incorrect";
           break;
       }
-      displayMessageToUser(message, context);
+      if (!isAutoLogin && mounted) {
+        displayMessageToUser(message, context);
+      }
+    }
+  }
+
+  Future<void> authenticateBiometric() async {
+    if (!isBiometricEnabled) return;  // Early return if biometrics not enabled
+
+    try {
+      final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+      if (!canAuthenticate) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Biometric authentication not available')),
+          );
+        }
+        return;
+      }
+
+      bool authenticated = await auth.authenticate(
+        localizedReason: 'Please authenticate to log in',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+          useErrorDialogs: true,
+        ),
+      );
+
+      if (authenticated && mounted) {
+        final storedEmail = await storage.read(key: 'biometric_user_email');
+        final storedPassword = await storage.read(key: 'biometric_user_password');
+
+        if (storedEmail != null && storedPassword != null) {
+          setState(() {
+            emailController.text = storedEmail;
+            passwordController.text = storedPassword;
+            isEmailEmpty = false;
+            isPassEmpty = false;
+          });
+          
+          login(isAutoLogin: true);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please login once manually to enable biometric login')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Biometric authentication error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication failed')),
+        );
+      }
     }
   }
 
@@ -114,18 +187,21 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: false,
                 controller: emailController,
               ),
-              isEmailEmpty && triedToLogin
-                  ? const Padding(
-                      padding: EdgeInsets.only(left: 15, top: 5),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Icon(Icons.error, size: 20, color: Colors.red),
-                            Text("Enter an email",
-                                style: TextStyle(color: Colors.red))
-                          ]),
-                    )
-                  : const SizedBox.shrink(),
+              // Email error message
+              if (isEmailEmpty && triedToLogin)
+                const Padding(
+                  padding: EdgeInsets.only(left: 15, top: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(Icons.error, size: 20, color: Colors.red),
+                      Text(
+                        "Enter an email",
+                        style: TextStyle(color: Colors.red)
+                      )
+                    ]
+                  ),
+                ),
               const SizedBox(height: 12),
 
               // Password textfield
@@ -136,20 +212,23 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 5),
 
-              // Forgot password
+              // Password error and Forgot password row
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  isPassEmpty && triedToLogin
-                      ? const Padding(
-                          padding: EdgeInsets.only(left: 15),
-                          child: Row(children: [
-                            Icon(Icons.error, size: 20, color: Colors.red),
-                            Text("Enter a password",
-                                style: TextStyle(color: Colors.red))
-                          ]),
-                        )
-                      : const SizedBox.shrink(),
+                  if (isPassEmpty && triedToLogin)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 15),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error, size: 20, color: Colors.red),
+                          Text(
+                            "Enter a password",
+                            style: TextStyle(color: Colors.red)
+                          )
+                        ]
+                      ),
+                    ),
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -157,7 +236,8 @@ class _LoginPageState extends State<LoginPage> {
                         Text(
                           "Forgot Password?",
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary),
+                            color: Theme.of(context).colorScheme.secondary
+                          ),
                         ),
                       ],
                     ),
@@ -170,29 +250,42 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(75),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      backgroundColor: isEmailEmpty || isPassEmpty
-                          ? Colors.grey[800]
-                          : const Color.fromARGB(255, 28, 125, 204)),
-                  onPressed: login,
+                    minimumSize: const Size.fromHeight(75),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)
+                    ),
+                    backgroundColor: isEmailEmpty || isPassEmpty
+                      ? Colors.grey[800]
+                      : const Color.fromARGB(255, 28, 125, 204)
+                  ),
+                  onPressed: () => login(isAutoLogin: false),
                   child: const Text("Login"),
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 15),
 
-              // Register here
+              // Biometric login button
+              if (isBiometricEnabled)
+                IconButton(
+                  icon: const Icon(Icons.fingerprint),
+                  iconSize: 40,
+                  onPressed: authenticateBiometric,
+                  tooltip: 'Use biometric login',
+                ),
+
+              const SizedBox(height: 15),
+
+              // Register link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Don't have an account? ",
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary),
+                      color: Theme.of(context).colorScheme.inversePrimary
+                    ),
                   ),
-                  //
                   GestureDetector(
                     onTap: widget.onTap,
                     child: const Text(
@@ -209,5 +302,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }
