@@ -150,12 +150,17 @@ class SearchPage extends SearchDelegate<String> {
     Map<dynamic, dynamic> users = await controller.getUsers();
     Map<String, String> userList = {};
     users.forEach((key, value) {
+      try{
       if (!(value as Map).containsKey('name')) {
         return;
       }
       String name = value['name'] as String;
       String userKey = key as String;
       userList[userKey] = name;
+      }
+      catch (e){
+        // Skip user
+      }
     });
     return userList;
   }
@@ -164,12 +169,17 @@ class SearchPage extends SearchDelegate<String> {
     Map<dynamic, dynamic> sessions = await controller.getSessions();
     Map<String, String> sessionList = {};
     sessions.forEach((key, value) {
+      try{
       if (!(value as Map).containsKey('title')) {
         return;
       }
       String name = value['title'] as String;
       String sessionKey = key as String;
       sessionList[sessionKey] = name;
+      }
+      catch (e) {
+        // Skip
+      }
     });
     return sessionList;
   }
