@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:Booth/Helper_Functions/helper_methods.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -293,7 +294,7 @@ class _MainUIPageState extends State<MainUIPage>{
       actions: [
         // This button is linked to the logout method
         IconButton(
-          onPressed: logout,
+          onPressed: () => logout(controller, context),
           icon: const Icon(Icons.logout),
         ),
       ],
@@ -306,7 +307,7 @@ class _MainUIPageState extends State<MainUIPage>{
       actions: [
         // This button is linked to the logout method
         IconButton(
-          onPressed: logout,
+          onPressed: () => logout(controller, context),
           icon: const Icon(Icons.logout),
         ),
       ],
@@ -359,18 +360,11 @@ class _MainUIPageState extends State<MainUIPage>{
       actions: [
         // This button is linked to the logout method
         IconButton(
-          onPressed: logout,
+          onPressed:() => logout(controller, context),
           icon: const Icon(Icons.logout),
         ),
       ],
     );
-  }
-
-  /// *********  HELPER METHODS  *****************
-  // This method logs the user out
-  void logout() {
-    controller.setOnlinePresence(false);
-    FirebaseAuth.instance.signOut();
   }
 
   AlertDialog errorDialog() {
@@ -380,9 +374,7 @@ class _MainUIPageState extends State<MainUIPage>{
           'Your account cannot be found, please contact an administrator for help'),
       actions: [
         TextButton(
-          onPressed: () {
-            logout();
-          },
+          onPressed: () => logout(controller, context),
           style: TextButton.styleFrom(foregroundColor: Colors.white),
           child: const Text("Cancel"),
         )

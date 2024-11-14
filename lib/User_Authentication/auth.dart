@@ -18,7 +18,7 @@ class AuthPage extends StatelessWidget {
         builder: (context, snapshot) {
           // If the user exists in the database, display the home page (Sessions Page)
           if (snapshot.hasData) {
-            var showLoginPage = loginOrRegister.showLoginPage;
+            var showLoginPage = loginOrRegister.inLoginPage;
             return MainUIPage(snapshot.data, showLoginPage);
           }
           // Otherwise, display the login or register page

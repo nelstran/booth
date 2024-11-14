@@ -1,3 +1,4 @@
+import 'package:Booth/Helper_Functions/helper_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Booth/MVC/booth_controller.dart';
@@ -378,17 +379,12 @@ class SettingsPageState extends State<SettingsPage> {
         IconButton(
           onPressed: () {
             Navigator.of(context).pop();
-            logout();
+            logout(widget.controller, context);
           },
           icon: const Icon(Icons.logout),
         ),
       ],
     );
-  }
-
-  // Logout method
-  void logout() {
-    FirebaseAuth.instance.signOut();
   }
 
   // Confirmation Dialog for Account Deletion
