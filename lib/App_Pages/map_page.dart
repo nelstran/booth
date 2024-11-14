@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:Booth/MVC/session_extension.dart';
+import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -91,9 +92,64 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   //     return;
   //   }
   // }
+  SizedBox rowOfPFPs(
+      List<String> memberNames, int numOfPFPs, List<String> memberUIDs) {
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount:
+            memberNames.length > numOfPFPs ? numOfPFPs : memberNames.length,
+        itemBuilder: (context, index) {
+          var pfpRadius = 17.0;
+          var pfpFontSize = 15.0;
+          return Row(
+            children: [
+              StreamBuilder(
+                stream: widget.controller.pfpRef(memberUIDs[index]).snapshots(),
+                builder: (context, snapshot) {
+                  return FutureBuilder(
+                    future: widget.controller
+                        .getProfilePictureByUID(memberUIDs[index], true),
+                    builder: (context, snapshot) {
+                      return Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          // child: ProfilePicture(
+                          //   name: memberNames[index],
+                          //   radius: pfpRadius,
+                          //   fontsize: pfpFontSize,
+                          //   img: snapshot.data,
+                          // ),
+                          child: CachedProfilePicture(
+                              name: memberNames[index],
+                              radius: pfpRadius,
+                              fontSize: pfpFontSize,
+                              imageUrl: snapshot.data));
+                    },
+                  );
+                },
+              ),
+              if (memberNames.length > numOfPFPs && index == numOfPFPs - 1)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "+${memberNames.length - numOfPFPs}",
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                )
+              else
+                const SizedBox.shrink()
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   /// Method to add marker to the map
-  void _addSession(Object? json) {
+  void _addSession(String sessionID, Object? json) {
     if (json == null) {
       return;
     }
@@ -109,7 +165,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             LatLng(session.latitude!, session.longitude!);
         // Add marker first and get profile picture in the background for better responsiveness
         _addMarker(
-            session.ownerKey, sessionLocation, session.title, customIcon);
+            session.ownerKey, sessionLocation, session, customIcon, sessionID);
         // Fetch owner profile picture
         addOwnerPfp(json, session);
       }
@@ -153,29 +209,145 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             BitmapDescriptor.defaultMarker; // Fallback if no path is found
       }
 
-      _addMarker(session.ownerKey, sessionLocation, session.title, customIcon);
+      _addMarker(session.ownerKey, sessionLocation, session, customIcon,
+          widget.controller.student.session);
     } catch (e) {
       // Skip
     }
   }
 
   /// Method to add/modify marker and add to stream to update UI
-  void _addMarker(
-      String id, LatLng location, String title, BitmapDescriptor pfpIcon) {
+  void _addMarker(String id, LatLng location, Session session,
+      BitmapDescriptor pfpIcon, String sessionID) {
     final MarkerId markerId = MarkerId(id);
+    // print(session.key);
 
     final Marker marker = Marker(
       markerId: markerId,
       position: location,
-      // infoWindow: InfoWindow(title: title),
+      // infoWindow: InfoWindow(title: session.title),
       onTap: () {
         customInfoWindowController.addInfoWindow!(
-            _buildCustomInfoWindow(), location);
+            _buildCustomInfoWindow(session, sessionID), location);
       },
       icon: pfpIcon,
     );
     markers[id] = marker;
     markerStream.add(markers);
+  }
+
+  Widget _buildCustomInfoWindow(Session session, String sessionID) {
+    return StreamBuilder(
+      stream: widget.controller.sessionRef.onValue,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+          return const SizedBox.shrink(); // Display nothing if there’s no data.
+        }
+
+        Map<dynamic, dynamic> json =
+            snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+        List<String> memberNames = [];
+        List<String> memberUIDs = [];
+        json.forEach((sessionKey, sessionValue) {
+          if (sessionValue['users'] != null) {
+            Map<String, dynamic> usersInFS =
+                Map<String, dynamic>.from(sessionValue['users']);
+            usersInFS.forEach((key, value) {
+              memberNames.add(value['name']);
+              memberUIDs.add(value['uid']);
+            });
+          }
+        });
+
+        // print(json);
+        // String ownerUID = json["users"][session.ownerKey]["uid"];
+        // String ownerName = json["users"][session.ownerKey]["name"];
+        String ownerName = "Brayden Neal";
+        String ownerUID = "";
+
+        String? ownerPfpPath = "assets/images/lamp_logo.png";
+        // String? ownerPfpPath =
+        //     widget.controller.retrieveProfilePicture(ownerUID) as String? ??
+        //         "assets/images/lamp_logo.png";
+
+        return Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade800,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          session.title,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          session.description,
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 5),
+                        Text(session.time),
+                      ],
+                    ),
+                  ),
+                  CachedProfilePicture(
+                      name: ownerName,
+                      radius: 30,
+                      fontSize: 30,
+                      imageUrl: ownerPfpPath),
+                  // CircleAvatar(
+                  //   radius: 30,
+                  //   backgroundColor: Colors.grey[300],
+                  //   child: const Text("PFP"),
+                  // ),
+                ],
+              ),
+              const SizedBox(height: 9),
+              const Text("Users",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
+              rowOfPFPs(memberNames, 5, memberUIDs),
+              const SizedBox(height: 10),
+              Text(
+                "\"${session.locationDescription}\"",
+                style: const TextStyle(fontStyle: FontStyle.italic),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add join functionality here
+                    },
+                    child: const Text("Join"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add expand functionality here
+                    },
+                    child: const Text("Expand"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<Uint8List> getBytesFromAsset(
@@ -294,8 +466,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                 .getSessions(
                     (profSnap.data!.snapshot.value as Map)["institution"])
                 .then((sessions) {
-              for (var json in sessions.values) {
-                _addSession(json);
+              for (var json in sessions.entries) {
+                _addSession(json.key, json.value);
               }
             });
           }
@@ -306,6 +478,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
               builder: (addedCon, addedSnap) {
                 // Add new session to map, we have to wait for ownerKey to be initialized
                 if (addedSnap.hasData) {
+                  String sessionKey = addedSnap.data!.snapshot.key!;
                   widget.controller.sessionRef
                       .child(addedSnap.data!.snapshot.key!)
                       .onValue
@@ -315,7 +488,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                     }
                     Map json = event.snapshot.value as Map;
                     if (json["ownerKey"] != "") {
-                      _addSession(json);
+                      _addSession(sessionKey, json);
                     }
                   });
                 }
@@ -372,7 +545,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
         ),
         CustomInfoWindow(
           controller: customInfoWindowController,
-          height: 250,
+          height: 300,
           width: 250,
           offset: 50,
         ),
@@ -396,8 +569,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                   filters.addAll(value);
                   markers.clear();
                   widget.controller.getSessions().then((sessions) {
-                    for (var json in sessions.values) {
-                      _addSession(json);
+                    for (var json in sessions.entries) {
+                      _addSession(json.key, json.value);
                     }
                   });
                 });
@@ -465,91 +638,4 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       ],
     );
   }
-}
-
-Widget _buildCustomInfoWindow() {
-  return Container(
-    padding: const EdgeInsets.all(10.0),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade800,
-      borderRadius: BorderRadius.circular(15),
-      boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Title",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
-                ),
-                SizedBox(height: 2),
-                Text("Description"),
-                SizedBox(height: 5),
-                Text("Start - End"),
-              ],
-            ),
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.grey[300],
-              child: const Text("PFP"),
-            ),
-          ],
-        ),
-        const SizedBox(height: 9),
-        const Text("Users", style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 5),
-        Row(
-          children: [
-            CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.grey[300],
-                child: const Text("PFP")),
-            const SizedBox(width: 5),
-            CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.grey[300],
-                child: const Text("PFP")),
-            const SizedBox(width: 5),
-            CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.grey[300],
-                child: const Text("PFP")),
-            const SizedBox(width: 5),
-            CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.grey[300],
-                child: const Text("PFP")),
-            const SizedBox(width: 5),
-            CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.grey[300],
-                child: const Text("PFP")),
-            const SizedBox(width: 5),
-            CircleAvatar(
-                radius: 17,
-                backgroundColor: Colors.grey[300],
-                child: const Text("+5")),
-          ],
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          "\"Location Description\"",
-          style: TextStyle(fontStyle: FontStyle.italic),
-        ),
-        const ElevatedButton(
-          onPressed: null,
-          child: Text(
-            "JOIN",
-          ),
-        )
-      ],
-    ),
-  );
 }

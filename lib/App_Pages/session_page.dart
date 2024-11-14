@@ -34,17 +34,17 @@ class _SessionPage extends State<SessionPage>
   List blockedFromList = [];
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     widget.controller.friendsOnlyNotifier.addListener(setFriendsTab);
   }
 
-  void setFriendsTab(){
-    setState((){
+  void setFriendsTab() {
+    setState(() {
       friendsOnly = widget.controller.friendsOnlyNotifier.value;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -56,13 +56,7 @@ class _SessionPage extends State<SessionPage>
     // ];
 
     Rainbow sessionColor = Rainbow(
-      spectrum: [
-        Colors.green,
-        Colors.yellow,
-        Colors.orange,
-        Colors.red
-      ]
-    );
+        spectrum: [Colors.green, Colors.yellow, Colors.orange, Colors.red]);
 
     return Column(
       children: [
@@ -70,245 +64,306 @@ class _SessionPage extends State<SessionPage>
         Expanded(
           // Update list of sessions when user changes schools
           child: StreamBuilder(
-            stream: widget.controller.profileRef.child("institution").onValue,
-            builder: (context, snap){
-              if (snap.connectionState == ConnectionState.waiting) {
+              stream: widget.controller.profileRef.child("institution").onValue,
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snap.hasError) {
                   return Center(child: Text('Error: ${snap.error}'));
                 }
-              String institution = widget.controller.studentInstitution;
-              return StreamBuilder(
-                stream: widget.controller.studentRef().child("friends").onValue,
-                builder: (c, s) {
-                  if (s.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (s.hasError) {
-                    return Center(child: Text('Error: ${s.error}'));
-                  }
-                  // Get list of friends when it updates
-                  Map? friendsEntry = {};
-                  if (s.hasData && s.data!.snapshot.value != null){
-                    friendsEntry = s.data!.snapshot.value as Map;
-                  }
-                  // Remove the requests
-                  friendsEntry.remove("requests");
-
-                  List friendsList = friendsEntry.keys.toList();
-
-              // Getting list of blocked users --------------------------------------------  
-              return StreamBuilder(
-                stream: widget.controller.studentRef().child("blocked_from").onValue,
-                builder: (c, s) {
-                  if (s.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (s.hasError) {
-                    return Center(child: Text('Error: ${s.error}'));
-                  }
-                  // Get list of blocked from users when it updates
-                  Map? blockedFromEntry = {};
-                  if (s.hasData && s.data!.snapshot.value != null){
-                    blockedFromEntry = s.data!.snapshot.value as Map;
-                  }
-                  blockedFromList = blockedFromEntry.keys.toList();
-              
-              return StreamBuilder(
-                stream: widget.controller.studentRef().child("blocked").onValue,
-                builder: (c, s) {
-                  if (s.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (s.hasError) {
-                    return Center(child: Text('Error: ${s.error}'));
-                  }
-                  // Get list of blocked users when it updates
-                  Map? blockedEntry = {};
-                  if (s.hasData && s.data!.snapshot.value != null){
-                    blockedEntry = s.data!.snapshot.value as Map;
-                  }
-                  blockedList = blockedEntry.keys.toList();
-                // --------------------------------------------------------------------------
-                  return FirebaseAnimatedList(
-                    key: Key(institution),
-                    query: widget.controller.sessionRef,
-                    sort:(a, b) {
-                      if (a.key == widget.controller.student.session){
-                        return -1;
+                String institution = widget.controller.studentInstitution;
+                return StreamBuilder(
+                    stream:
+                        widget.controller.studentRef().child("friends").onValue,
+                    builder: (c, s) {
+                      if (s.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (s.hasError) {
+                        return Center(child: Text('Error: ${s.error}'));
                       }
-                      if (b.key == widget.controller.student.session){
-                        return 1;
+                      // Get list of friends when it updates
+                      Map? friendsEntry = {};
+                      if (s.hasData && s.data!.snapshot.value != null) {
+                        friendsEntry = s.data!.snapshot.value as Map;
                       }
-                      return 0;
-                    },
-                    // Build each item in the list view
-                    itemBuilder: (BuildContext context, DataSnapshot snapshot,
-                        Animation<double> animation, int index) {
-                          try{
-                            // Convert the snapshot to a Map
-                            Map<dynamic, dynamic> json =
-                                snapshot.value as Map<dynamic, dynamic>;
-                  
-                            // Here to avoid exception while debugging
-                            if (!json.containsKey("users")){
-                              return const SizedBox.shrink();
-                            }
-                  
-                            Session session = Session.fromJson(json);
-                            // Control the max number of users to display on the front page
-                            int numOfPFPs = 4;
-                            bool isInSession = widget.controller.student.session == snapshot.key!;
-                            bool isFriends = isFriendsWithHost(json, friendsList);
-                            bool isBlocked = isBlockedUserinSession(json, blockedList);
+                      // Remove the requests
+                      friendsEntry.remove("requests");
 
-                            // Always show the session the user is in, otherwise check if session should be visible to user
-                            if (!isInSession && (isFiltered(filters, session) || isNotViewable(json, isFriends) || isBlocked)) {
-                              return const SizedBox.shrink();
+                      List friendsList = friendsEntry.keys.toList();
+
+                      // Getting list of blocked users --------------------------------------------
+                      return StreamBuilder(
+                          stream: widget.controller
+                              .studentRef()
+                              .child("blocked_from")
+                              .onValue,
+                          builder: (c, s) {
+                            if (s.connectionState == ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (s.hasError) {
+                              return Center(child: Text('Error: ${s.error}'));
                             }
-                  
-                            List<String> memberNames = [];
-                            List<String> memberUIDs = [];
-                  
-                            Map<String, dynamic> usersInFS =
-                                Map<String, dynamic>.from(json['users']);
-                            usersInFS.forEach((key, value) {
-                              memberNames.add(value['name']);
-                              memberUIDs.add(value['uid']);
-                            });
-                  
-                            // Extract title and description from the session map
-                            String title = json['title'] ?? '';
-                  
-                            // int colorIndex =
-                            //     ((session.seatsTaken / session.seatsAvailable) * 100)
-                            //         .floor();
-                            Color fullness;
-                            fullness = sessionColor[session.seatsTaken / session.seatsAvailable];
-                            // if (colorIndex <= 33) {
-                            //   fullness = sessionColor[3];
-                            // } else if (colorIndex <= 66) {
-                            //   fullness = sessionColor[2];
-                            // } else if (colorIndex <= 99) {
-                            //   fullness = sessionColor[1];
-                            // } else {
-                            //   fullness = sessionColor[0];
-                            // }
-                            return Column(
-                              children: [
-                                if (isInSession) const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Divider(),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                        child: Text("My session")),
-                                      Expanded(child: Divider())
-                                    ],
-                                  ),
-                                ) else const SizedBox.shrink(),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Card(
-                                    elevation: 2,
-                                    child: ClipPath(
-                                      clipper: ShapeBorderClipper(
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10)
-                                            )
-                                          ),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            border: Border(
-                                              left: BorderSide(
-                                                color: fullness,
-                                                width: 10,
+                            // Get list of blocked from users when it updates
+                            Map? blockedFromEntry = {};
+                            if (s.hasData && s.data!.snapshot.value != null) {
+                              blockedFromEntry = s.data!.snapshot.value as Map;
+                            }
+                            blockedFromList = blockedFromEntry.keys.toList();
+
+                            return StreamBuilder(
+                                stream: widget.controller
+                                    .studentRef()
+                                    .child("blocked")
+                                    .onValue,
+                                builder: (c, s) {
+                                  if (s.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (s.hasError) {
+                                    return Center(
+                                        child: Text('Error: ${s.error}'));
+                                  }
+                                  // Get list of blocked users when it updates
+                                  Map? blockedEntry = {};
+                                  if (s.hasData &&
+                                      s.data!.snapshot.value != null) {
+                                    blockedEntry =
+                                        s.data!.snapshot.value as Map;
+                                  }
+                                  blockedList = blockedEntry.keys.toList();
+                                  // --------------------------------------------------------------------------
+                                  return FirebaseAnimatedList(
+                                    key: Key(institution),
+                                    query: widget.controller.sessionRef,
+                                    sort: (a, b) {
+                                      if (a.key ==
+                                          widget.controller.student.session) {
+                                        return -1;
+                                      }
+                                      if (b.key ==
+                                          widget.controller.student.session) {
+                                        return 1;
+                                      }
+                                      return 0;
+                                    },
+                                    // Build each item in the list view
+                                    itemBuilder: (BuildContext context,
+                                        DataSnapshot snapshot,
+                                        Animation<double> animation,
+                                        int index) {
+                                      try {
+                                        // Convert the snapshot to a Map
+                                        Map<dynamic, dynamic> json = snapshot
+                                            .value as Map<dynamic, dynamic>;
+
+                                        // Here to avoid exception while debugging
+                                        if (!json.containsKey("users")) {
+                                          return const SizedBox.shrink();
+                                        }
+
+                                        Session session =
+                                            Session.fromJson(json);
+                                        // Control the max number of users to display on the front page
+                                        int numOfPFPs = 4;
+                                        bool isInSession =
+                                            widget.controller.student.session ==
+                                                snapshot.key!;
+                                        bool isFriends = isFriendsWithHost(
+                                            json, friendsList);
+                                        bool isBlocked = isBlockedUserinSession(
+                                            json, blockedList);
+
+                                        // Always show the session the user is in, otherwise check if session should be visible to user
+                                        if (!isInSession &&
+                                            (isFiltered(filters, session) ||
+                                                isNotViewable(
+                                                    json, isFriends) ||
+                                                isBlocked)) {
+                                          return const SizedBox.shrink();
+                                        }
+
+                                        List<String> memberNames = [];
+                                        List<String> memberUIDs = [];
+
+                                        Map<String, dynamic> usersInFS =
+                                            Map<String, dynamic>.from(
+                                                json['users']);
+                                        usersInFS.forEach((key, value) {
+                                          memberNames.add(value['name']);
+                                          memberUIDs.add(value['uid']);
+                                        });
+
+                                        // Extract title and description from the session map
+                                        String title = json['title'] ?? '';
+
+                                        // int colorIndex =
+                                        //     ((session.seatsTaken / session.seatsAvailable) * 100)
+                                        //         .floor();
+                                        Color fullness;
+                                        fullness = sessionColor[
+                                            session.seatsTaken /
+                                                session.seatsAvailable];
+                                        // if (colorIndex <= 33) {
+                                        //   fullness = sessionColor[3];
+                                        // } else if (colorIndex <= 66) {
+                                        //   fullness = sessionColor[2];
+                                        // } else if (colorIndex <= 99) {
+                                        //   fullness = sessionColor[1];
+                                        // } else {
+                                        //   fullness = sessionColor[0];
+                                        // }
+                                        return Column(
+                                          children: [
+                                            if (isInSession)
+                                              const Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Divider(),
+                                                    ),
+                                                    Padding(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                                horizontal:
+                                                                    8.0),
+                                                        child:
+                                                            Text("My session")),
+                                                    Expanded(child: Divider())
+                                                  ],
+                                                ),
                                               )
-                                            )
-                                        ),
-                                        child: ListTile(
-                                          // Display title and description
-                                          title: Text(
-                                            title,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          subtitle: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            // Show list and the people in that session represented by their pfp
-                                            children: [
-                                              Text(session.locationDescription),
-                                              const SizedBox(height: 2),
-                                              rowOfPFPs(memberNames, numOfPFPs, memberUIDs)
-                                            ],
-                                          ),
-                                          trailing: Text(
-                                            "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 14)
-                                          ),
-                                          // trailing: SizedBox(
-                                          //   height: 50,
-                                          //   child: Column(
-                                          //     crossAxisAlignment: CrossAxisAlignment.center,
-                                          //     mainAxisAlignment: MainAxisAlignment.center,
-                                          //     children: [
-                                          //       if (isFriends) const Icon(Icons.people, color: Colors.green),
-                                          //       Text(
-                                          //           "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                          //           textAlign: TextAlign.center,
-                                          //           style: const TextStyle(fontSize: 14)),
-                                          //     ],
-                                          //   ),
-                                          // ),
-                                          onTap: () {
-                                            // Expand session
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) => ExpandedSessionPage(
-                                                    snapshot.key!, widget.controller),
+                                            else
+                                              const SizedBox.shrink(),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Card(
+                                                elevation: 2,
+                                                child: ClipPath(
+                                                  clipper: ShapeBorderClipper(
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10))),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        border: Border(
+                                                            left: BorderSide(
+                                                      color: fullness,
+                                                      width: 10,
+                                                    ))),
+                                                    child: ListTile(
+                                                      // Display title and description
+                                                      title: Text(
+                                                        title,
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      subtitle: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        // Show list and the people in that session represented by their pfp
+                                                        children: [
+                                                          Text(session
+                                                              .locationDescription),
+                                                          const SizedBox(
+                                                              height: 2),
+                                                          rowOfPFPs(
+                                                              memberNames,
+                                                              numOfPFPs,
+                                                              memberUIDs)
+                                                        ],
+                                                      ),
+                                                      trailing: Text(
+                                                          "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                                          textAlign: TextAlign
+                                                              .center,
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize:
+                                                                      14)),
+                                                      // trailing: SizedBox(
+                                                      //   height: 50,
+                                                      //   child: Column(
+                                                      //     crossAxisAlignment: CrossAxisAlignment.center,
+                                                      //     mainAxisAlignment: MainAxisAlignment.center,
+                                                      //     children: [
+                                                      //       if (isFriends) const Icon(Icons.people, color: Colors.green),
+                                                      //       Text(
+                                                      //           "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                                      //           textAlign: TextAlign.center,
+                                                      //           style: const TextStyle(fontSize: 14)),
+                                                      //     ],
+                                                      //   ),
+                                                      // ),
+                                                      onTap: () {
+                                                        // Expand session
+                                                        Navigator.of(context)
+                                                            .push(
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                ExpandedSessionPage(
+                                                                    snapshot
+                                                                        .key!,
+                                                                    widget
+                                                                        .controller),
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                if (isInSession) Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Divider(),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: !friendsOnly ? 
-                                        Text('${widget.controller.studentInstitution} sessions')
-                                        : const Text('Friends\' sessions'),
-                                      ),
-                                      const Expanded(child: Divider())
-                                    ],
-                                  ),
-                                ) else const SizedBox.shrink()
-                              ],
-                            );
-                          } catch (e){
-                            // Skip
-                            return const SizedBox.shrink();
-                          }
-                    },
-                  );
-                }
-                );
-                }
-              );
-            }
-           );
-          }
-         ),
+                                            ),
+                                            if (isInSession)
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8.0),
+                                                child: Row(
+                                                  children: [
+                                                    const Expanded(
+                                                      child: Divider(),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: !friendsOnly
+                                                          ? Text(
+                                                              '${widget.controller.studentInstitution} sessions')
+                                                          : const Text(
+                                                              'Friends\' sessions'),
+                                                    ),
+                                                    const Expanded(
+                                                        child: Divider())
+                                                  ],
+                                                ),
+                                              )
+                                            else
+                                              const SizedBox.shrink()
+                                          ],
+                                        );
+                                      } catch (e) {
+                                        // Skip
+                                        return const SizedBox.shrink();
+                                      }
+                                    },
+                                  );
+                                });
+                          });
+                    });
+              }),
         ),
       ],
     );
@@ -336,20 +391,18 @@ class _SessionPage extends State<SessionPage>
                         .getProfilePictureByUID(memberUIDs[index], true),
                     builder: (context, snapshot) {
                       return Padding(
-                        padding: const EdgeInsets.all(3.0),
-                        // child: ProfilePicture(
-                        //   name: memberNames[index],
-                        //   radius: pfpRadius,
-                        //   fontsize: pfpFontSize,
-                        //   img: snapshot.data,
-                        // ),
-                        child: CachedProfilePicture(
-                          name: memberNames[index],
-                          radius: pfpRadius, 
-                          fontSize: pfpFontSize,
-                          imageUrl: snapshot.data
-                        )
-                      );
+                          padding: const EdgeInsets.all(3.0),
+                          // child: ProfilePicture(
+                          //   name: memberNames[index],
+                          //   radius: pfpRadius,
+                          //   fontsize: pfpFontSize,
+                          //   img: snapshot.data,
+                          // ),
+                          child: CachedProfilePicture(
+                              name: memberNames[index],
+                              radius: pfpRadius,
+                              fontSize: pfpFontSize,
+                              imageUrl: snapshot.data));
                     },
                   );
                 },
@@ -448,28 +501,27 @@ class _SessionPage extends State<SessionPage>
       ),
     );
   }
-  
+
   /// Method to determine if the given session should be visible,
   /// only show private sessions to friends
   bool isNotViewable(Map<dynamic, dynamic> json, bool isFriends) {
-    if(friendsOnly || !json['isPublic']){
+    if (friendsOnly || !json['isPublic']) {
       return !isFriends;
     }
     return false;
   }
 
   /// Method to check if user is friends with the host
-  bool isFriendsWithHost(Map<dynamic, dynamic> json, List friendsList){
-    if(json['ownerKey'] != ''){
-      try{
+  bool isFriendsWithHost(Map<dynamic, dynamic> json, List friendsList) {
+    if (json['ownerKey'] != '') {
+      try {
         Map ownerEntry = json['users'][json['ownerKey']];
-        if (ownerEntry.containsKey('key')){
-          if (friendsList.contains(ownerEntry['key'])){
+        if (ownerEntry.containsKey('key')) {
+          if (friendsList.contains(ownerEntry['key'])) {
             return true;
           }
         }
-      }
-      catch (e){
+      } catch (e) {
         return false;
       }
     }
@@ -477,22 +529,21 @@ class _SessionPage extends State<SessionPage>
   }
 
   /// Method to hide sessions that contain blocked users
-  bool isBlockedUserinSession(Map<dynamic, dynamic> json, List blockedList){
+  bool isBlockedUserinSession(Map<dynamic, dynamic> json, List blockedList) {
     // Look at all students in a session
     List usersInSession = json['users'].values.toList();
-    for(var i = 0; i < usersInSession.length; i++){
+    for (var i = 0; i < usersInSession.length; i++) {
       // If a student in a session is blocked, hide that session
-      if (blockedList.contains(usersInSession[i]['key'])){
+      if (blockedList.contains(usersInSession[i]['key'])) {
         return true;
       }
-      
+
       // If the student who has blocked the blocked user is in a session,
-      // hide that session from the blocked user 
-      if(blockedFromList.contains(usersInSession[i]['key'])){
+      // hide that session from the blocked user
+      if (blockedFromList.contains(usersInSession[i]['key'])) {
         return true;
       }
     }
     return false;
   }
-
 }
