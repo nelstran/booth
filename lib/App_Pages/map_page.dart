@@ -64,7 +64,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   Map filters = {};
   StreamSubscription schoolSubscription = const Stream.empty().listen((_) {});
   StreamSubscription sessionSubscription = const Stream.empty().listen((_) {});
-  StreamController<bool> lockStream = StreamController<bool>();
+  StreamController<bool> lockStream = StreamController<bool>.broadcast();
   StreamController<Map<String, Marker>> markerStream =
       StreamController<Map<String, Marker>>();
 
@@ -243,7 +243,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       BitmapDescriptor pfpIcon, String sessionID) {
     final MarkerId markerId = MarkerId(id);
     // print(session.key);
-
+    // if (markers.containsKey(id)) {return;}
     final Marker marker = Marker(
       markerId: markerId,
       position: location,
@@ -491,7 +491,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             // Reset map
             markers.clear();
             markerStream.add(markers);
-
+    
             // Get new existing session
             widget.controller
                 .getSessions(
@@ -502,7 +502,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
               }
             });
           }
-
+    
           // Update map when sessions are added
           return StreamBuilder<DatabaseEvent>(
               stream: widget.controller.sessionRef.onChildAdded,
