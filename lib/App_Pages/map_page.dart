@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:Booth/App_Pages/expanded_session_page.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,6 +17,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:synchronized/synchronized.dart';
+import 'package:Booth/MVC/analytics_extension.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({
@@ -33,10 +36,27 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   @override
+  void initState() {
+    super.initState();
+    isInThisSession = false;
+    updateState();
+  }
+
+  updateState() {
+    buttonColor = (isInThisSession ? Colors.red[900] : Colors.green[800])!;
+  }
+
+  @override
   bool get wantKeepAlive => true;
   Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   late GoogleMapController googleMapController;
+  late BoothController controller = widget.controller;
   final customInfoWindowController = CustomInfoWindowController();
+  late bool isInThisSession;
+  late bool isOwner;
+  late Color buttonColor;
+  bool showingSnack = false;
+  var lock = Lock();
 
   Map<String, Marker> markers = {};
   LatLng? maxPos;
@@ -175,7 +195,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   }
 
   /// Method to set marker to owner profile picture
-  Future<void> addOwnerPfp(dynamic json, Session session, String sessionID) async {
+  Future<void> addOwnerPfp(
+      dynamic json, Session session, String sessionID) async {
     try {
       final LatLng sessionLocation =
           LatLng(session.latitude!, session.longitude!);
@@ -209,8 +230,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             BitmapDescriptor.defaultMarker; // Fallback if no path is found
       }
 
-      _addMarker(session.ownerKey, sessionLocation, session, customIcon,
-          sessionID);
+      _addMarker(
+          session.ownerKey, sessionLocation, session, customIcon, sessionID);
     } catch (e) {
       // Skip
     }
@@ -243,9 +264,14 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
         if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
           return const SizedBox.shrink(); // Display nothing if there’s no data.
         }
-        try{
+        try {
+          if (controller.student.session == sessionID) {
+            isInThisSession = true;
+            updateState();
+          }
           Map<dynamic, dynamic> json =
               snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+
           List<String> memberNames = [];
           List<String> memberUIDs = [];
 
@@ -253,25 +279,18 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             memberNames.add(value['name']);
             memberUIDs.add(value['uid']);
           });
-            // }
 
-          // print(json);
           String ownerUID = json["users"][session.ownerKey]["uid"];
           String ownerName = json["users"][session.ownerKey]["name"];
-          // String ownerName = "Brayden Neal";
-          // String ownerUID = "";
-
-          // String? ownerPfpPath = "assets/images/lamp_logo.png";
-          // String? ownerPfpPath =
-          //     widget.controller.retrieveProfilePicture(ownerUID) as String? ??
-          //         "assets/images/lamp_logo.png";
 
           return Container(
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
               color: Colors.grey.shade800,
               borderRadius: BorderRadius.circular(15),
-              boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+              boxShadow: const [
+                BoxShadow(blurRadius: 10, color: Colors.black26)
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,41 +307,35 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                           Text(
                             session.title,
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold, 
+                                fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 overflow: TextOverflow.ellipsis),
                             maxLines: 2,
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            session.description,
-                            maxLines: 2,
-                            style: const TextStyle(
-                              overflow: TextOverflow.ellipsis
-                            )
-                          ),
+                          Text(session.description,
+                              maxLines: 2,
+                              style: const TextStyle(
+                                  overflow: TextOverflow.ellipsis)),
                           const SizedBox(height: 5),
                           Text(session.time),
                         ],
                       ),
                     ),
                     StreamBuilder(
-                      stream: widget.controller.pfpRef(ownerUID).snapshots(),
-                      builder: (context, snapshot) {
-                        return FutureBuilder(
-                          future: widget.controller
-                              .getProfilePictureByUID(ownerUID, true),
+                        stream: widget.controller.pfpRef(ownerUID).snapshots(),
+                        builder: (context, snapshot) {
+                          return FutureBuilder(
+                              future: widget.controller
+                                  .getProfilePictureByUID(ownerUID, true),
                               builder: (context, snapshot) {
                                 return CachedProfilePicture(
                                     name: ownerName,
                                     radius: 30,
                                     fontSize: 30,
-                                    imageUrl: snapshot.data
-                                );
-                              }
-                            );
-                          }
-                        )
+                                    imageUrl: snapshot.data);
+                              });
+                        })
                     // CircleAvatar(
                     //   radius: 30,
                     //   backgroundColor: Colors.grey[300],
@@ -343,25 +356,16 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        // Add join functionality here
-                      },
-                      child: const Text("Join"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Add expand functionality here
-                      },
-                      child: const Text("Expand"),
-                    ),
+                    joinLeaveButton(
+                        snapshot.data!.snapshot.key!, session, sessionID),
+                    expandedButton(
+                        snapshot.data!.snapshot.key!, session, sessionID),
                   ],
                 ),
               ],
             ),
           );
-        }
-        catch (e){
+        } catch (e) {
           return const SizedBox.shrink();
         }
       },
@@ -655,5 +659,107 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
         ),
       ],
     );
+  }
+
+  Padding joinLeaveButton(String key, Session session, String sessionID) {
+    int seatsLeft = session.seatsAvailable - session.seatsTaken;
+    String buttonText = isInThisSession ? "Leave" : "Join";
+
+    return Padding(
+      padding: const EdgeInsets.all(1.0),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        decoration: BoxDecoration(
+          color: seatsLeft == 0 && !isInThisSession
+              ? Colors.grey[800]
+              : buttonColor,
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Center(
+          child: seatsLeft == 0 && !isInThisSession
+              ? const Text("Full")
+              : TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(100, 40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: lock.locked || (seatsLeft == 0 && !isInThisSession)
+                      ? null
+                      : () async {
+                          if (lock.locked) return;
+
+                          await lock.synchronized(() async {
+                            // Delete owned session
+                            if (controller.student.ownedSessionKey != "") {
+                              var sessionToDelete =
+                                  controller.student.ownedSessionKey;
+                              if (key == sessionToDelete) {
+                                Navigator.of(context).pop();
+                              }
+                              await controller.removeUserFromSession(
+                                  controller.student.session,
+                                  controller.student.sessionKey);
+                              await controller.removeSession(sessionToDelete);
+                              if (key == sessionToDelete) {
+                                return;
+                              }
+                            }
+
+                            // Join or Leave Session Logic
+                            if (isInThisSession) {
+                              await controller.removeUserFromSession(
+                                  sessionID, controller.student.sessionKey);
+                            } else {
+                              await controller.addUserToSession(
+                                  sessionID, controller.student);
+                              controller.startSessionLogging(
+                                  controller.student.uid, session);
+                            }
+
+                            setState(() {
+                              isInThisSession = !isInThisSession;
+                            });
+                          });
+                        },
+                  child: Text(key == controller.student.ownedSessionKey
+                      ? "Delete"
+                      : buttonText),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Padding expandedButton(String key, Session session, String sessionID) {
+    return Padding(
+        padding: const EdgeInsets.all(1.0),
+        child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            child: Center(
+                child: TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                minimumSize: const Size(100, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                // Expand session
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ExpandedSessionPage(sessionID, widget.controller),
+                  ),
+                );
+              },
+              child: const Text("Expand"),
+            ))));
   }
 }
