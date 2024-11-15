@@ -6,6 +6,10 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart'; 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
 
 class SettingsPage extends StatefulWidget {
   final BoothController controller;
@@ -18,12 +22,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  bool notificationsEnabled = true;
-  bool privacyVisible = true;
   bool isBiometricEnabled = false;
-  bool locationEnabled = false;
-  bool storageEnabled = false;
-  bool cameraEnabled = false;
   final storage = const FlutterSecureStorage();
   final LocalAuthentication auth = LocalAuthentication();
   
@@ -201,6 +200,50 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> openDocument(String fileName) async {
+    try {
+      // Check if file exists in assets
+      final ByteData data = await rootBundle.load('assets/documents/$fileName');
+      
+      // Store file in temp dir
+      final Directory tempDir = await getTemporaryDirectory();
+      final String tempPath = tempDir.path;
+      final File tempFile = File('$tempPath/$fileName');
+      
+      // Write file to temp storage
+      await tempFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
+
+      // Document opens in a new page
+      if (mounted) {
+        String documentTitle = fileName;
+        if (fileName == 'Booth_PP.pdf') {
+          documentTitle = 'Privacy Policy';
+        } else if (fileName == 'Booth_TOS.pdf') {
+          documentTitle = 'Terms of Service';
+        }
+
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DocumentViewerPage(
+              filePath: tempFile.path,
+              fileName: fileName,
+              title: documentTitle,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening $fileName: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -210,8 +253,6 @@ class SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(16.0),
         children: [
           buildAccountSettingsSection(),
-          const Divider(),
-          buildPermissionsSection(),
           const Divider(),
           buildPrivacySettingsSection(),
           const Divider(),
@@ -252,56 +293,6 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Permissions Section
-  Widget buildPermissionsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Permissions",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        SwitchListTile(
-          title: const Text("Allow Notifications"),
-          value: notificationsEnabled,
-          onChanged: (bool value) {
-            setState(() {
-              notificationsEnabled = value;
-            });
-          },
-        ),
-        SwitchListTile(
-          title: const Text("Allow Location"),
-          value: locationEnabled,
-          onChanged: (bool value) {
-            setState(() {
-              locationEnabled = value;
-            });
-          },
-        ),
-        SwitchListTile(
-          title: const Text("Allow Storage"),
-          value: storageEnabled,
-          onChanged: (bool value) {
-            setState(() {
-              storageEnabled = value;
-            });
-          },
-        ),
-        SwitchListTile(
-          title: const Text("Allow Camera"),
-          value: cameraEnabled,
-          onChanged: (bool value) {
-            setState(() {
-              cameraEnabled = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
   // Privacy Settings Section
   Widget buildPrivacySettingsSection() {
     return Column(
@@ -310,15 +301,6 @@ class SettingsPageState extends State<SettingsPage> {
         const Text(
           "Privacy Settings",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        SwitchListTile(
-          title: const Text("Profile Visible"),
-          value: privacyVisible,
-          onChanged: (bool value) {
-            setState(() {
-              privacyVisible = value;
-            });
-          },
         ),
         ListTile(
           title: const Text("Blocked Users"),
@@ -336,14 +318,14 @@ class SettingsPageState extends State<SettingsPage> {
           title: const Text("Privacy Policy"),
           trailing: const Icon(Icons.arrow_forward_ios),
           onTap: () {
-            // Handle privacy policy logic
+            openDocument('Booth_PP.pdf');
           },
         ),
         ListTile(
           title: const Text("Terms of Service"),
           trailing: const Icon(Icons.arrow_forward_ios),
           onTap: () {
-            // Handle terms of service logic
+            openDocument('Booth_TOS.pdf');
           },
         ),
       ],
@@ -375,8 +357,7 @@ class SettingsPageState extends State<SettingsPage> {
     return Center(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-        child:
-            const Text("Delete Account", style: TextStyle(color: Colors.white)),
+        child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
         onPressed: () {
           deletionDialog();
         },
@@ -423,8 +404,7 @@ This action is permanent and cannot be undone. All your data, settings, and hist
                   await widget.controller.deleteUserAccountFB(context);
                   Navigator.of(context).pop(); // Close dialog
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Account deleted successfully.")),
+                    const SnackBar(content: Text("Account deleted successfully.")),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -440,6 +420,59 @@ This action is permanent and cannot be undone. All your data, settings, and hist
           ],
         );
       },
+    );
+  }
+}
+
+// Document Viewer Page
+class DocumentViewerPage extends StatelessWidget {
+  final String filePath;
+  final String fileName;
+  final String title;
+
+  const DocumentViewerPage({
+    super.key,
+    required this.filePath,
+    required this.fileName,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: fileName.toLowerCase().endsWith('.pdf')
+          ? PDFView(
+              filePath: filePath,
+              enableSwipe: true,
+              swipeHorizontal: false,
+              autoSpacing: true,
+              pageFling: true,
+              onError: (error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $error'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              },
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: FutureBuilder<String>(
+                future: File(filePath).readAsString(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(snapshot.data!);
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              ),
+            ),
     );
   }
 }
