@@ -22,52 +22,51 @@ class _UsagePageState extends State<UsagePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                "Weekly Session Time",
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  child: const Icon(Icons.arrow_back_ios_rounded),
-                  onTap: (){
-                    setState(() {
-                      weeksAwayFromToday += 1;
-                    });
-                  }
-                ),
-                Text(
-                  getStartAndEndWeek(weeksAwayFromToday),
-                  style: const TextStyle(
-                    fontSize: 25
-                  )
-                ),
-                GestureDetector(
-                  child: const Icon(Icons.arrow_forward_ios_rounded),
-                  onTap: (){
-                    if(weeksAwayFromToday > 0){
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Expanded(
+            flex:1,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    child: const Icon(Icons.arrow_back_ios_rounded),
+                    onTap: (){
                       setState(() {
-                        weeksAwayFromToday -= 1;
+                        weeksAwayFromToday += 1;
                       });
                     }
-                  }
-                ),
-              ],
+                  ),
+                  Text(
+                    getStartAndEndWeek(weeksAwayFromToday),
+                    style: const TextStyle(
+                      fontSize: 20
+                    )
+                  ),
+                  GestureDetector(
+                    child: weeksAwayFromToday == 0 ? const SizedBox(width: 25,) : const Icon(Icons.arrow_forward_ios_rounded),
+                    onTap: (){
+                      if(weeksAwayFromToday > 0){
+                        setState(() {
+                          weeksAwayFromToday -= 1;
+                        });
+                      }
+                    }
+                  ),
+                ],
+              ),
             ),
-            weeklyBarGraph(),
-          ],
-        ),
+          ),
+          Expanded(
+            flex:9,
+            child: weeklyBarGraph()
+          ),
+        ],
       ),
     );
   }
@@ -76,19 +75,34 @@ class _UsagePageState extends State<UsagePage> {
     return FutureBuilder(
       future: Future.wait([getWeeklyHours(weeksAwayFromToday), getFreqLocation(weeksAwayFromToday)]),
       builder: (context, snapshot) {
-        Map<String, Duration> weeklyHours = {
+        Map<String, dynamic> weeklyHours = {
           "Sunday": const Duration(),
           "Monday": const Duration(),
           "Tuesday": const Duration(),
           "Wednesday": const Duration(),
           "Thursday": const Duration(),
           "Friday": const Duration(),
-          "Saturday": const Duration()
+          "Saturday": const Duration(),
+          "Subjects": {}
         };
+        List subjects = [];
+        Map subjectsDuration = {};
+        double maxSubjectTime = 1;
+
         String mostFreqLoc = "Not enough data";
         if (snapshot.hasData) {
-          weeklyHours = snapshot.data![0] as Map<String, Duration>;
+          weeklyHours = snapshot.data![0] as Map<String, dynamic>;
           mostFreqLoc = snapshot.data![1] as String;
+          try{
+            subjects = (weeklyHours["Subjects"] as Map).keys.toList();
+            subjectsDuration = weeklyHours.remove("Subjects");
+            subjects.sort((a, b) => subjectsDuration[b].inMinutes - subjectsDuration[a].inMinutes);
+            maxSubjectTime = subjectsDuration[subjects[0]].inMinutes / 60;
+          }
+          catch (e){
+            print(e);
+            // No idea why subject isnt in the map
+          }
         }
 
         // Convert Duration to double
@@ -113,196 +127,243 @@ class _UsagePageState extends State<UsagePage> {
         weeklyBarData.initializeBarData();
 
         // Get total weekly hours
-        double totalHours = sunHours +
-            monHours +
-            tuesHours +
-            wedHours +
-            thurHours +
-            friHours +
-            satHours;
-        String totalWeeklyHours = totalHours.toStringAsPrecision(3);
+        double totalHours = (sunHours +
+          monHours +
+          tuesHours +
+          wedHours +
+          thurHours +
+          friHours +
+          satHours);
 
         // Get daily average
         double dailyAverageNum = totalHours / 7;
-        String dailyAverage = dailyAverageNum.toStringAsPrecision(3);
-        return Padding(
-          padding: const EdgeInsets.all(25.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 200,
-                child: BarChart(
-                  BarChartData(
-                    barTouchData: BarTouchData(
-                      touchTooltipData: BarTouchTooltipData(
-                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        String weekDay;
-                        switch (group.x.toInt()) {
-                          case 0:
-                            weekDay = 'Sunday';
-                            break;
-                          case 1:
-                            weekDay = 'Monday';
-                            break;
-                          case 2:
-                            weekDay = 'Tuesday';
-                            break;
-                          case 3:
-                            weekDay = 'Wednesday';
-                            break;
-                          case 4:
-                            weekDay = 'Thursday';
-                            break;
-                          case 5:
-                            weekDay = 'Friday';
-                            break;
-                          case 6:
-                            weekDay = 'Saturday';
-                            break;
-                          default:
-                            throw Error();
-                        }
-                        return BarTooltipItem(
-                          '$weekDay \n',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+        int averageHour = dailyAverageNum.floor();
+        int averageMin = ((dailyAverageNum - averageHour) * 60).round();
+        // String dailyAverage = dailyAverageNum.toStringAsPrecision(3);
+        double maxYBar = (weeklyBarData.getMax().roundToDouble() + 1);
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              flex:2,
+              child: Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: SizedBox(
+                  height: 200,
+                  child: BarChart(
+                    BarChartData(
+                      barTouchData: BarTouchData(
+                        touchTooltipData: BarTouchTooltipData(
+                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          String weekDay;
+                          switch (group.x.toInt()) {
+                            case 0:
+                              weekDay = 'Sunday';
+                              break;
+                            case 1:
+                              weekDay = 'Monday';
+                              break;
+                            case 2:
+                              weekDay = 'Tuesday';
+                              break;
+                            case 3:
+                              weekDay = 'Wednesday';
+                              break;
+                            case 4:
+                              weekDay = 'Thursday';
+                              break;
+                            case 5:
+                              weekDay = 'Friday';
+                              break;
+                            case 6:
+                              weekDay = 'Saturday';
+                              break;
+                            default:
+                              weekDay = 'Invalid day';
+                          }
+                          return BarTooltipItem(
+                            '$weekDay \n',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: '${(rod.toY).toStringAsPrecision(2)} Hours',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                      maxY: maxYBar + (.1 * maxYBar),
+                      minY: 0,
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: false
+                            )
                           ),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: '${(rod.toY).toStringAsPrecision(2)} Hours',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                        leftTitles: const AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: false
+                            )
+                          ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            maxIncluded: false,
+                            minIncluded: false,
+                            getTitlesWidget: (amount, meta) => SideTitleWidget(
+                              axisSide: AxisSide.right,
+                              child: Text("${amount.toStringAsFixed(1).replaceFirst(RegExp(r'\.?0*$'), '')} hr"), 
                               ),
-                            ),
-                          ],
-                        );
-                      }),
-                    ),
-                    maxY: weeklyBarData.getMax() + 1,
-                    minY: 0,
-                    gridData: const FlGridData(show: false),
-                    borderData: FlBorderData(show: false),
-                    titlesData: FlTitlesData(
-                      show: true,
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: false
-                          )
-                        ),
-                      leftTitles: const AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: false
-                          )
-                        ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: false
-                          )
-                        ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: getBottomTitles,
+                            interval: (maxYBar / 2),
+                            reservedSize: 50,
+                            showTitles: true
+                            )
+                          ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: getBottomTitles,
+                          ),
                         ),
                       ),
-                    ),
-                    barGroups: weeklyBarData.barData
-                      .map(
-                        (data) => BarChartGroupData(
-                          x: data.x,
-                          barRods: [
-                            BarChartRodData(
-                              toY: data.y,
-                              color: Colors.blue,
-                              width: 25,
-                              // borderRadius: BorderRadius.circular(15),
-                              backDrawRodData: BackgroundBarChartRodData(
-                                show: true,
-                                toY: weeklyBarData.getMax() + 1,
-                                color: Colors.grey[200],
+                      barGroups: weeklyBarData.barData
+                        .map(
+                          (data) => BarChartGroupData(
+                            x: data.x,
+                            barRods: [
+                              BarChartRodData(
+                                toY: data.y,
+                                color: Colors.blue,
+                                width: 25,
+                                // borderRadius: BorderRadius.circular(15),
+                                backDrawRodData: BackgroundBarChartRodData(
+                                  show: true,
+                                  toY: maxYBar + (.1 * maxYBar),
+                                  color: Colors.grey[200],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList()
-                    )
-                  ),
-              ),
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(fontSize: 20),
-                    children: [
-                      const TextSpan(
-                        text: 'Total Time this week: ',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                            ],
+                          ),
                         )
-                      ),
-                      TextSpan(
-                        text: "$totalWeeklyHours h"
+                        .toList()
                       )
-                    ]
-                  ),
-                )
-              ),
-              const SizedBox(height: 10),
-              Align(
-                  alignment: Alignment.centerLeft,
-                child: RichText(
-                  text: TextSpan(
-                    style: const TextStyle(fontSize: 20),
-                    children: [
-                      const TextSpan(
-                        text: 'Daily Average: ',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        )
-                      ),
-                      TextSpan(
-                        text: "$dailyAverage h"
-                      )
-                    ]
-                  ),
-                )
-              ),
-              const SizedBox(height: 10),
-              Align(
-                  alignment: Alignment.centerLeft,
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 20),
-                      children: [
-                        const TextSpan(
-                          text: 'Most Visited Location this week: ',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          )
-                        ),
-                        TextSpan(
-                          text: mostFreqLoc
-                        )
-                      ]
                     ),
-                  )
-                  // child: Text(
-                  //   "Most Visited Location this Week: " + mostFreqLoc,
-                  //   style: TextStyle(fontSize: 20),
-                  // )
-                )
-            ],
-          ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 43, 43, 43),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(40.0),
+                    topRight: Radius.circular(40.0),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      Flexible(
+                        flex: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: .0, bottom: 20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text:"$averageHour hr $averageMin m\n",
+                                      style: const TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.w500
+                                      ),
+                                    ),
+                                    const TextSpan(
+                                      text: "Daily Average study time",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                      )
+                                    )
+                                  ]
+                                ),
+                              ),
+                              RichText(
+                                textAlign: TextAlign.end,
+                                text: TextSpan(
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                  ),
+                                  children: [
+                                    const TextSpan(
+                                      text: "Total:\n",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold
+                                      )
+                                    ),
+                                    TextSpan(
+                                      text: "${totalHours.toStringAsFixed(2)} hr"
+                                    )
+                                  ]
+                                )
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 7,
+                        child: ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: subjects.length >= 5 ? 5 : subjects.length,
+                          itemBuilder: (context, index) {
+                            String subject = subjects[index];
+                            double duration = subjectsDuration[subject]!.inMinutes / 60;
+                            int hours = duration.floor();
+                            int minutes = (((duration - hours) * 60).round());
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(subject),
+                                      Text("$hours hr $minutes m")
+                                    ],
+                                  ),
+                                  LinearProgressIndicator(
+                                    borderRadius: BorderRadius.circular(8),
+                                    minHeight: 10,
+                                    value:(duration / maxSubjectTime),
+                                    color: Colors.blue)
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       }
     );
@@ -333,16 +394,16 @@ class _UsagePageState extends State<UsagePage> {
         onError: (e) => print("Error completing: $e"),
       );
 
-      var map = Map();
+      var map = {};
 
-      locations.forEach((element) {
+      for(var element in locations){
         if (map.containsKey(element)) {
           map[element] += 1;
         } else {
           map[element] = 1;
         }
-      });
-
+      }
+      
       List sortedCounts = map.values.toList()..sort();
       int mostFreqCount = sortedCounts.last;
 
@@ -360,18 +421,19 @@ class _UsagePageState extends State<UsagePage> {
   }
 
 // Gets the total hours spent in booth sessions per day
-  Future<Map<String, Duration>> getWeeklyHours(int week) async {
+  Future<Map<String, dynamic>> getWeeklyHours(int week) async {
     // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
     String userKey = widget.controller.student.uid;
 
-    Map<String, Duration> weeklyHours = {
-      "Sunday": Duration(hours: 0, minutes: 0, seconds: 0),
-      "Monday": Duration(hours: 0, minutes: 0, seconds: 0),
-      "Tuesday": Duration(hours: 0, minutes: 0, seconds: 0),
-      "Wednesday": Duration(hours: 0, minutes: 0, seconds: 0),
-      "Thursday": Duration(hours: 0, minutes: 0, seconds: 0),
-      "Friday": Duration(hours: 0, minutes: 0, seconds: 0),
-      "Saturday": Duration(hours: 0, minutes: 0, seconds: 0)
+    Map<String, dynamic> weeklyHours = {
+      "Sunday": const Duration(),
+      "Monday": const Duration(),
+      "Tuesday": const Duration(),
+      "Wednesday": const Duration(),
+      "Thursday": const Duration(),
+      "Friday": const Duration(),
+      "Saturday": const Duration(),
+      "Subjects": {}
     };
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -380,7 +442,6 @@ class _UsagePageState extends State<UsagePage> {
         .doc(userKey)
         .collection('session_logs')
         .where('week_of_year', isEqualTo: getWeekNum(week))
-        // .where('week_of_year', isEqualTo: 39)
         .get()
         .then(
       (querySnapshot) {
@@ -388,14 +449,20 @@ class _UsagePageState extends State<UsagePage> {
           if (docSnapshot.id == "curr_session"){
             continue;
           }
-          DateTime sessionStart = new DateFormat("yyyy-MM-dd hh:mm:ss")
-              .parse(docSnapshot.data()["start_timestamp"]);
-          DateTime sessionEnd = new DateFormat("yyyy-MM-dd hh:mm:ss")
-              .parse(docSnapshot.data()["end_timestamp"]);
+          Map json = docSnapshot.data() as Map;
+          DateTime sessionStart = DateFormat("yyyy-MM-dd hh:mm:ss")
+              .parse(json["start_timestamp"]);
+          DateTime sessionEnd = DateFormat("yyyy-MM-dd hh:mm:ss")
+              .parse(json["end_timestamp"]);
           final sessionDuration = sessionEnd.difference(sessionStart);
 
-          weeklyHours.update(docSnapshot.data()["day_of_week"],
-              (value) => value + sessionDuration);
+          weeklyHours.update(json["day_of_week"],
+            (value) {
+              Duration newDur = value + sessionDuration;
+              weeklyHours["Subjects"][json["subject"]] = newDur;
+              return newDur;
+            });
+          
         }
       },
       onError: (e) => print("Error completing: $e"),
@@ -417,13 +484,13 @@ class _UsagePageState extends State<UsagePage> {
   String getStartAndEndWeek(int week){
     var date = Timestamp.now().toDate();
     date = date.subtract(Duration(days: week * 7));
-    var startMonth = date.month;
+    var startMonth = DateFormat.MMMM().format(date);
     var startWeekDay = date.subtract(Duration(days: date.weekday));
     var startNum = int.parse(DateFormat.d().format(startWeekDay));
-    var endMonth = date.add(Duration(days: 7 - date.weekday)).month;
+    var endMonth = DateFormat.MMMM().format(date.add(Duration(days: 7 - date.weekday)));
     var endWeekDay = date.add(Duration(days: 6 - date.weekday));
     var endNum = int.parse(DateFormat.d().format(endWeekDay));
-    return "$startMonth/$startNum  -  $endMonth/$endNum";
+    return "$startMonth $startNum  -  $endMonth $endNum";
   }
 
   // Gets the bottom axis of the chart
@@ -462,7 +529,10 @@ class _UsagePageState extends State<UsagePage> {
         break;
     }
 
-    return SideTitleWidget(child: text, axisSide: meta.axisSide);
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: text, 
+    );
   }
 }
 
