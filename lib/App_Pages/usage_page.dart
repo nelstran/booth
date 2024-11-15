@@ -6,199 +6,312 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:intl/intl.dart';
 
-class UsagePage extends StatelessWidget {
+class UsagePage extends StatefulWidget {
   final BoothController controller;
-  const UsagePage(this.controller, {super.key});
+  const UsagePage(
+    this.controller,
+    {super.key}
+  );
+
+  @override
+  State<UsagePage> createState() => _UsagePageState();
+}
+
+class _UsagePageState extends State<UsagePage> {
+  int weeksAwayFromToday = 0;
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: Future.wait([getWeeklyHours(), getFreqLocation()]),
-        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: Text("Something has happened"));
-          }
-          Map<String, Duration> weeklyHours = snapshot.data[0];
-          String mostFreqLoc = snapshot.data[1];
-
-          // Convert Duration to double
-          double sunHours = weeklyHours["Sunday"]!.inMinutes / 60;
-          double monHours = weeklyHours["Monday"]!.inMinutes / 60;
-          double tuesHours = weeklyHours["Tuesday"]!.inMinutes / 60;
-          double wedHours = weeklyHours["Wednesday"]!.inMinutes / 60;
-          double thurHours = weeklyHours["Thursday"]!.inMinutes / 60;
-          double friHours = weeklyHours["Friday"]!.inMinutes / 60;
-          double satHours = weeklyHours["Saturday"]!.inMinutes / 60;
-
-          // Set bar data
-          BarData weeklyBarData = BarData(
-              sunAmount: sunHours,
-              monAmount: monHours,
-              tueAmount: tuesHours,
-              wedAmount: wedHours,
-              thurAmount: thurHours,
-              friAmount: friHours,
-              satAmount: satHours);
-
-          weeklyBarData.initializeBarData();
-
-          // Get total weekly hours
-          double totalHours = sunHours +
-              monHours +
-              tuesHours +
-              wedHours +
-              thurHours +
-              friHours +
-              satHours;
-          String totalWeeklyHours = totalHours.toStringAsPrecision(3);
-
-          // Get daily average
-          double dailyAverageNum = totalHours / 7;
-          String dailyAverage = dailyAverageNum.toStringAsPrecision(3);
-
-          return Scaffold(
-              body: Center(
-                  child: SingleChildScrollView(
-            reverse: true,
-            padding: const EdgeInsets.all(25.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                "Weekly Session Time",
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                GestureDetector(
+                  child: const Icon(Icons.arrow_back_ios_rounded),
+                  onTap: (){
+                    setState(() {
+                      weeksAwayFromToday += 1;
+                    });
+                  }
+                ),
                 Text(
-                  "Weekly Session Time",
-                  style: TextStyle(fontSize: 20),
+                  getStartAndEndWeek(weeksAwayFromToday),
+                  style: const TextStyle(
+                    fontSize: 25
+                  )
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 200,
-                  child: BarChart(
-                    BarChartData(
-                      barTouchData: BarTouchData(
-                        touchTooltipData: BarTouchTooltipData(
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          String weekDay;
-                          switch (group.x.toInt()) {
-                            case 0:
-                              weekDay = 'Sunday';
-                              break;
-                            case 1:
-                              weekDay = 'Monday';
-                              break;
-                            case 2:
-                              weekDay = 'Tuesday';
-                              break;
-                            case 3:
-                              weekDay = 'Wednesday';
-                              break;
-                            case 4:
-                              weekDay = 'Thursday';
-                              break;
-                            case 5:
-                              weekDay = 'Friday';
-                              break;
-                            case 6:
-                              weekDay = 'Saturday';
-                              break;
-                            default:
-                              throw Error();
-                          }
-                          return BarTooltipItem(
-                            weekDay + '\n',
-                            TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text:
-                                    (rod.toY).toStringAsPrecision(2) + " Hours",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          );
-                        }),
-                      ),
-                      maxY: weeklyBarData.getMax() + 1,
-                      minY: 0,
-                      gridData: FlGridData(show: false),
-                      borderData: FlBorderData(show: false),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        leftTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false)),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: getBottomTitles,
-                          ),
-                        ),
-                      ),
-                      barGroups: weeklyBarData.barData
-                          .map(
-                            (data) => BarChartGroupData(
-                              x: data.x,
-                              barRods: [
-                                BarChartRodData(
-                                  toY: data.y,
-                                  color: Colors.blue,
-                                  width: 25,
-                                  // borderRadius: BorderRadius.circular(15),
-                                  backDrawRodData: BackgroundBarChartRodData(
-                                    show: true,
-                                    toY: weeklyBarData.getMax() + 1,
-                                    color: Colors.grey[200],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
+                GestureDetector(
+                  child: const Icon(Icons.arrow_forward_ios_rounded),
+                  onTap: (){
+                    if(weeksAwayFromToday > 0){
+                      setState(() {
+                        weeksAwayFromToday -= 1;
+                      });
+                    }
+                  }
                 ),
-                const SizedBox(height: 20),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Total Time this Week: " + totalWeeklyHours + "h",
-                      style: TextStyle(fontSize: 20),
-                    )),
-                const SizedBox(height: 10),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Daily Average: " + dailyAverage + "h",
-                      style: TextStyle(fontSize: 20),
-                    )),
-                const SizedBox(height: 10),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Most Visited Location this Week: " + mostFreqLoc,
-                      style: TextStyle(fontSize: 20),
-                    ))
               ],
             ),
-          )));
-        });
+            weeklyBarGraph(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  FutureBuilder<List<Object>> weeklyBarGraph() {
+    return FutureBuilder(
+      future: Future.wait([getWeeklyHours(weeksAwayFromToday), getFreqLocation(weeksAwayFromToday)]),
+      builder: (context, snapshot) {
+        Map<String, Duration> weeklyHours = {
+          "Sunday": const Duration(),
+          "Monday": const Duration(),
+          "Tuesday": const Duration(),
+          "Wednesday": const Duration(),
+          "Thursday": const Duration(),
+          "Friday": const Duration(),
+          "Saturday": const Duration()
+        };
+        String mostFreqLoc = "Not enough data";
+        if (snapshot.hasData) {
+          weeklyHours = snapshot.data![0] as Map<String, Duration>;
+          mostFreqLoc = snapshot.data![1] as String;
+        }
+
+        // Convert Duration to double
+        double sunHours = weeklyHours["Sunday"]!.inMinutes / 60;
+        double monHours = weeklyHours["Monday"]!.inMinutes / 60;
+        double tuesHours = weeklyHours["Tuesday"]!.inMinutes / 60;
+        double wedHours = weeklyHours["Wednesday"]!.inMinutes / 60;
+        double thurHours = weeklyHours["Thursday"]!.inMinutes / 60;
+        double friHours = weeklyHours["Friday"]!.inMinutes / 60;
+        double satHours = weeklyHours["Saturday"]!.inMinutes / 60;
+
+        // Set bar data
+        BarData weeklyBarData = BarData(
+            sunAmount: sunHours,
+            monAmount: monHours,
+            tueAmount: tuesHours,
+            wedAmount: wedHours,
+            thurAmount: thurHours,
+            friAmount: friHours,
+            satAmount: satHours);
+
+        weeklyBarData.initializeBarData();
+
+        // Get total weekly hours
+        double totalHours = sunHours +
+            monHours +
+            tuesHours +
+            wedHours +
+            thurHours +
+            friHours +
+            satHours;
+        String totalWeeklyHours = totalHours.toStringAsPrecision(3);
+
+        // Get daily average
+        double dailyAverageNum = totalHours / 7;
+        String dailyAverage = dailyAverageNum.toStringAsPrecision(3);
+        return Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 200,
+                child: BarChart(
+                  BarChartData(
+                    barTouchData: BarTouchData(
+                      touchTooltipData: BarTouchTooltipData(
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        String weekDay;
+                        switch (group.x.toInt()) {
+                          case 0:
+                            weekDay = 'Sunday';
+                            break;
+                          case 1:
+                            weekDay = 'Monday';
+                            break;
+                          case 2:
+                            weekDay = 'Tuesday';
+                            break;
+                          case 3:
+                            weekDay = 'Wednesday';
+                            break;
+                          case 4:
+                            weekDay = 'Thursday';
+                            break;
+                          case 5:
+                            weekDay = 'Friday';
+                            break;
+                          case 6:
+                            weekDay = 'Saturday';
+                            break;
+                          default:
+                            throw Error();
+                        }
+                        return BarTooltipItem(
+                          '$weekDay \n',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '${(rod.toY).toStringAsPrecision(2)} Hours',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                    maxY: weeklyBarData.getMax() + 1,
+                    minY: 0,
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: false
+                          )
+                        ),
+                      leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: false
+                          )
+                        ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: false
+                          )
+                        ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: getBottomTitles,
+                        ),
+                      ),
+                    ),
+                    barGroups: weeklyBarData.barData
+                      .map(
+                        (data) => BarChartGroupData(
+                          x: data.x,
+                          barRods: [
+                            BarChartRodData(
+                              toY: data.y,
+                              color: Colors.blue,
+                              width: 25,
+                              // borderRadius: BorderRadius.circular(15),
+                              backDrawRodData: BackgroundBarChartRodData(
+                                show: true,
+                                toY: weeklyBarData.getMax() + 1,
+                                color: Colors.grey[200],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .toList()
+                    )
+                  ),
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 20),
+                    children: [
+                      const TextSpan(
+                        text: 'Total Time this week: ',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        )
+                      ),
+                      TextSpan(
+                        text: "$totalWeeklyHours h"
+                      )
+                    ]
+                  ),
+                )
+              ),
+              const SizedBox(height: 10),
+              Align(
+                  alignment: Alignment.centerLeft,
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 20),
+                    children: [
+                      const TextSpan(
+                        text: 'Daily Average: ',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        )
+                      ),
+                      TextSpan(
+                        text: "$dailyAverage h"
+                      )
+                    ]
+                  ),
+                )
+              ),
+              const SizedBox(height: 10),
+              Align(
+                  alignment: Alignment.centerLeft,
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 20),
+                      children: [
+                        const TextSpan(
+                          text: 'Most Visited Location this week: ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          )
+                        ),
+                        TextSpan(
+                          text: mostFreqLoc
+                        )
+                      ]
+                    ),
+                  )
+                  // child: Text(
+                  //   "Most Visited Location this Week: " + mostFreqLoc,
+                  //   style: TextStyle(fontSize: 20),
+                  // )
+                )
+            ],
+          ),
+        );
+      }
+    );
   }
 
   // Gets the most visited study location of the week
-  Future<String> getFreqLocation() async {
+  Future<String> getFreqLocation(int week) async {
     // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
-    String userKey = controller.student.uid;
+    String userKey = widget.controller.student.uid;
 
     List<String> locations = [];
     String mostFreqLoc = "";
@@ -208,7 +321,7 @@ class UsagePage extends StatelessWidget {
           .collection("users")
           .doc(userKey)
           .collection('session_logs')
-          .where('week_of_year', isEqualTo: getCurrentWeek())
+          .where('week_of_year', isEqualTo: getWeekNum(week))
           // .where('week_of_year', isEqualTo: 39)
           .get()
           .then(
@@ -247,9 +360,9 @@ class UsagePage extends StatelessWidget {
   }
 
 // Gets the total hours spent in booth sessions per day
-  Future<Map<String, Duration>> getWeeklyHours() async {
+  Future<Map<String, Duration>> getWeeklyHours(int week) async {
     // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
-    String userKey = controller.student.uid;
+    String userKey = widget.controller.student.uid;
 
     Map<String, Duration> weeklyHours = {
       "Sunday": Duration(hours: 0, minutes: 0, seconds: 0),
@@ -266,7 +379,7 @@ class UsagePage extends StatelessWidget {
         .collection("users")
         .doc(userKey)
         .collection('session_logs')
-        .where('week_of_year', isEqualTo: getCurrentWeek())
+        .where('week_of_year', isEqualTo: getWeekNum(week))
         // .where('week_of_year', isEqualTo: 39)
         .get()
         .then(
@@ -292,12 +405,25 @@ class UsagePage extends StatelessWidget {
   }
 
   // Gets the current week
-  int getCurrentWeek() {
+  int getWeekNum(int week) {
     var timestamp = Timestamp.now().toDate();
+    timestamp = timestamp.subtract(Duration(days: 7 * week));
     var todayInDays =
         timestamp.difference(DateTime(timestamp.year, 1, 1, 0, 0)).inDays;
-    var week = ((todayInDays - timestamp.weekday + 10) / 7).floor();
-    return week;
+    var weekNum = ((todayInDays - timestamp.weekday + 10) / 7).floor();
+    return weekNum;
+  }
+
+  String getStartAndEndWeek(int week){
+    var date = Timestamp.now().toDate();
+    date = date.subtract(Duration(days: week * 7));
+    var startMonth = date.month;
+    var startWeekDay = date.subtract(Duration(days: date.weekday));
+    var startNum = int.parse(DateFormat.d().format(startWeekDay));
+    var endMonth = date.add(Duration(days: 7 - date.weekday)).month;
+    var endWeekDay = date.add(Duration(days: 6 - date.weekday));
+    var endNum = int.parse(DateFormat.d().format(endWeekDay));
+    return "$startMonth/$startNum  -  $endMonth/$endNum";
   }
 
   // Gets the bottom axis of the chart
