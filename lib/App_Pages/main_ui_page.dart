@@ -28,7 +28,7 @@ class MainUIPage extends StatefulWidget {
   State<MainUIPage> createState() => _MainUIPageState();
 }
 
-class _MainUIPageState extends State<MainUIPage>{
+class _MainUIPageState extends State<MainUIPage> {
   // Reference to the Firebase Database sessions node
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   late final BoothController controller = BoothController(_ref);
@@ -103,41 +103,39 @@ class _MainUIPageState extends State<MainUIPage>{
 
     sessionOptions = [
       const PopupMenuItem(
-        value: true,
-        padding: EdgeInsets.only(left: 8.0),
-        child: SizedBox(
-          width: 100,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Text("Friends"),
-              Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Icon(Icons.people),
-              )
-            ],
-          ),
-        )
-      ),
+          value: true,
+          padding: EdgeInsets.only(left: 8.0),
+          child: SizedBox(
+            width: 100,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Text("Friends"),
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Icon(Icons.people),
+                )
+              ],
+            ),
+          )),
       const PopupMenuItem(
-        value: false,
-        padding: EdgeInsets.only(left: 8.0),
-        child: SizedBox(
-          width: 100,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Text("School"),
-              Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Icon(Icons.school),
-              )
-            ],
-          ),
-        )
-      ),
+          value: false,
+          padding: EdgeInsets.only(left: 8.0),
+          child: SizedBox(
+            width: 100,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Text("School"),
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Icon(Icons.school),
+                )
+              ],
+            ),
+          )),
     ];
     optionIcons = const [
       Icon(Icons.people),
@@ -148,16 +146,14 @@ class _MainUIPageState extends State<MainUIPage>{
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: appSetupStream.stream,
-      builder: (context, snapshot){
-        if(snapshot.hasData){
-          return createUI();
-        }
-        else{
-          return const Center(child: CircularProgressIndicator());
-        }
-      }
-    );
+        stream: appSetupStream.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return createUI();
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        });
   }
 
   Future<void> appSetup(user) async {
@@ -260,44 +256,40 @@ class _MainUIPageState extends State<MainUIPage>{
     );
   }
 
-  AppBar sessionAppBar() {    
+  AppBar sessionAppBar() {
     return AppBar(
-      // title: Text("Booth | Welcome ${controller.student.fullname}!"),
-      title: 
-      // Theme(
-      //   data: Theme.of(context).copyWith(
-      //     // splashFactory: NoSplash.splashFactory
-      //     highlightColor: Colors.transparent,
-      //     splashColor: Colors.transparent
-      //   ),
-      //   child: 
-        PopupMenuButton<bool>(
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child: PopupMenuButton<bool>(
           onSelected: (bool value) {
-            setState((){
+            setState(() {
               controller.setFriendsTab(value);
             });
           },
           color: const Color.fromARGB(255, 32, 32, 32),
           position: PopupMenuPosition.under,
-          itemBuilder: (context){
+          itemBuilder: (context) {
             return sessionOptions;
           },
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Booth"),
-              Icon(Icons.keyboard_arrow_down)
-            ]
+              Text(
+                "Booth",
+                style: TextStyle(fontSize: 24),
+              ),
+              Icon(Icons.keyboard_arrow_down),
+            ],
           ),
-        // )
+        ),
       ),
       actions: [
-        // This button is linked to the logout method
         IconButton(
           onPressed: () => logout(controller, context),
           icon: const Icon(Icons.logout),
         ),
       ],
+      leadingWidth: 200,
     );
   }
 
@@ -360,7 +352,7 @@ class _MainUIPageState extends State<MainUIPage>{
       actions: [
         // This button is linked to the logout method
         IconButton(
-          onPressed:() => logout(controller, context),
+          onPressed: () => logout(controller, context),
           icon: const Icon(Icons.logout),
         ),
       ],
