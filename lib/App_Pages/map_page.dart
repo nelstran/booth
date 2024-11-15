@@ -64,6 +64,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   Map filters = {};
   StreamSubscription schoolSubscription = const Stream.empty().listen((_) {});
   StreamSubscription sessionSubscription = const Stream.empty().listen((_) {});
+  StreamController<bool> lockStream = StreamController<bool>();
   StreamController<Map<String, Marker>> markerStream =
       StreamController<Map<String, Marker>>();
 
@@ -259,119 +260,124 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   Widget _buildCustomInfoWindow(Session session, String sessionID) {
     return StreamBuilder(
-      stream: widget.controller.sessionRef.child(sessionID).onValue,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-          return const SizedBox.shrink(); // Display nothing if there’s no data.
-        }
-        try {
-          if (controller.student.session == sessionID) {
-            isInThisSession = true;
-            updateState();
-          } else {
-            isInThisSession = false;
-            updateState();
+      stream: lockStream.stream,
+      builder: (context, snapshot){ 
+        return StreamBuilder(
+        stream: widget.controller.sessionRef.child(sessionID).onValue,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+            return const SizedBox.shrink(); // Display nothing if there’s no data.
           }
-          Map<dynamic, dynamic> json =
-              snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-
-          List<String> memberNames = [];
-          List<String> memberUIDs = [];
-
-          json['users'].forEach((key, value) {
-            memberNames.add(value['name']);
-            memberUIDs.add(value['uid']);
-          });
-
-          String ownerUID = json["users"][session.ownerKey]["uid"];
-          String ownerName = json["users"][session.ownerKey]["name"];
-
-          return Container(
-            padding: const EdgeInsets.all(10.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade800,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: const [
-                BoxShadow(blurRadius: 10, color: Colors.black26)
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            session.title,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                overflow: TextOverflow.ellipsis),
-                            maxLines: 2,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(session.description,
-                              maxLines: 2,
+          try {
+            if (controller.student.session == sessionID) {
+              isInThisSession = true;
+              updateState();
+            } else {
+              isInThisSession = false;
+              updateState();
+            }
+            Map<dynamic, dynamic> json =
+                snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+      
+            List<String> memberNames = [];
+            List<String> memberUIDs = [];
+      
+            json['users'].forEach((key, value) {
+              memberNames.add(value['name']);
+              memberUIDs.add(value['uid']);
+            });
+      
+            String ownerUID = json["users"][session.ownerKey]["uid"];
+            String ownerName = json["users"][session.ownerKey]["name"];
+      
+            return Container(
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade800,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: const [
+                  BoxShadow(blurRadius: 10, color: Colors.black26)
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              session.title,
                               style: const TextStyle(
-                                  overflow: TextOverflow.ellipsis)),
-                          const SizedBox(height: 5),
-                          Text(session.time),
-                        ],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  overflow: TextOverflow.ellipsis),
+                              maxLines: 2,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(session.description,
+                                maxLines: 2,
+                                style: const TextStyle(
+                                    overflow: TextOverflow.ellipsis)),
+                            const SizedBox(height: 5),
+                            Text(session.time),
+                          ],
+                        ),
                       ),
-                    ),
-                    StreamBuilder(
-                        stream: widget.controller.pfpRef(ownerUID).snapshots(),
-                        builder: (context, snapshot) {
-                          return FutureBuilder(
-                              future: widget.controller
-                                  .getProfilePictureByUID(ownerUID, true),
-                              builder: (context, snapshot) {
-                                return CachedProfilePicture(
-                                    name: ownerName,
-                                    radius: 30,
-                                    fontSize: 30,
-                                    imageUrl: snapshot.data);
-                              });
-                        })
-                    // CircleAvatar(
-                    //   radius: 30,
-                    //   backgroundColor: Colors.grey[300],
-                    //   child: const Text("PFP"),
-                    // ),
-                  ],
-                ),
-                const SizedBox(height: 9),
-                const Text("Users",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 5),
-                rowOfPFPs(memberNames, 5, memberUIDs),
-                const SizedBox(height: 10),
-                Text(
-                  "\"${session.locationDescription}\"",
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    joinLeaveButton(
-                        snapshot.data!.snapshot.key!, session, sessionID),
-                    expandedButton(
-                        snapshot.data!.snapshot.key!, session, sessionID),
-                  ],
-                ),
-              ],
-            ),
-          );
-        } catch (e) {
-          return const SizedBox.shrink();
-        }
-      },
+                      StreamBuilder(
+                          stream: widget.controller.pfpRef(ownerUID).snapshots(),
+                          builder: (context, snapshot) {
+                            return FutureBuilder(
+                                future: widget.controller
+                                    .getProfilePictureByUID(ownerUID, true),
+                                builder: (context, snapshot) {
+                                  return CachedProfilePicture(
+                                      name: ownerName,
+                                      radius: 30,
+                                      fontSize: 30,
+                                      imageUrl: snapshot.data);
+                                });
+                          })
+                      // CircleAvatar(
+                      //   radius: 30,
+                      //   backgroundColor: Colors.grey[300],
+                      //   child: const Text("PFP"),
+                      // ),
+                    ],
+                  ),
+                  const SizedBox(height: 9),
+                  const Text("Users",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 5),
+                  rowOfPFPs(memberNames, 5, memberUIDs),
+                  const SizedBox(height: 10),
+                  Text(
+                    "\"${session.locationDescription}\"",
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      joinLeaveButton(
+                          snapshot.data!.snapshot.key!, session, sessionID),
+                      expandedButton(
+                          snapshot.data!.snapshot.key!, session, sessionID),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          } catch (e) {
+            return const SizedBox.shrink();
+          }
+        },
+      );
+      }
     );
   }
 
@@ -721,11 +727,12 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                               controller.startSessionLogging(
                                   controller.student.uid, session);
                             }
-
+                            
                             setState(() {
                               isInThisSession = !isInThisSession;
                             });
-                          });
+                          }).then((val) => lockStream.sink.add(lock.inLock));
+
                         },
                   child: Text(key == controller.student.ownedSessionKey
                       ? "Delete"
