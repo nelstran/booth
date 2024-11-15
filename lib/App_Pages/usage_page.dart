@@ -459,7 +459,9 @@ class _UsagePageState extends State<UsagePage> {
           weeklyHours.update(json["day_of_week"],
             (value) {
               Duration newDur = value + sessionDuration;
-              weeklyHours["Subjects"][json["subject"]] = newDur;
+              (weeklyHours["Subjects"] as Map).update(json["subject"], 
+                (value) => value + sessionDuration,
+                ifAbsent: () => newDur);
               return newDur;
             });
           
