@@ -135,6 +135,20 @@ class SessionDatabase {
     return event.snapshot.value;
   }
 
+  // Gets all of the users the user blocked
+  Future<Object?> getAllBlockedUsers(String key) async {
+    final newRef = ref.child("users/$key/blocked/");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
+
+  // Gets all of the users the user is blocked from
+  Future<Object?> getAllBlockedFromUsers(String key) async {
+    final newRef = ref.child("users/$key/blocked_from/");
+    final event = await newRef.once();
+    return event.snapshot.value;
+  }
+
   /// Get all sessions from the given institution
   Future<Object?> getAllSessions([value]) async {
     value = value ?? institution;
@@ -228,6 +242,14 @@ class SessionDatabase {
   Future<Object?> getNameByKey(String key) async {
     if (key == "") return null;
     final newRef = ref.child("users/$key/name");
+    final event = await newRef.once();
+    return event.snapshot.value ?? "";
+  }
+
+  /// Given a user's database [key], grab the session they are in
+  Future<Object?> getUserSession(String key) async {
+    if (key == "") return null;
+    final newRef = ref.child("users/$key/session");
     final event = await newRef.once();
     return event.snapshot.value ?? "";
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/session_extension.dart';
+import 'package:Booth/MVC/block_extension.dart';
 import '../MVC/booth_controller.dart';
 import 'expanded_session_page.dart';
 
@@ -147,7 +148,7 @@ class SearchPage extends SearchDelegate<String> {
   }
 
   Future<Map<dynamic, dynamic>> getUsers(BoothController controller) async {
-    Map<dynamic, dynamic> users = await controller.getUsers();
+    Map<dynamic, dynamic> users = await controller.getNonBlockedUsers(controller.student.key);
     Map<String, String> userList = {};
     users.forEach((key, value) {
       try{
@@ -166,7 +167,7 @@ class SearchPage extends SearchDelegate<String> {
   }
 
   Future<Map<dynamic, dynamic>> getSessions(BoothController controller) async {
-    Map<dynamic, dynamic> sessions = await controller.getSessions();
+    Map<dynamic, dynamic> sessions = await controller.getNonBlockedSessions(controller.student.key);
     Map<String, String> sessionList = {};
     sessions.forEach((key, value) {
       try{

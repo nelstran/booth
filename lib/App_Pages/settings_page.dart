@@ -1,3 +1,4 @@
+import 'package:Booth/App_Pages/blocked_users_page.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -317,6 +318,18 @@ class SettingsPageState extends State<SettingsPage> {
             setState(() {
               privacyVisible = value;
             });
+          },
+        ),
+        ListTile(
+          title: const Text("Blocked Users"),
+          trailing: const Icon(Icons.arrow_forward_ios),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => BlockedUsersPage(
+                    widget.controller),
+              ),
+            );
           },
         ),
         ListTile(
