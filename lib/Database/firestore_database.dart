@@ -79,6 +79,23 @@ class FirestoreDatabase {
     return await _getDataFromRef(ref);
   }
 
+  /// Saves session to user's saved sessions in Firestore
+  Future<void> saveSession(
+    String userKey, Map<String, dynamic> valuesToLog, String filename) async {
+    final ref = db
+        .collection("users")
+        .doc(userKey)
+        .collection("saved_sessions")
+        .doc(filename);
+    await ref.set(valuesToLog);
+  }
+
+  /// Grabs user saved sessions from Firestore, [userKey] uses UID
+  Future<Map<String, dynamic>?> fetchuserSavedSessions(String userKey) async {
+    final ref = db.collection("users").doc(userKey).collection("saved_sessions");
+    return await _getDataFromRef(ref);
+  }
+
   /// Uploads the given file to Firebase Storage with the given filename
   Future<Reference> uploadProfilePictureStorage(XFile file, String filename) async {
     // String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
