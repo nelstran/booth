@@ -268,6 +268,9 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           if (controller.student.session == sessionID) {
             isInThisSession = true;
             updateState();
+          } else {
+            isInThisSession = false;
+            updateState();
           }
           Map<dynamic, dynamic> json =
               snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
