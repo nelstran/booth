@@ -278,9 +278,7 @@ class SettingsPageState extends State<SettingsPage> {
         ListTile(
           title: const Text("Change Email"),
           trailing: const Icon(Icons.arrow_forward_ios),
-          onTap: () {
-            // Handle email change logic
-          },
+          onTap: _handleChangeEmailPress
         ),
         ListTile(
           title: const Text("Change Password"),
@@ -290,6 +288,182 @@ class SettingsPageState extends State<SettingsPage> {
           },
         ),
       ],
+    );
+  }
+
+  AlertDialog _enterCredentials(VoidCallback confirmAction) {
+    TextEditingController passwordController = TextEditingController();
+    String password = '';
+    return AlertDialog(
+          title: const Text('Enter Password'),
+          content: TextField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(hintText: "Password"),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                //password = "Cancel";
+                Navigator.of(context).pop();
+                return;
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                password = passwordController.text;
+                try {
+                  AuthCredential credential = EmailAuthProvider.credential(
+                    email: FirebaseAuth.instance.currentUser!.email!,
+                    password: password);
+                  await FirebaseAuth.instance.currentUser!
+                    .reauthenticateWithCredential(credential);
+                  // Do action that was passed in
+                  confirmAction;
+                }
+                on FirebaseAuthException catch (e){
+                  // Handles Firebase exceptions during reauthentication
+                  if (e.code == "invalid-credential") {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("Wrong Password!"),
+                                ),
+                              ],
+                            ),
+                            content: const Text("Wrong Password. Try Again."),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Ok"),
+                              )
+                            ],
+                          );
+                        });
+                    // Handle case where the entered password is incorrect
+                  } else if (e.code == "wrong-password") {
+                    // Handle case where the user doesn't match
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("Wrong Password!"),
+                                ),
+                              ],
+                            ),
+                            content:
+                                const Text("Wrong Password! Please Try Again."),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Ok"),
+                              )
+                            ],
+                          );
+                        });
+                  } else {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return AlertDialog(
+                            title: const Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("error_occured"),
+                                ),
+                              ],
+                            ),
+                            content:
+                                const Text("Error Occured, Please Try Again."),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text("Ok"),
+                              )
+                            ],
+                          );
+                        });
+                  }
+                }
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+  }
+  Future<void> _handleChangeEmailPress() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return _enterCredentials(_changeEmail);
+      }
+    );
+  }
+
+  Future<void> _changeEmail() async {
+    TextEditingController emailController = TextEditingController();
+    TextEditingController confirmEmailController = TextEditingController();
+
+    await showDialog(
+      context: context, 
+      builder: (context){
+        return AlertDialog(
+            title: const Text('Change email'),
+            content: Column(
+              children: [
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(hintText: "Email"),
+                ),
+                TextField(
+                  controller: confirmEmailController,
+                  decoration: const InputDecoration(hintText: "Confirm Email"),
+                ),
+              ],
+            ),
+        );
+      }
+    );
+  }
+  
+  Future<void> _handleChangePasswordPres() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return _enterCredentials((){});
+      }
     );
   }
 
