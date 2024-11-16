@@ -283,9 +283,7 @@ class SettingsPageState extends State<SettingsPage> {
         ListTile(
           title: const Text("Change Password"),
           trailing: const Icon(Icons.arrow_forward_ios),
-          onTap: () {
-            // Handle password change logic
-          },
+          onTap: _handleChangePasswordPress
         ),
       ],
     );
@@ -325,96 +323,21 @@ class SettingsPageState extends State<SettingsPage> {
                     password: password);
                   await FirebaseAuth.instance.currentUser!
                     .reauthenticateWithCredential(credential);
+                  if(mounted){
+                    Navigator.of(context).pop();
+                  }
                   // Do action that was passed in
-                  confirmAction;
+                  confirmAction();
                 }
                 on FirebaseAuthException catch (e){
                   // Handles Firebase exceptions during reauthentication
                   if (e.code == "invalid-credential") {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext ctx) {
-                          return AlertDialog(
-                            title: const Row(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("Wrong Password!"),
-                                ),
-                              ],
-                            ),
-                            content: const Text("Wrong Password. Try Again."),
-                            actions: [
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text("Ok"),
-                              )
-                            ],
-                          );
-                        });
+                    await noticeDialog("Error", "Wrong Password. Try Again");
                     // Handle case where the entered password is incorrect
                   } else if (e.code == "wrong-password") {
-                    // Handle case where the user doesn't match
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext ctx) {
-                          return AlertDialog(
-                            title: const Row(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("Wrong Password!"),
-                                ),
-                              ],
-                            ),
-                            content:
-                                const Text("Wrong Password! Please Try Again."),
-                            actions: [
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text("Ok"),
-                              )
-                            ],
-                          );
-                        });
+                    await noticeDialog("Error", "Wrong Password. Try Again");
                   } else {
-                    showDialog(
-                        context: context,
-                        builder: (BuildContext ctx) {
-                          return AlertDialog(
-                            title: const Row(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("error_occured"),
-                                ),
-                              ],
-                            ),
-                            content:
-                                const Text("Error Occured, Please Try Again."),
-                            actions: [
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text("Ok"),
-                              )
-                            ],
-                          );
-                        });
+                    await noticeDialog("Error", e.code);
                   }
                 }
               },
@@ -434,35 +357,151 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<void> _changeEmail() async {
     TextEditingController emailController = TextEditingController();
-    TextEditingController confirmEmailController = TextEditingController();
 
     await showDialog(
       context: context, 
       builder: (context){
         return AlertDialog(
             title: const Text('Change email'),
-            content: Column(
-              children: [
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(hintText: "Email"),
-                ),
-                TextField(
-                  controller: confirmEmailController,
-                  decoration: const InputDecoration(hintText: "Confirm Email"),
-                ),
-              ],
+            content: TextField(
+              controller: emailController,
+              decoration: const InputDecoration(hintText: "New Email"),
             ),
+            actions: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Navigator.of(context).pop();
+                  return;
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  try{
+                    if(emailController.text == FirebaseAuth.instance.currentUser!.email){
+                      return noticeDialog("Warning", "New email cannot be old email");
+                    }
+                    await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(emailController.text);
+                    await noticeDialog("Notice", "A verification has been sent to the new email address!");
+                    if(!context.mounted) return;
+                    Navigator.of(context).pop();
+                  }
+                  on FirebaseAuthException catch(e){
+                    await noticeDialog("Error", e.message ?? e.code);
+                  }
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
+        );
+      }
+    );
+  }
+
+  Future<void> noticeDialog(String title, String content){
+    return showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(title),
+              ),
+            ],
+          ),
+          content: Text(content),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Ok"),
+            )
+          ],
         );
       }
     );
   }
   
-  Future<void> _handleChangePasswordPres() async {
+  Future<void> _handleChangePasswordPress() async {
     await showDialog(
       context: context,
       builder: (context) {
-        return _enterCredentials((){});
+        return _enterCredentials(_changePassword);
+      }
+    );
+  }
+
+  Future<void> _changePassword() async {
+    TextEditingController passwordController = TextEditingController();
+    TextEditingController confirmPwController = TextEditingController();
+
+    await showDialog(
+      context: context, 
+      builder: (context){
+        return AlertDialog(
+            title: const Text('Change Password'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(hintText: "New Password"),
+                ),
+                TextField(
+                  controller: confirmPwController,
+                  obscureText: true,
+                  decoration: const InputDecoration(hintText: "Confirm Password"),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Navigator.of(context).pop();
+                  return;
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  try{
+                    if(passwordController.text != confirmPwController.text){
+                      return noticeDialog("Warning", "Mismatch password. Try again.");
+                    }
+                    await FirebaseAuth.instance.currentUser!.updatePassword(passwordController.text);
+                    await noticeDialog("Notice", "Password updated!");
+                    if(!context.mounted) return;
+                    Navigator.of(context).pop();
+                  }
+                  on FirebaseAuthException catch(e){
+                    await noticeDialog("Error", e.message ?? e.code);
+                  }
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
+        );
       }
     );
   }
