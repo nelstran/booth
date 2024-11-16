@@ -1,6 +1,7 @@
 import UIKit
 import Flutter
 import GoogleMaps
+import PDFKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
