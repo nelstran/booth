@@ -300,19 +300,22 @@ class _FriendsPage extends State<FriendsPage> {
           content: Text('Are you sure you want to unfriend $userName ?'),
           actions: [
             TextButton(
-              child: const Text('Cancel'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
               ),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.pop(context),
             ),
             TextButton(
-              child: const Text('Remove'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
+              child: const Text('Remove'),
               onPressed: () {
                 widget.controller.removeFriend(userId);
+                setState(() {
+                  
+                },);
                 Navigator.pop(context);
                 // Show snackbar for confirmation (optional)
                 ScaffoldMessenger.of(context).showSnackBar(
