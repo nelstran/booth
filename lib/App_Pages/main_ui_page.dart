@@ -329,7 +329,7 @@ class _MainUIPageState extends State<MainUIPage>{
 
   AppBar profileAppBar() {
     return AppBar(
-      title: const Text('Profile'),
+      title: Text(controller.student.fullname),
       actions: [
         // Edit Button
         IconButton(

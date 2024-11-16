@@ -27,9 +27,9 @@ class _FriendsPage extends State<FriendsPage> {
     var requestsList = {};
     var friendsList = {};
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Friends List'),
-        ),
+        // appBar: AppBar(
+        //   title: const Text('Friends List'),
+        // ),
         body: FutureBuilder(
         future: Future.wait([requests, friends]),
         builder: (context, snapshot) {
@@ -63,34 +63,29 @@ class _FriendsPage extends State<FriendsPage> {
                       requests = widget.controller.getRequests(false);
                     });
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Requests (${requestsList.length})",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Requests (${requestsList.length})",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const Icon(Icons.keyboard_arrow_right),
-                      ],
-                    ),
+                      ),
+                      const Icon(Icons.keyboard_arrow_right),
+                    ],
                   ),
                 ),
+              const SizedBox(height: 20,),
               // Friends header
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Friends",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Friends",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -193,7 +188,7 @@ class _FriendsPage extends State<FriendsPage> {
           child: Card(
             elevation: 3,
             margin: const EdgeInsets.symmetric(
-                vertical: 8.0, horizontal: 16.0),
+                vertical: 8.0, horizontal: 0.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10.0),
             ),
