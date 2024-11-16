@@ -82,19 +82,23 @@ class CachedProfilePicture extends StatelessWidget {
             ),
           ),
           errorWidget: (context, url, error) => 
-            Text(
-              profileInit,
-              style: TextStyle(
-                fontSize: fontSize
-              )
+            Center(
+              child: Text(
+                profileInit,
+                style: TextStyle(
+                  fontSize: fontSize
+                )
+              ),
             ),
         )
-      : Text(
-          profileInit,
-          style: TextStyle(
-            fontSize: fontSize
-          )
-        )
+      : Center(
+        child: Text(
+            profileInit,
+            style: TextStyle(
+              fontSize: fontSize
+            )
+          ),
+      )
     );
   }
 }
