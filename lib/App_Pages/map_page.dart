@@ -339,11 +339,25 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                                     future: widget.controller
                                         .getProfilePictureByUID(ownerUID, true),
                                     builder: (context, snapshot) {
-                                      return CachedProfilePicture(
-                                          name: ownerName,
-                                          radius: 30,
-                                          fontSize: 30,
-                                          imageUrl: snapshot.data);
+                                      if (snapshot.data != null) {
+                                        return CachedProfilePicture(
+                                            name: ownerName,
+                                            radius: 30,
+                                            fontSize: 30,
+                                            imageUrl: snapshot.data);
+                                      } else {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(0.0),
+                                          child: Image.asset(
+                                            'assets/images/lamp_logo.png',
+                                            width:
+                                                60, // Adjust the width and height
+                                            height: 70,
+                                            fit: BoxFit
+                                                .contain, // Ensures the image fits within the specified dimensions
+                                          ),
+                                        );
+                                      }
                                     });
                               })
                           // CircleAvatar(
