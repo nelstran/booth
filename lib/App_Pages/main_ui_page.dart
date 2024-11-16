@@ -184,7 +184,7 @@ class _MainUIPageState extends State<MainUIPage> {
     appBars = [
       sessionAppBar(), // Session
       mainAppBar(), // Map
-      mainAppBar(), // Usage
+      usageAppBar(), // Usage
       profileAppBar(), // Profile
     ];
 
@@ -306,9 +306,22 @@ class _MainUIPageState extends State<MainUIPage> {
     );
   }
 
+  AppBar usageAppBar() {
+    return AppBar(
+      title: const Text("Weekly Report"),
+      actions: [
+        // This button is linked to the logout method
+        IconButton(
+          onPressed: () => logout(controller, context),
+          icon: const Icon(Icons.logout),
+        ),
+      ],
+    );
+  }
+
   AppBar profileAppBar() {
     return AppBar(
-      title: const Text('Profile'),
+      title: Text(controller.student.fullname),
       actions: [
         // Edit Button
         IconButton(

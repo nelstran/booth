@@ -66,10 +66,10 @@ class CachedProfilePicture extends StatelessWidget {
       backgroundColor: imageUrl != null ? Colors.grey : profileColor,
       child: imageUrl != null 
       ? CachedNetworkImage(
-          memCacheHeight: 100,
-          memCacheWidth: 100,
-          height: 100,
-          width: 100,
+          // memCacheHeight: 100,
+          // memCacheWidth: 100,
+          // height: 100,
+          // width: 100,
           imageUrl: imageUrl!,
           progressIndicatorBuilder: (context, url, progress) =>
             CircularProgressIndicator(value: progress.progress),
