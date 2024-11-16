@@ -1,4 +1,5 @@
 import 'package:Booth/App_Pages/display_user_page.dart';
+import 'package:Booth/App_Pages/saved_sessions_page.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,6 +57,7 @@ class _ProfilePageState extends State<ProfilePage>
   double fontSize = 0;
   String? profileImg = "";
   late FriendsPage friendsPage;
+  late SavedSessionsPage savedSessionsPage;
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _ProfilePageState extends State<ProfilePage>
     fontSize = 40;
     profileImg = null;
     friendsPage = FriendsPage(widget.controller);
+    savedSessionsPage = SavedSessionsPage(widget.controller);
   }
 
   @override
@@ -170,7 +173,7 @@ class _ProfilePageState extends State<ProfilePage>
                 children: [
                   profileTab(studyPref, availability, courses),
                   friendsPage,
-                  Placeholder() // PLACE SESSION HISTORY HERE
+                  savedSessionsPage // PLACE SESSION HISTORY HERE
                 ]
               ),
             ),

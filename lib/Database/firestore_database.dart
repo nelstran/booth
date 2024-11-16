@@ -90,6 +90,16 @@ class FirestoreDatabase {
     await ref.set(valuesToLog);
   }
 
+  /// Removes session from user's saved sessions in Firestore
+  Future<void> unsaveSession(String userKey, String filename) async {
+    final ref = db
+        .collection("users")
+        .doc(userKey)
+        .collection("saved_sessions")
+        .doc(filename);
+    await ref.delete();
+  }
+
   /// Grabs user saved sessions from Firestore, [userKey] uses UID
   Future<Map<String, dynamic>?> fetchuserSavedSessions(String userKey) async {
     final ref = db.collection("users").doc(userKey).collection("saved_sessions");
