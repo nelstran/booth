@@ -10,11 +10,12 @@ class UserDisplayPage extends StatefulWidget {
   final BoothController controller;
   final String userKey;
   final bool fromRequest;
+  final bool fromBlocked;
   // No way to know the previous page from the navigator without more complicated
   // code so I passed an argument instead
   const UserDisplayPage(this.controller, this.userKey,
       this.fromRequest, // Change profile page if called from request page
-      {super.key});
+      this.fromBlocked, {super.key});
 
   @override
   State<StatefulWidget> createState() => _UserDisplayPage();
@@ -54,7 +55,7 @@ class _UserDisplayPage extends State<UserDisplayPage> {
         Map<dynamic, dynamic> friends = snapshot.data[1];
         Map<dynamic, dynamic> requests = snapshot.data[2];
         return UserProfilePage(widget.controller, widget.userKey, data, friends,
-            requests, widget.fromRequest);
+            requests, widget.fromRequest, widget.fromBlocked);
       },
     );
   }
@@ -79,8 +80,9 @@ class UserProfilePage extends StatefulWidget {
   final Map<dynamic, dynamic> friends;
   final Map<dynamic, dynamic> requests;
   final bool fromRequest;
+  final bool fromBlocked;
   const UserProfilePage(this.controller, this.userKey, this.data, this.friends,
-      this.requests, this.fromRequest,
+      this.requests, this.fromRequest, this.fromBlocked,
       {super.key});
 
   @override
@@ -184,14 +186,17 @@ class _UserProfilePage extends State<UserProfilePage> {
       appBar: AppBar(
         title: Text(profileName),
         actions: [
-            // Remove the trailing icon in the app bar if came from request page or if viewing self
-            widget.fromRequest ||
-                    widget.controller.student.key == widget.userKey
+            // Remove the trailing icon in the app bar if came from request page, block page, or if viewing self
+            widget.fromRequest || widget.fromBlocked ||
+                widget.controller.student.key == widget.userKey
                 ? const SizedBox.shrink()
                 : trailingIcons[iconIndex],
-            widget.controller.student.key == widget.userKey
+            widget.controller.student.key == widget.userKey || widget.fromBlocked
               ? const SizedBox.shrink()
-              : trailingIcons[3]
+              : trailingIcons[3],
+            widget.fromBlocked
+            ? unblockButton(context, widget.data["name"], widget.userKey)
+            : const SizedBox.shrink()
           ],
       ),
       body: Column(
@@ -385,6 +390,63 @@ class _UserProfilePage extends State<UserProfilePage> {
           ),
         );
   }
+
+   TextButton unblockButton(BuildContext context, String userName, userKey) {
+    return TextButton(
+            child: Text("Unblock  ", 
+            style: TextStyle(color:Colors.white,
+            fontWeight: FontWeight.bold)),
+            onPressed: () {
+            showConfirmationDialog(
+            context, userName, userKey);
+          },
+    );
+  }
+
+  Future<bool> showConfirmationDialog(
+      BuildContext context, String userName, String userId) async {
+    bool confirm = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Unblock'),
+          content: Text('Are you sure you want to unblock $userName ?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text('Unblock'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              onPressed: () {
+                widget.controller.unblockUser(userId);
+                Navigator.pop(context);
+                // Show snackbar for confirmation (optional)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Removed $userName from blocked users'),
+                  ),
+                );
+                setState(() {});
+                confirm = true;
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return confirm;
+  }
+
+
+
   // var iconIndex = 0;
   // @override
   // Widget build(BuildContext context) {

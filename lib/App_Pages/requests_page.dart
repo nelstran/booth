@@ -111,7 +111,7 @@ class _RequestsPage extends State<RequestsPage> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) =>
-                          UserDisplayPage(widget.controller, requestId, true),
+                          UserDisplayPage(widget.controller, requestId, true, false),
                     ),
                   );
                 },

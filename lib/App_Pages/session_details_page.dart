@@ -170,7 +170,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => UserDisplayPage(
-                            widget.controller, memberKeys[index], false),
+                            widget.controller, memberKeys[index], false, false),
                       ),
                     );
                   },

@@ -222,7 +222,7 @@ class _FriendsPage extends State<FriendsPage> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => UserDisplayPage(
-                        widget.controller, userKey, false),
+                        widget.controller, userKey, false, false),
                   ),
                 );
               },
