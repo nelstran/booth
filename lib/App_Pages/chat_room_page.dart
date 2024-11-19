@@ -351,7 +351,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => UserDisplayPage(
-                widget.controller, author.metadata!['key'], false),
+                widget.controller, author.metadata!['key'], false, false),
           ),
         );
       },

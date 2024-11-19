@@ -138,7 +138,7 @@ class _BlockedUsersPage extends State<BlockedUsersPage> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => UserDisplayPage(
-                        widget.controller, userKey, false),
+                        widget.controller, userKey, false, true),
                   ),
                 );
               },

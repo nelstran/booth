@@ -124,7 +124,7 @@ class SearchPage extends SearchDelegate<String> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) =>
-                                UserDisplayPage(controller, key, false),
+                                UserDisplayPage(controller, key, false, false),
                           ),
                         );
                       } else {
