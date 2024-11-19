@@ -1,3 +1,4 @@
+import 'package:Booth/App_Pages/biometric_helper.dart';
 import 'package:Booth/App_Pages/blocked_users_page.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class SettingsPageState extends State<SettingsPage> {
   bool isBiometricEnabled = false;
   final storage = const FlutterSecureStorage();
   final LocalAuthentication auth = LocalAuthentication();
+  final biometricHelper = BiometricAuthHelper();
   
   @override
   void initState() {
@@ -38,6 +40,7 @@ class SettingsPageState extends State<SettingsPage> {
       final prefs = await SharedPreferences.getInstance();
       // Check both SharedPreferences and secure storage
       final bool prefsEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+      const storage = FlutterSecureStorage();
       final String? storedEmail = await storage.read(key: 'biometric_user_email');
       final String? storedPassword = await storage.read(key: 'biometric_user_password');
       
@@ -66,8 +69,18 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> saveBiometricPreference(bool isEnabled) async {
-    final prefs = await SharedPreferences.getInstance();
+
     if (isEnabled) {
+      // Check if biometrics is available on the device
+      if (!await biometricHelper.isBiometricsAvailable()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Biometric authentication not available on this device')),
+          );
+        }
+        return;
+      }
+
       final bool? confirmed = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
@@ -101,19 +114,24 @@ class SettingsPageState extends State<SettingsPage> {
               );
               await widget.user.reauthenticateWithCredential(credential);
               
-              // Save credentials in secure storage
-              await storage.write(key: 'biometric_user_email', value: currentUserEmail);
-              await storage.write(key: 'biometric_user_password', value: password);
+              // Save credentials using the helper
+              final saveSuccess = await biometricHelper.saveCredentials(
+                currentUserEmail, 
+                password
+              );
               
-              // Update state and SharedPreferences
               if (mounted) {
                 setState(() {
-                  isBiometricEnabled = true;
+                  isBiometricEnabled = saveSuccess;
                 });
-                await prefs.setBool('isBiometricEnabled', true);
                 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Biometric login enabled successfully')),
+                  SnackBar(
+                    content: Text(saveSuccess 
+                      ? 'Biometric login enabled successfully'
+                      : 'Failed to enable biometric login'
+                    ),
+                  ),
                 );
               }
             } catch (e) {
@@ -121,7 +139,6 @@ class SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   isBiometricEnabled = false;
                 });
-                await prefs.setBool('isBiometricEnabled', false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Invalid password. Biometric login not enabled.')),
                 );
@@ -133,7 +150,6 @@ class SettingsPageState extends State<SettingsPage> {
               setState(() {
                 isBiometricEnabled = false;
               });
-              await prefs.setBool('isBiometricEnabled', false);
             }
           }
         }
@@ -143,18 +159,15 @@ class SettingsPageState extends State<SettingsPage> {
           setState(() {
             isBiometricEnabled = false;
           });
-          await prefs.setBool('isBiometricEnabled', false);
         }
       }
     } else {
-      // Disabling biometric authentication
-      await storage.delete(key: 'biometric_user_email');
-      await storage.delete(key: 'biometric_user_password');
+      // Disabling biometric authentication using the helper
+      await biometricHelper.clearCredentials();
       if (mounted) {
         setState(() {
           isBiometricEnabled = false;
         });
-        await prefs.setBool('isBiometricEnabled', false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Biometric login disabled')),
         );

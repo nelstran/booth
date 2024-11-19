@@ -1,5 +1,7 @@
+import 'package:Booth/App_Pages/biometric_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:Booth/UI_components/textbox.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
 import 'package:local_auth/local_auth.dart';
@@ -20,8 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   // Controllers for the textfields (these store what the user has typed)
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final LocalAuthentication auth = LocalAuthentication();
-  final storage = const FlutterSecureStorage();
+  final BiometricAuthHelper biometricHelper = BiometricAuthHelper();
   bool isEmailEmpty = true;
   bool isPassEmpty = true;
   bool triedToLogin = false;
@@ -39,13 +40,16 @@ class _LoginPageState extends State<LoginPage> {
     if (isInitialBiometricCheckDone) return;  // Prevent multiple checks
     
     final prefs = await SharedPreferences.getInstance();
+    final bool isEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+    final isAvailable = await biometricHelper.isBiometricsAvailable();
+    
     setState(() {
-      isBiometricEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+      isBiometricEnabled = isEnabled && isAvailable;
       isInitialBiometricCheckDone = true;
     });
   }
 
-  void login({bool isAutoLogin = false}) async {
+  Future<void> login({bool isAutoLogin = false}) async {
     setState(() {
       triedToLogin = true;
     });
@@ -64,13 +68,9 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       // Store credentials for biometric login if this was a manual login
       if (!isAutoLogin && isBiometricEnabled) {
-        await storage.write(
-          key: 'biometric_user_email',
-          value: emailController.text.trim(),
-        );
-        await storage.write(
-          key: 'biometric_user_password',
-          value: passwordController.text,
+        await biometricHelper.saveCredentials(
+          emailController.text.trim(),
+          passwordController.text,
         );
       }
       Navigator.pushNamedAndRemoveUntil(
@@ -92,59 +92,49 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> authenticateBiometric() async {
-    if (!isBiometricEnabled) return;  // Early return if biometrics not enabled
+    if (!isBiometricEnabled) return;
 
-    try {
-      final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
-      final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+    final result = await biometricHelper.authenticateWithBiometrics();
+    
+    if (result.success && result.credentials != null) {
+      setState(() {
+        emailController.text = result.credentials!.email;
+        passwordController.text = result.credentials!.password;
+        isEmailEmpty = false;
+        isPassEmpty = false;
+      });
+      
+      await login(isAutoLogin: true);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.error ?? 'Authentication failed')),
+      );
+    }
+  }
 
-      if (!canAuthenticate) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Biometric authentication not available')),
+  Widget buildBiometricButton() {
+    return FutureBuilder(
+      future: biometricHelper.checkBiometricPrivacyStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data == true) {
+          return IconButton(
+            icon: const Icon(Icons.fingerprint),
+            iconSize: 40,
+            onPressed: authenticateBiometric,
+            tooltip: 'Use biometric login',
+          );
+        } else if (snapshot.hasData && snapshot.data == false) {
+          return TextButton.icon(
+            icon: const Icon(Icons.settings),
+            label: const Text('Enable Biometric Login in Settings'),
+            onPressed: () {
+              openAppSettings();
+            },
           );
         }
-        return;
-      }
-
-      bool authenticated = await auth.authenticate(
-        localizedReason: 'Please authenticate to log in',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-          useErrorDialogs: true,
-        ),
-      );
-
-      if (authenticated && mounted) {
-        final storedEmail = await storage.read(key: 'biometric_user_email');
-        final storedPassword = await storage.read(key: 'biometric_user_password');
-
-        if (storedEmail != null && storedPassword != null) {
-          setState(() {
-            emailController.text = storedEmail;
-            passwordController.text = storedPassword;
-            isEmailEmpty = false;
-            isPassEmpty = false;
-          });
-          
-          login(isAutoLogin: true);
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please login once manually to enable biometric login')),
-            );
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint("Biometric authentication error: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentication failed')),
-        );
-      }
-    }
+        return const SizedBox.shrink();
+      },
+    );
   }
 
   void enableButton() {
@@ -172,8 +162,11 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/lamp_logo.png',
-                  width: 100, height: 100),
+              Image.asset(
+                'assets/images/lamp_logo.png',
+                width: 100,
+                height: 100,
+              ),
               // Creates a space between the logo and the app name
               const SizedBox(height: 15),
               const Text(
@@ -266,14 +259,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 15),
 
               // Biometric login button
-              if (isBiometricEnabled)
-                IconButton(
-                  icon: const Icon(Icons.fingerprint),
-                  iconSize: 40,
-                  onPressed: authenticateBiometric,
-                  tooltip: 'Use biometric login',
-                ),
-
+              if (isBiometricEnabled) buildBiometricButton(),
               const SizedBox(height: 15),
 
               // Register link
