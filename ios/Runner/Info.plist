@@ -36,6 +36,10 @@
 	<string>This app needs access to location when open.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Access to pick a photo</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We use Face ID to securely log you into the app</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>We use Face ID/Touch ID for secure authentication</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
