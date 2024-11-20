@@ -1,14 +1,13 @@
-import 'package:Booth/App_Pages/biometric_helper.dart';
+import 'package:Booth/MVC/biometric_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:Booth/UI_components/textbox.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// This class is for the login page
+/// Page for users to login to Booth using Firebase Authentication,
+/// users can forget password or navigate to the register page
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
 
@@ -36,115 +35,11 @@ class _LoginPageState extends State<LoginPage> {
     checkBiometricPreference();
   }
 
-  Future<void> checkBiometricPreference() async {
-    if (isInitialBiometricCheckDone) return;  // Prevent multiple checks
-    
-    final prefs = await SharedPreferences.getInstance();
-    final bool isEnabled = prefs.getBool('isBiometricEnabled') ?? false;
-    final isAvailable = await biometricHelper.isBiometricsAvailable();
-    
-    setState(() {
-      isBiometricEnabled = isEnabled && isAvailable;
-      isInitialBiometricCheckDone = true;
-    });
-  }
-
-  Future<void> login({bool isAutoLogin = false}) async {
-    setState(() {
-      triedToLogin = true;
-    });
-    if (isEmailEmpty || isPassEmpty) {
-      return;
-    }
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text);
-
-      // Navigate to the session page after successful login
-      // Clear all routes and push SessionPage route
-
-      if (!mounted) return;
-      // Store credentials for biometric login if this was a manual login
-      if (!isAutoLogin && isBiometricEnabled) {
-        await biometricHelper.saveCredentials(
-          emailController.text.trim(),
-          passwordController.text,
-        );
-      }
-      Navigator.pushNamedAndRemoveUntil(
-        context, '/main_ui_page',
-        (_) => false, // This clears all routes in the stack
-      );
-    } on FirebaseAuthException catch (e) {
-      String message = e.code;
-      switch (e.code) {
-        case 'invalid-email':
-        case 'invalid-credential':
-          message = "Email or password is incorrect";
-          break;
-      }
-      if (!isAutoLogin && mounted) {
-        displayMessageToUser(message, context);
-      }
-    }
-  }
-
-  Future<void> authenticateBiometric() async {
-    if (!isBiometricEnabled) return;
-
-    final result = await biometricHelper.authenticateWithBiometrics();
-    
-    if (result.success && result.credentials != null) {
-      setState(() {
-        emailController.text = result.credentials!.email;
-        passwordController.text = result.credentials!.password;
-        isEmailEmpty = false;
-        isPassEmpty = false;
-      });
-      
-      await login(isAutoLogin: true);
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.error ?? 'Authentication failed')),
-      );
-    }
-  }
-
-  Widget buildBiometricButton() {
-    return FutureBuilder(
-      future: biometricHelper.checkBiometricPrivacyStatus(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data == true) {
-          return IconButton(
-            icon: const Icon(Icons.fingerprint),
-            iconSize: 40,
-            onPressed: authenticateBiometric,
-            tooltip: 'Use biometric login',
-          );
-        } else if (snapshot.hasData && snapshot.data == false) {
-          return TextButton.icon(
-            icon: const Icon(Icons.settings),
-            label: const Text('Enable Biometric Login in Settings'),
-            onPressed: () {
-              openAppSettings();
-            },
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
-
-  void enableButton() {
-    setState(() {
-      isEmailEmpty = emailController.text.isEmpty;
-      isPassEmpty = passwordController.text.isEmpty;
-      if (!isPassEmpty && !isEmailEmpty) {
-        triedToLogin = false;
-      }
-    });
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -293,6 +188,119 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Widget buildBiometricButton() {
+    return FutureBuilder(
+      future: biometricHelper.checkBiometricPrivacyStatus(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data == true) {
+          return IconButton(
+            icon: const Icon(Icons.fingerprint),
+            iconSize: 40,
+            onPressed: authenticateBiometric,
+            tooltip: 'Use biometric login',
+          );
+        } else if (snapshot.hasData && snapshot.data == false) {
+          return TextButton.icon(
+            icon: const Icon(Icons.settings),
+            label: const Text('Enable Biometric Login in Settings'),
+            onPressed: () {
+              openAppSettings();
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+  
+  /// Method to check if user enabled biometric login
+  Future<void> checkBiometricPreference() async {
+    if (isInitialBiometricCheckDone) return;  // Prevent multiple checks
+    
+    final prefs = await SharedPreferences.getInstance();
+    final bool isEnabled = prefs.getBool('isBiometricEnabled') ?? false;
+    final isAvailable = await biometricHelper.isBiometricsAvailable();
+    
+    isBiometricEnabled = isEnabled && isAvailable;
+    isInitialBiometricCheckDone = true;
+  }
+
+  /// Method to login the user 
+  Future<void> login({bool isAutoLogin = false}) async {
+    setState(() {
+      triedToLogin = true;
+    });
+    if (isEmailEmpty || isPassEmpty) {
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text);
+
+      // Navigate to the session page after successful login
+      // Clear all routes and push SessionPage route
+
+      if (!mounted) return;
+      // Store credentials for biometric login if this was a manual login
+      if (!isAutoLogin && isBiometricEnabled) {
+        await biometricHelper.saveCredentials(
+          emailController.text.trim(),
+          passwordController.text,
+        );
+      }
+      Navigator.pushNamedAndRemoveUntil(
+        context, '/main_ui_page',
+        (_) => false, // This clears all routes in the stack
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = e.code;
+      switch (e.code) {
+        case 'invalid-email':
+        case 'invalid-credential':
+          message = "Email or password is incorrect";
+          break;
+      }
+      if (!isAutoLogin && mounted) {
+        displayMessageToUser(message, context);
+      }
+    }
+  }
+
+  /// Method to login via Biometrics,
+  Future<void> authenticateBiometric() async {
+    if (!isBiometricEnabled) return;
+
+    final result = await biometricHelper.authenticateWithBiometrics();
+    
+    if (result.success && result.credentials != null) {
+      setState(() {
+        emailController.text = result.credentials!.email;
+        passwordController.text = result.credentials!.password;
+        isEmailEmpty = false;
+        isPassEmpty = false;
+      });
+      
+      await login(isAutoLogin: true);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.error ?? 'Authentication failed')),
+      );
+    }
+  }
+
+  /// This method lights up the login button when users input both password and email
+  void enableButton() {
+    setState(() {
+      isEmailEmpty = emailController.text.isEmpty;
+      isPassEmpty = passwordController.text.isEmpty;
+      if (!isPassEmpty && !isEmailEmpty) {
+        triedToLogin = false;
+      }
+    });
+  }
+  /// Method to ask for email for Firebase to send a password reset email to.
   Future<void> _forgotPassword() async {
     TextEditingController emailController = TextEditingController();
 
@@ -340,6 +348,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  /// Helper method to display a dialog with a message
   Future<void> noticeDialog(String title, String content){
     return showDialog(
       context: context,
@@ -368,12 +377,5 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     );
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 }

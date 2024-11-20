@@ -6,7 +6,9 @@ import 'package:Booth/MVC/student_model.dart';
 import 'package:Booth/UI_components/textbox.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
 
-/// This class is for the register page
+/// Page for users to register into Booth using Firebase
+/// Authentication, makes sure email is valid and password is up 
+/// to Booth's password policy
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
 
@@ -30,7 +32,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isPassEmpty = true;
   bool doesPassMatch = false;
   bool triedToRegister = false;
-  // Register the User
+
+  //  Method to register the user into Booth
   void registerUser() async {
     setState(() {
       triedToRegister = true;
@@ -102,23 +105,11 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // This is where the logo is to be displayed - for now, an icon of a person
-              // Icon(
-              //   Icons.person,
-              //   size: 40,
-              //   color: Theme.of(context).colorScheme.inversePrimary,
-              // ),
-
-              // Creates a space between the logo and the app name
-              //const SizedBox(height: 15),
-
               const Text(
                 "Create an Account",
                 style: TextStyle(fontSize: 20),
               ),
-
               const SizedBox(height: 20),
-
               // First name textfield
               TextBox(
                 hintText: "First Name",
@@ -173,7 +164,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     )
                   : const SizedBox.shrink(),
               const SizedBox(height: 10),
-
               // Password textfield
               TextBox(
                 hintText: "Password",
@@ -192,7 +182,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     )
                   : const SizedBox.shrink(),
               const SizedBox(height: 10),
-
               // Confirm password textfield
               TextBox(
                 hintText: "Confirm Password",
@@ -211,11 +200,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     )
                   : const SizedBox.shrink(),
               const SizedBox(height: 25),
-              // // Register button
-              // Button(
-              //   text: "Register",
-              //   onTap: registerUser,
-              // ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 28, 125, 204)),
@@ -225,9 +209,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 },
                 child: const Text("Register"),
               ),
-
               const SizedBox(height: 25),
-
               // Login here
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

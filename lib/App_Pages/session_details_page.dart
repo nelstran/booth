@@ -8,10 +8,12 @@ import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:Booth/UI_components/focus_image.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
 
+/// Page to show more details about the selected session
+/// and allow the user to join and leave the session as
+/// well as delete/archive the session if the user owns it
 class SessionDetailsPage extends StatefulWidget{
   final BoothController controller;
   final String sessionKey;
@@ -20,7 +22,6 @@ class SessionDetailsPage extends StatefulWidget{
 
   @override
   State<StatefulWidget> createState() => _SessionDetailsPage();
-
 }
 
 class _SessionDetailsPage extends State<SessionDetailsPage> {
@@ -84,29 +85,40 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
               Map<dynamic, dynamic> json =
                   snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
 
-              // Here to avoid exception while debugging
-              if (!json.containsKey("users")) return const SizedBox.shrink();
+              try{
+                Session session = Session.fromJson(json);
+                List<String> memberNames = json["users"]
+                    .values
+                    .map<String>((value) => value['name'] as String)
+                    .toList();
 
-              Session session = Session.fromJson(json);
-              List<String> memberNames = json["users"]
-                  .values
-                  .map<String>((value) => value['name'] as String)
-                  .toList();
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Details of session
-                  sessionDetails(session, context),
-                  // List of students in the session
-                  sessionLobby(memberNames, json),
-                  // Button to join and leave the session
-                  Expanded(
-                      flex: 1,
-                      child: joinLeaveButton(snapshot.data!.snapshot.key!, session)
-                      ),
-                ],
-              );
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Details of session
+                    sessionDetails(session, context),
+                    // List of students in the session
+                    sessionLobby(memberNames, json),
+                    // Button to join and leave the session
+                    Expanded(
+                        flex: 1,
+                        child: joinLeaveButton(snapshot.data!.snapshot.key!, session)
+                        ),
+                  ],
+                );
+              } catch(e){
+                return const Center(
+                  child: Text(
+                    "There is a problem with this session",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold
+                    )
+                  )
+                );
+              }              
             } else if (snapshot.hasData && !snapshot.data!.snapshot.exists){
               return const Center(
                 child: Text(
@@ -140,6 +152,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
                 fontSize: 18.0, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10.0),
+          // Display a list of users in the session along with their pfp and the ability to click on their profile
           Expanded(
             child: ListView.builder(
               itemCount: memberNames.length,
@@ -218,7 +231,6 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
     return Expanded(
       flex: 4,
       child: Column(
-        
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -227,12 +239,10 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
             style: const TextStyle(
                 fontSize: 24.0, fontWeight: FontWeight.bold),
           ),
-          // const SizedBox(height: 20.0),
           Text(
             'Description: ${session.description}',
             style: const TextStyle(fontSize: 18.0),
           ),
-          // const SizedBox(height: 20.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -245,6 +255,8 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
               if (session.imageURL != null) GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap:() {
+                  // Display the location image on the screen for users to see where 
+                  // the owner is. We modified existing values to make the experience instant
                   Navigator.of(context).push(PageRouteBuilder(
                     opaque: false,
                     transitionDuration: Duration.zero,
@@ -265,7 +277,6 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
               )
             ],
           ),
-          // const SizedBox(height: 20.0),
           Row(
             children: [
               const Icon(Icons.access_time, size: 18.0),
@@ -276,7 +287,6 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
               ),
             ],
           ),
-          // const SizedBox(height: 20.0),
           Row(
             children: [
               const Icon(Icons.people, size: 18.0),
@@ -287,7 +297,6 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
               ),
             ],
           ),
-          // const SizedBox(height: 20.0),
           Row(
             children: [
               const Icon(Icons.subject, size: 18.0),
@@ -302,6 +311,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
       ),
     );
   }
+
   Padding joinLeaveButton(String key, Session session) {
     int seatsLeft = session.seatsAvailable - session.seatsTaken;
     String buttonText = isInThisSession ? "Leave" : "Join";
@@ -337,12 +347,16 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
     );
   }
 
+  /// Method to join/leave/delete the session when users click the button
   Future<void> _handleOnButtonPress (session, key) async {
     if (lock.locked){
       return;
     }
+
+    // We add a lock to make sure everything is done and 
+    // completed to prevent duplicate entries upon spamming the button
     await lock.synchronized(() async {
-      // Delete owned session
+      // Delete/Archive owned session
       if (controller.student.ownedSessionKey != "") {
         bool? action = await _askToArchive();
         if (action == null){
@@ -363,6 +377,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
         controller.startSessionLogging(
             controller.student.uid, session);
       }
+      if(!mounted) return;
       setState(() {
         isInThisSession =
             !isInThisSession; // Janky way to update state UI
@@ -371,6 +386,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
     });
   }
 
+  /// Method to ask users if they would like to save their sessions to reuse later or delete it
   Future<bool?> _askToArchive() async {
     return await showDialog(
           context: context, 
@@ -378,10 +394,8 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
             return AlertDialog(
           title: const Text(
             "Notice",
-            // style: TextStyle(fontSize: 30),
           ),
           content: const Text("Would you like to archive your session?"),
-          // actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
           actions:[
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -422,7 +436,9 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
       }
     );
   }
-  Future<void> _deleteOwnedSession (session, key) async {
+
+  /// Method to delete the session
+  Future<void> _deleteOwnedSession(session, key) async {
     var sessionToDelete =
         controller.student.ownedSessionKey;
     if (key == sessionToDelete){
@@ -432,10 +448,9 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
         controller.student.session,
         controller.student.sessionKey);
     await controller.removeSession(sessionToDelete);
-    if (key == sessionToDelete){
-      return;
-    }
   }
+
+  /// Method to display a snackbar with the given [text]
   void displayWarning(String text) {
     if (showingSnack) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -447,51 +462,5 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
         .then((reason) {
       showingSnack = false;
     });
-  }
-
-  void showPicture(Session session){
-    showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (context){
-        return AlertDialog(
-          title: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                session.locationDescription,
-                // style: const TextStyle(fontSize: 30),
-              ),
-            ]
-          ),
-          titlePadding: const EdgeInsets.only(bottom: 8, top: 16, left: 16, right: 16),
-          content: CachedNetworkImage(
-            imageUrl: session.imageURL!,
-            progressIndicatorBuilder: (context, url, progress) => 
-              CircularProgressIndicator(value: progress.progress),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-          actionsPadding: const EdgeInsets.only(bottom: 8, right: 24),
-          actions:[
-            ElevatedButton(
-              onPressed: (){
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                  elevation: 0.0,
-                  shadowColor: Colors.transparent,
-                  backgroundColor: Colors.transparent,
-                ),
-              child: const Text(
-                "Ok",
-                style: TextStyle(color: Colors.white),
-              ),
-            )
-          ]
-        );
-      }
-    );
   }
 }

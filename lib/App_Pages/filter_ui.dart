@@ -252,39 +252,42 @@ class _FilterUI extends State<FilterUI> {
 
   Card minSeatsUI() {
     return Card(
-        color: const Color.fromARGB(255, 34, 34, 34),
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
-        child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, top: 12, right: 22, bottom: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Minimum seats available",
-                        textAlign: TextAlign.start,
-                        style: TextStyle(fontSize: 17)),
-                    Text(currentValues['currMinString'],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 17,
-                        ))
-                  ],
-                ),
-              ),
-              Slider(
-                  value: currentValues['currMinSliderValue'],
-                  max: currentValues['minimumMaxValue'].toDouble(),
-                  activeColor: const Color.fromARGB(255, 18, 93, 168),
-                  divisions: null,
-                  onChanged: (value) {
-                    setMinVal(value);
-                  })
-            ]));
+      color: const Color.fromARGB(255, 34, 34, 34),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8.0))
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+                left: 16, top: 12, right: 22, bottom: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Minimum seats available",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(fontSize: 17)),
+                Text(currentValues['currMinString'],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 17,
+                    ))
+              ],
+            ),
+          ),
+          Slider(
+              value: currentValues['currMinSliderValue'],
+              max: currentValues['minimumMaxValue'].toDouble(),
+              activeColor: const Color.fromARGB(255, 18, 93, 168),
+              divisions: null,
+              onChanged: (value) {
+                setMinVal(value);
+              })
+        ]
+      )
+    );
   }
 
   Card hideFullUI() {

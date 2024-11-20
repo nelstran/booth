@@ -5,6 +5,9 @@ import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 
+/// Page that is only accessible if user receives a 
+/// friend request from another user. Users have the
+/// option to view the profile, decline or accept the request.
 class RequestsPage extends StatefulWidget {
   const RequestsPage(this.controller, {super.key});
   final BoothController controller;
@@ -12,6 +15,7 @@ class RequestsPage extends StatefulWidget {
   @override
   State<RequestsPage> createState() => _RequestsPage();
 }
+
 class _RequestsPage extends State<RequestsPage> {
   @override
   Widget build(BuildContext context) {
@@ -45,12 +49,6 @@ class _RequestsPage extends State<RequestsPage> {
                       builder: (context, snapshot) {
                         return Padding(
                           padding: const EdgeInsets.all(3.0),
-                          // child: ProfilePicture(
-                          //   name: requestName,
-                          //   radius: pfpRadius,
-                          //   fontsize: pfpFontSize,
-                          //   img: snapshot.data,
-                          // ),
                           child: CachedProfilePicture(
                             name: requestName,
                             radius: pfpRadius,
@@ -98,9 +96,6 @@ class _RequestsPage extends State<RequestsPage> {
                             setState((){
                               requests.remove(requestId);
                             });
-                            // if (context.mounted) {
-                            //   Navigator.of(context).pop();
-                            // }
                           },
                         ),
                       ),

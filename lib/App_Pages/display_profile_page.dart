@@ -1,4 +1,3 @@
-import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/App_Pages/saved_sessions_page.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
@@ -9,6 +8,7 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Page to display profile, friends, and session history of logged in user
 class ProfileDisplayPage extends StatefulWidget {
   final BoothController controller;
   final User user;
@@ -112,14 +112,14 @@ class _ProfilePageState extends State<ProfilePage>
               indicatorColor: Colors.blue,
               indicatorSize: TabBarIndicatorSize.tab,
               dividerColor: Colors.transparent,
-              labelPadding: EdgeInsets.only(bottom:10),
-              unselectedLabelColor: Color.fromARGB(255, 68, 68, 68),
+              labelPadding: const EdgeInsets.only(bottom:10),
+              unselectedLabelColor: const Color.fromARGB(255, 68, 68, 68),
               labelColor: Colors.white,
               tabs: [
-                Icon(Icons.person),
+                const Icon(Icons.person),
                 Stack(
                   children: [
-                    Icon(Icons.people_outline),
+                    const Icon(Icons.people_outline),
                     Positioned(
                       top: -1,
                       right: -1,
@@ -145,14 +145,6 @@ class _ProfilePageState extends State<ProfilePage>
                                     shape: BoxShape.circle,
                                     border: Border.all(color: Colors.black, width: 1),
                                   ),
-                                  // child: const Padding(
-                                  //   padding: EdgeInsets.all(2.0),
-                                  //   child: Icon(
-                                  //     Icons.edit,
-                                  //     color: Colors.black,
-                                  //     size: 5.0,
-                                  //   ),
-                                  // ),
                                 ),
                               );
                             });
@@ -173,7 +165,7 @@ class _ProfilePageState extends State<ProfilePage>
                 children: [
                   profileTab(studyPref, availability, courses),
                   friendsPage,
-                  savedSessionsPage // PLACE SESSION HISTORY HERE
+                  savedSessionsPage
                 ]
               ),
             ),
@@ -185,61 +177,61 @@ class _ProfilePageState extends State<ProfilePage>
 
   Padding profileHeader(BuildContext context, String? profilePicture, String major, String year, String institution) {
     return Padding(
-          padding: const EdgeInsets.only(bottom: 15.0),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: pfpWithEdit(context, profilePicture)
-              ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        major,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18
-                        )
-                      ),
-                      const Divider(
-                        thickness: 4,
-                      ),
-                      RichText(
-                        textAlign: TextAlign.left,
-                        text: TextSpan(
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: year
-                            ),
-                            const TextSpan(
-                              text: " at ",
-                              style: TextStyle(
-                                // fontWeight: FontWeight.w300
-                              )
-                            ),
-                            TextSpan(
-                              text: institution
-                            ),
-                          ]
-                        )
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: pfpWithEdit(context, profilePicture)
           ),
-        );
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal:8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    major,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18
+                    )
+                  ),
+                  const Divider(
+                    thickness: 4,
+                  ),
+                  RichText(
+                    textAlign: TextAlign.left,
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: year
+                        ),
+                        const TextSpan(
+                          text: " at ",
+                          style: TextStyle(
+                            // fontWeight: FontWeight.w300
+                          )
+                        ),
+                        TextSpan(
+                          text: institution
+                        ),
+                      ]
+                    )
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
   Widget profileTab(String studyPref, String availability, List<dynamic> courses) {

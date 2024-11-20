@@ -26,7 +26,6 @@ class BoothApp extends StatelessWidget {
       },
       // Change the theme of the app to light or dark mode depending on system settings
       theme: darkMode,
-      // darkTheme: darkMode,
     );
   }
 }

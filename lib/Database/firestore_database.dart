@@ -5,6 +5,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_chat_types/src/messages/text_message.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Class that communicates with Firestore directly, this class
+/// is used to save logging data, sessions, profile pictures, and chats
 class FirestoreDatabase {
   final FirebaseFirestore db = FirebaseFirestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;

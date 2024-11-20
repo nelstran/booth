@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:logger/web.dart';
 
 extension AnalyticsExtension on BoothController {
-  // ---- USER ANALYTICS ---- //
   /// Creates an entry in the Firestore that stores what subject the user
   /// is studying and what location it is at while also taking note of the time they started.
   void startSessionLogging(String userKey, Session session) {
@@ -45,14 +44,5 @@ extension AnalyticsExtension on BoothController {
 
     // Logs subject and time in seconds
     await firestoreDb.logSession(userKey, doc, filename);
-  }
-
-  Future<Map<String, dynamic>> fetchUserStudyData(String userKey) async {
-    final doc = await firestoreDb.fetchuserStudyData(userKey);
-    if (doc == null || doc.isEmpty) {
-      return {};
-    }
-    doc.remove('curr_session');
-    return doc;
   }
 }

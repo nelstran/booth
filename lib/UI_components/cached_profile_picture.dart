@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 
 /// Class that caches the given image from the URL using CachedNetworkImage
-/// If no image is given or found, it will display the first two initals of the
+/// If no image is given or found, it will display the first two initials of the
 /// name given
-/// The initials determin what color the background will be
+/// The initials determine what color the background will be
 class CachedProfilePicture extends StatelessWidget {
   const CachedProfilePicture({
     super.key,
@@ -20,6 +20,8 @@ class CachedProfilePicture extends StatelessWidget {
   final String name;
   final double fontSize;
 
+  /// Associate the profile background color by the first letter of the 
+  /// name
   Color _getColorFromLetter(String c){
     RegExp greenMatch = RegExp(r'[A-C]|[M-O]');
     RegExp blueMatch = RegExp(r'[D-F]|[X-Z]');
@@ -47,7 +49,7 @@ class CachedProfilePicture extends StatelessWidget {
   Widget build(BuildContext context) {
     String profileInit;
 
-    // Get the initals of the user's name
+    // Get the initials of the user's name
     profileInit = name
     .split(" ")
     .map((word) {
@@ -66,10 +68,6 @@ class CachedProfilePicture extends StatelessWidget {
       backgroundColor: imageUrl != null ? Colors.grey : profileColor,
       child: imageUrl != null 
       ? CachedNetworkImage(
-          // memCacheHeight: 100,
-          // memCacheWidth: 100,
-          // height: 100,
-          // width: 100,
           imageUrl: imageUrl!,
           progressIndicatorBuilder: (context, url, progress) =>
             CircularProgressIndicator(value: progress.progress),

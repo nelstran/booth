@@ -1,3 +1,5 @@
+/// This class represents students in the app, particularly the 
+/// logged in user
 class Student {
   late final String uid; // Account Identifier
   late final String key; // User key in database

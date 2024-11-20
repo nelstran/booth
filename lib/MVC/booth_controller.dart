@@ -58,6 +58,7 @@ class BoothController extends ValueNotifier {
         student = Student(uid: "", firstName: "", lastName: ""),
         super(null);
 
+  /// Set up listeners so it can update controller values update database changes
   void setListeners(key) async {
     // Modify student on change
     DatabaseReference entryRef = ref.child("users/$key");
@@ -101,7 +102,6 @@ class BoothController extends ValueNotifier {
         }
         catch (e){
           // Skip
-          print(e);
         }
       }
     });
@@ -154,6 +154,7 @@ class BoothController extends ValueNotifier {
     }
   }
 
+  /// Change the user's institution in the app and database
   Future<void> setInstitution(String institution) async  {
     _studentInstitution = institution;
     db.setInstitution(institution);
@@ -164,13 +165,9 @@ class BoothController extends ValueNotifier {
   Future<void> deleteUserAccountFB(BuildContext context) async {
     // Logs Exceptions
     var logger = Logger();
-    // Checks if context is mounted so no crash happens
-    //if (!context.mounted) return;
     try {
       // This Deletes the user from Firebase
       return reauthenticateThenDelete(context);
-      //await FirebaseAuth.instance.currentUser!.delete();
-      //Navigator.of(context).pop();
     } on FirebaseAuthException catch (e) {
       logger.e(e);
       // This means that Firebase wants them to re-authenticate before Axing the account
@@ -191,11 +188,7 @@ class BoothController extends ValueNotifier {
   Future<void> reauthenticateThenDelete(BuildContext context) async {
     // Used for Logging exceptions
     Logger logger = Logger();
-    // Checks if context is mounted so no crash happens
-    //if (!context.mounted) return;
 
-    // Runs method to delete account
-    //await tryToDelete(context);
     // For inputted password
     TextEditingController passwordController = TextEditingController();
     String password = '';
@@ -212,10 +205,10 @@ class BoothController extends ValueNotifier {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
               ),
+              child: const Text('Cancel'),
               onPressed: () {
                 //password = "Cancel";
                 Navigator.of(context).pop();
@@ -223,10 +216,10 @@ class BoothController extends ValueNotifier {
               },
             ),
             TextButton(
-              child: const Text('Confirm'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
+              child: const Text('Confirm'),
               onPressed: () async {
                 password = passwordController.text;
                 try {
@@ -238,6 +231,7 @@ class BoothController extends ValueNotifier {
                   // After fresh credential is gained, Firebase Deletes the account
                   await FirebaseAuth.instance.currentUser!.delete();
                   //Pops both Dialogs (Enter Password + Warning Dialog)
+                  if(!context.mounted) return;
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
 

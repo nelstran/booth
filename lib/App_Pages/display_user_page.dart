@@ -6,6 +6,8 @@ import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/block_extension.dart';
 
+/// Same as profile page but displays only the profile of the 
+/// viewed user
 class UserDisplayPage extends StatefulWidget {
   final BoothController controller;
   final String userKey;
@@ -15,7 +17,8 @@ class UserDisplayPage extends StatefulWidget {
   // code so I passed an argument instead
   const UserDisplayPage(this.controller, this.userKey,
       this.fromRequest, // Change profile page if called from request page
-      this.fromBlocked, {super.key});
+      this.fromBlocked, 
+      {super.key});
 
   @override
   State<StatefulWidget> createState() => _UserDisplayPage();
@@ -126,7 +129,7 @@ class _UserProfilePage extends State<UserProfilePage> {
           icon: Icon(Icons.check)),
       const IconButton(
           // Request sent
-          onPressed: null, // TODO: Cancel friend request
+          onPressed: null,
           icon: Icon(Icons.mark_email_read_outlined)),
       // More options button
       IconButton(
@@ -147,10 +150,10 @@ class _UserProfilePage extends State<UserProfilePage> {
                               title: const Text("Block",
                                   style: TextStyle(
                                       color: Colors.red, fontSize: 20)),
-                              leading: Icon(Icons.block, color: Colors.red)));
+                              leading: const Icon(Icons.block, color: Colors.red)));
                 });
           },
-          icon: Icon(Icons.more_vert))
+          icon: const Icon(Icons.more_vert))
     ];
 
 
@@ -306,103 +309,107 @@ class _UserProfilePage extends State<UserProfilePage> {
 
   Padding profileHeader(BuildContext context, String? profilePicture, String major, String year, String institution) {
     return Padding(
-          padding: const EdgeInsets.only(bottom: 15.0),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: FutureBuilder(
-                  future: widget.controller.getProfilePictureByKey(widget.userKey, true),
-                  builder: (context, snapshot) {
-                    profileImg = snapshot.data;
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        if (profileImg != null) {
-                          // Navigator.of(context).push(PageRouteBuilder(
-                          //     opaque: false,
-                          //     pageBuilder: (context, _, __) => ProfileImage(data)));
-                          Navigator.of(context).push(PageRouteBuilder(
-                            opaque: false,
-                            transitionDuration: Duration.zero,
-                            reverseTransitionDuration: Duration.zero,
-                            pageBuilder: (context, _, __) =>
-                              FocusImage(profileImg!)
-                          ));
-                        }
-                      },
-                      child: CachedProfilePicture(
-                        name: profileName,
-                        imageUrl: profileImg,
-                        fontSize: fontSize,
-                        radius: profileRadius,
-                      ),
-                    );
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: FutureBuilder(
+              future: widget.controller.getProfilePictureByKey(widget.userKey, true),
+              builder: (context, snapshot) {
+                profileImg = snapshot.data;
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    if (profileImg != null) {
+                      // Navigator.of(context).push(PageRouteBuilder(
+                      //     opaque: false,
+                      //     pageBuilder: (context, _, __) => ProfileImage(data)));
+                      Navigator.of(context).push(PageRouteBuilder(
+                        opaque: false,
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero,
+                        pageBuilder: (context, _, __) =>
+                          FocusImage(profileImg!)
+                      ));
+                    }
                   },
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        major,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18
-                        )
-                      ),
-                      const Divider(
-                        thickness: 4,
-                      ),
-                      RichText(
-                        textAlign: TextAlign.left,
-                        text: TextSpan(
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: year
-                            ),
-                            const TextSpan(
-                              text: " at ",
-                              style: TextStyle(
-                                // fontWeight: FontWeight.w300
-                              )
-                            ),
-                            TextSpan(
-                              text: institution
-                            ),
-                          ]
-                        )
-                      ),
-                    ],
+                  child: CachedProfilePicture(
+                    name: profileName,
+                    imageUrl: profileImg,
+                    fontSize: fontSize,
+                    radius: profileRadius,
                   ),
-                ),
-              )
-            ],
+                );
+              },
+            ),
           ),
-        );
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal:8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    major,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18
+                    )
+                  ),
+                  const Divider(
+                    thickness: 4,
+                  ),
+                  RichText(
+                    textAlign: TextAlign.left,
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: year
+                        ),
+                        const TextSpan(
+                          text: " at ",
+                          style: TextStyle(
+                            // fontWeight: FontWeight.w300
+                          )
+                        ),
+                        TextSpan(
+                          text: institution
+                        ),
+                      ]
+                    )
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 
    TextButton unblockButton(BuildContext context, String userName, userKey) {
     return TextButton(
-            child: Text("Unblock  ", 
-            style: TextStyle(color:Colors.white,
-            fontWeight: FontWeight.bold)),
-            onPressed: () {
-            showConfirmationDialog(
-            context, userName, userKey);
-          },
+      child: const Text(
+        "Unblock  ", 
+        style: TextStyle(
+          color:Colors.white,
+          fontWeight: FontWeight.bold
+        )
+      ),
+      onPressed: () {
+        showConfirmationDialog(context, userName, userKey);
+      },
     );
   }
 
+  /// Method to display a dialog to confirm that users want to block the viewed user
   Future<bool> showConfirmationDialog(
       BuildContext context, String userName, String userId) async {
     bool confirm = false;
@@ -414,17 +421,17 @@ class _UserProfilePage extends State<UserProfilePage> {
           content: Text('Are you sure you want to unblock $userName ?'),
           actions: [
             TextButton(
-              child: const Text('Cancel'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
               ),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.pop(context),
             ),
             TextButton(
-              child: const Text('Unblock'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
+              child: const Text('Unblock'),
               onPressed: () {
                 widget.controller.unblockUser(userId);
                 Navigator.pop(context);
@@ -444,142 +451,4 @@ class _UserProfilePage extends State<UserProfilePage> {
     );
     return confirm;
   }
-
-
-
-  // var iconIndex = 0;
-  // @override
-  // Widget build(BuildContext context) {
-  //   var data = widget.data;
-  //   List<IconButton> trailingIcons = [
-  //     IconButton(
-  //         // Add friend
-  //         onPressed: () {
-  //           widget.controller.sendFriendRequest(widget.userKey);
-  //           // Change icon to 'request sent' when sending friend request
-  //           setState(() {
-  //             iconIndex = 2;
-  //           });
-  //         },
-  //         icon: const Icon(Icons.person_add_outlined)),
-  //     const IconButton(
-  //         // Already friends
-  //         // color: Colors.green,
-  //         onPressed: null,
-  //         icon: Icon(Icons.check)),
-  //     const IconButton(
-  //         // Request sent
-  //         onPressed: null, // TODO: Cancel friend request
-  //         icon: Icon(Icons.mark_email_read_outlined)),
-  //     // More options button
-  //     IconButton(
-  //         onPressed: () {
-  //           showModalBottomSheet(
-  //               context: context,
-  //               builder: (context) {
-  //                 return SizedBox(
-  //                     height: 95,
-  //                     child:
-  //                         // Block user button
-  //                         ListTile(
-  //                             onTap: () {
-  //                               widget.controller.blockUser(widget.userKey);
-  //                             },
-  //                             contentPadding:
-  //                                 const EdgeInsets.only(left: 16, right: 8),
-  //                             title: const Text("Block",
-  //                                 style: TextStyle(
-  //                                     color: Colors.red, fontSize: 20)),
-  //                             leading: Icon(Icons.block, color: Colors.red)));
-  //               });
-  //         },
-  //         icon: Icon(Icons.more_vert))
-  //   ];
-  //   if (widget.friends.containsKey(widget.userKey)) {
-  //     iconIndex = 1;
-  //   }
-  //   if (widget.requests.containsKey(widget.userKey)) {
-  //     iconIndex = 2;
-  //   }
-  //   return Scaffold(
-  //       appBar: AppBar(
-  //         title: Text('${data['name'] as String}\'s Profile Page'),
-  //         actions: [
-  //           // Remove the trailing icon in the app bar if came from request page or if viewing self
-  //           widget.fromRequest ||
-  //                   widget.controller.student.key == widget.userKey
-  //               ? const SizedBox.shrink()
-  //               : trailingIcons[iconIndex],
-  //           trailingIcons[3]
-  //         ],
-  //       ),
-  //       body: Padding(
-  //         padding: const EdgeInsets.all(16.0),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Center(
-  //                 child: GestureDetector(
-  //               behavior: HitTestBehavior.opaque,
-  //               onTap: () {
-  //                 if (data["profile_picture"] != null) {
-  //                   // Navigator.of(context).push(PageRouteBuilder(
-  //                   //     opaque: false,
-  //                   //     pageBuilder: (context, _, __) => ProfileImage(data)));
-  //                   Navigator.of(context).push(PageRouteBuilder(
-  //                     opaque: false,
-  //                     transitionDuration: Duration.zero,
-  //                     reverseTransitionDuration: Duration.zero,
-  //                     pageBuilder: (context, _, __) =>
-  //                       FocusImage(data["profile_picture"])
-  //                   ));
-  //                 }
-  //               },
-  //               child: CachedProfilePicture(
-  //                 name: data['name'],
-  //                 imageUrl: data["profile_picture"],
-  //                 fontSize: 30,
-  //                 radius: 40,
-  //               ),
-  //             )),
-  //             const SizedBox(height: 16.0),
-  //             Text(
-  //               'Name: ${data["name"]}',
-  //               style:
-  //                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-  //             ),
-  //             const SizedBox(height: 8.0),
-  //             Text(
-  //               'Institution: ${data['institution'] ?? 'N/A'}',
-  //               style: const TextStyle(fontSize: 16),
-  //             ),
-  //             const SizedBox(height: 8.0),
-  //             Text(
-  //               'Major: ${data['major'] ?? 'N/A'}',
-  //               style: const TextStyle(fontSize: 16),
-  //             ),
-  //             const SizedBox(height: 8.0),
-  //             Text(
-  //               'Year: ${data['year'] ?? 'N/A'}',
-  //               style: const TextStyle(fontSize: 16),
-  //             ),
-  //             const SizedBox(height: 8.0),
-  //             Text(
-  //               'Courses: ${data['courses']?.join(", ") ?? 'N/A'}',
-  //               style: const TextStyle(fontSize: 16),
-  //             ),
-  //             const SizedBox(height: 8.0),
-  //             Text(
-  //               'Study Preferences: ${data['studyPref'] ?? 'N/A'}',
-  //               style: const TextStyle(fontSize: 16),
-  //             ),
-  //             const SizedBox(height: 8.0),
-  //             Text(
-  //               'Availability: ${data['availability'] ?? 'N/A'}',
-  //               style: const TextStyle(fontSize: 16),
-  //             ),
-  //           ],
-  //         ),
-  //       ));
-  // }
 }

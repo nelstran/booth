@@ -85,5 +85,3 @@ class _ExpandedSessionPageState extends State<ExpandedSessionPage> {
     );
   }
 }
-
-

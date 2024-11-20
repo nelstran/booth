@@ -91,16 +91,6 @@ extension FriendExtension on BoothController {
     if(!friends.containsKey(key)){
       return db.acceptFriendRequest(student.key, key);
     }
-    // if (requests.containsKey(key)) {
-    //   if (friends.containsKey(key)) {
-    //   return; // Do nothing if user is already friends
-    //   }
-    //   return; // Do nothing if user already sent a request
-    // }
-    // if (friends.containsKey(key)) {
-    //   return; // Do nothing if user is already friends
-    // }
-    // return db.acceptFriendRequest(student.key, key);
   }
 
   Future<bool> isFriends(String userA, [String? userB]) async {
@@ -111,6 +101,5 @@ extension FriendExtension on BoothController {
     }
     Map<dynamic, dynamic> friends = json as Map<dynamic, dynamic>;
     return friends.containsKey(userA);
-
   }
 }

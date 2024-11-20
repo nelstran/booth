@@ -11,6 +11,10 @@ import 'package:Booth/MVC/profile_extension.dart';
 import 'package:rainbow_color/rainbow_color.dart';
 import '../MVC/session_model.dart';
 
+/// Page that displays all sessions in the school,
+/// this page will hide/show certain sessions if 
+/// users apply a filter or are on the friends tab.
+/// This page will also hide sessions that blocked users are in
 class SessionPage extends StatefulWidget {
   final DatabaseReference ref;
   final BoothController controller;
@@ -48,13 +52,8 @@ class _SessionPage extends State<SessionPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // List<Color> sessionColor = [
-    //   Colors.red,
-    //   Colors.orange,
-    //   Colors.yellow,
-    //   Colors.green
-    // ];
 
+    // Have a spectrum of colors to indicate how full a session is
     Rainbow sessionColor = Rainbow(
         spectrum: [Colors.green, Colors.yellow, Colors.orange, Colors.red]);
 
@@ -72,6 +71,7 @@ class _SessionPage extends State<SessionPage>
                   return Center(child: Text('Error: ${snap.error}'));
                 }
                 String institution = widget.controller.studentInstitution;
+                // Update when users' friends list is changed
                 return StreamBuilder(
                     stream:
                         widget.controller.studentRef().child("friends").onValue,
@@ -198,22 +198,11 @@ class _SessionPage extends State<SessionPage>
                                         // Extract title and description from the session map
                                         String title = json['title'] ?? '';
 
-                                        // int colorIndex =
-                                        //     ((session.seatsTaken / session.seatsAvailable) * 100)
-                                        //         .floor();
+                                        // Get a color from the specture depending on how full the session is
                                         Color fullness;
                                         fullness = sessionColor[
                                             session.seatsTaken /
                                                 session.seatsAvailable];
-                                        // if (colorIndex <= 33) {
-                                        //   fullness = sessionColor[3];
-                                        // } else if (colorIndex <= 66) {
-                                        //   fullness = sessionColor[2];
-                                        // } else if (colorIndex <= 99) {
-                                        //   fullness = sessionColor[1];
-                                        // } else {
-                                        //   fullness = sessionColor[0];
-                                        // }
                                         return Column(
                                           children: [
                                             if (isInSession)
@@ -244,12 +233,11 @@ class _SessionPage extends State<SessionPage>
                                                 elevation: 2,
                                                 child: ClipPath(
                                                   clipper: ShapeBorderClipper(
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10))),
+                                                    shape:
+                                                      RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(10)
+                                                        )
+                                                      ),
                                                   child: Container(
                                                     decoration: BoxDecoration(
                                                         border: Border(
@@ -292,20 +280,6 @@ class _SessionPage extends State<SessionPage>
                                                               const TextStyle(
                                                                   fontSize:
                                                                       14)),
-                                                      // trailing: SizedBox(
-                                                      //   height: 50,
-                                                      //   child: Column(
-                                                      //     crossAxisAlignment: CrossAxisAlignment.center,
-                                                      //     mainAxisAlignment: MainAxisAlignment.center,
-                                                      //     children: [
-                                                      //       if (isFriends) const Icon(Icons.people, color: Colors.green),
-                                                      //       Text(
-                                                      //           "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                                      //           textAlign: TextAlign.center,
-                                                      //           style: const TextStyle(fontSize: 14)),
-                                                      //     ],
-                                                      //   ),
-                                                      // ),
                                                       onTap: () {
                                                         // Expand session
                                                         Navigator.of(context)
@@ -392,12 +366,6 @@ class _SessionPage extends State<SessionPage>
                     builder: (context, snapshot) {
                       return Padding(
                           padding: const EdgeInsets.all(3.0),
-                          // child: ProfilePicture(
-                          //   name: memberNames[index],
-                          //   radius: pfpRadius,
-                          //   fontsize: pfpFontSize,
-                          //   img: snapshot.data,
-                          // ),
                           child: CachedProfilePicture(
                               name: memberNames[index],
                               radius: pfpRadius,

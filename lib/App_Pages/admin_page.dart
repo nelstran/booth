@@ -1,18 +1,16 @@
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/student_model.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 
+/// Page for developers to test new features without interfering with the main ui of Booth
 class AdminPage extends StatelessWidget {
   const AdminPage({
     super.key,
-    required DatabaseReference ref,
     required this.controller,
-  }) : _ref = ref;
+  });
 
-  final DatabaseReference _ref;
   final BoothController controller;
   @override
   Widget build(BuildContext context) {
@@ -64,7 +62,7 @@ class AdminPage extends StatelessWidget {
               .removeUserFromSession(student.session, student.sessionKey);
         }
         controller.addSession(boothSession, student);
-        }, child: Text("Add session"))
+        }, child: const Text("Add session"))
       ],
     );
   }

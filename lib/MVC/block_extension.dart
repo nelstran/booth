@@ -1,7 +1,5 @@
-import 'package:Booth/App_Pages/institutions_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_extension.dart';
-import 'package:Booth/MVC/session_model.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 
 extension BlockExtension on BoothController {
@@ -89,5 +87,4 @@ extension BlockExtension on BoothController {
     }
     return allSessions;
   }
-
 }

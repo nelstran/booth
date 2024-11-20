@@ -6,6 +6,9 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:flutter/services.dart';
 
+/// Page for users to set fields in their profile to display 
+/// to others, this page will be used to create a user's profile and to 
+/// edit their profile
 class CreateProfilePage extends StatefulWidget {
   final BoothController controller;
   const CreateProfilePage(this.controller, {super.key});
@@ -41,6 +44,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
         });
   }
 
+  /// Set the appropriate text fields if editing the profile
   bool setTextValues(Map<dynamic, dynamic> profile){
     String courses = "";
     if (profile.containsKey("courses")){
@@ -59,6 +63,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
     _availabilityController.text = profile["availability"] ?? "";
     return profile.isNotEmpty;
   }
+  
   Scaffold createUI([Map<dynamic, dynamic>? profile]) {
     bool edit = setTextValues(profile ?? {});
     
@@ -126,6 +131,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               onChanged: (value) => _yearController.text = value ?? "",
             ),
             const SizedBox(height: 8.0),
+            // Courses field
             TextFormField(
               readOnly: true,
               decoration: const InputDecoration(
@@ -164,6 +170,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               controller: _availabilityController,
             ),
             const SizedBox(height: 16.0),
+            // Submit button
             ElevatedButton(
               onPressed: () {
                 Map courses = {};
@@ -221,12 +228,12 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
         width: 80,
         height: double.infinity,
         child: Row(
-            // mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text("Change", style: TextStyle(fontSize: 13)),
-              Icon(Icons.arrow_forward_ios_rounded, size: 16)
-            ]),
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text("Change", style: TextStyle(fontSize: 13)),
+            Icon(Icons.arrow_forward_ios_rounded, size: 16)
+          ]
+        ),
       ),
       contentPadding: const EdgeInsets.only(left: 16, right: 8),
       tileColor: Colors.grey.shade900,

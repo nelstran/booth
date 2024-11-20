@@ -12,6 +12,8 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 
+/// Page that holds the chat messages stored in Firebase,
+/// allows users to communicate with one another in the session
 class ChatRoomPage extends StatefulWidget {
   final BoothController controller;
   final String sessionKey;
@@ -43,6 +45,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
   @override
   void initState(){
     super.initState();
+    // Initialize user for chatting
     _user = types.User(
       id: widget.controller.student.uid,
       firstName: widget.controller.student.firstName,
@@ -60,7 +63,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // Lots of streams smh
+    // Lots of streams to keep UI updated
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chat room")
@@ -98,7 +101,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
               }
             }
           }
-
           // Sort messages by time
           _messages.sort((a, b) {
             if (a.createdAt == null){ // System messages do not have a time stamp, put them at the top (for now)
@@ -135,7 +137,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
                           userNameTextStyle: TextStyle(
                             fontSize: 15,
                             fontFamily: 'RobotoMono',
-                            // fontWeight: FontWeight.bold,
                             fontStyle: FontStyle.italic
                           ),
                           backgroundColor: Color.fromARGB(255, 18, 18, 18),
@@ -144,12 +145,10 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
                           secondaryColor: Color.fromARGB(255, 0,51,102),
                         ),
                         timeFormat: DateFormat.jm(), // Set time as XX:XX AM/PM
-                        // timeFormat: DateFormat.yMd().add_jm() // Adds date plus time
                         avatarBuilder: _cachedAvatarBuilder,
                         systemMessageBuilder: _systemMessageBuilder,
                         customBottomWidget: bottomInputBar(),
                         messages: _messages,
-                        // onAttachmentPressed: _handleAttachmentPressed,
                         onMessageTap: _handleMessageTap,
                         onPreviewDataFetched: _handlePreviewDataFetched,
                         onSendPressed: _handleSendPressed,
@@ -396,6 +395,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> with AutomaticKeepAliveClie
       child: isInThisSession ? chatRoomInput() : disabledInput()
     );
   }
+  
   Widget disabledInput() {
     return const Padding(
       padding: EdgeInsets.all(8.0),

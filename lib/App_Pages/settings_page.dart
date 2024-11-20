@@ -1,4 +1,4 @@
-import 'package:Booth/App_Pages/biometric_helper.dart';
+import 'package:Booth/MVC/biometric_helper.dart';
 import 'package:Booth/App_Pages/blocked_users_page.dart';
 import 'package:Booth/Helper_Functions/helper_methods.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,12 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+/// Page that allows users
+/// - Change their email/password
+/// - Logout
+/// - Delete their account
+/// - View their blocked users
+/// - View Privacy Policy or TOS
 class SettingsPage extends StatefulWidget {
   final BoothController controller;
   final User user;
@@ -36,6 +42,7 @@ class SettingsPageState extends State<SettingsPage> {
     loadBiometricPreference();
   }
 
+  /// Method to check whether user has enabled Biometrics
   Future<void> loadBiometricPreference() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -72,6 +79,7 @@ class SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  /// Function to save biometric preference
   Future<void> saveBiometricPreference(bool isEnabled) async {
     if (isEnabled) {
       // Check if biometrics is available on the device
@@ -180,6 +188,7 @@ class SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  /// Method to ask users to retype their password to enable Biometrics
   Future<String?> showPasswordConfirmationDialog() async {
     final TextEditingController passwordController = TextEditingController();
 
@@ -220,6 +229,7 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  /// Method to open a file given the [fileName]
   Future<void> openDocument(String fileName) async {
     try {
       // Check if file exists in assets
@@ -323,7 +333,6 @@ class SettingsPageState extends State<SettingsPage> {
             foregroundColor: Colors.white,
           ),
           onPressed: () {
-            //password = "Cancel";
             Navigator.of(context).pop();
             return;
           },
@@ -364,6 +373,7 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  /// Method to start the change email process
   Future<void> _handleChangeEmailPress() async {
     await showDialog(
         context: context,
@@ -372,6 +382,7 @@ class SettingsPageState extends State<SettingsPage> {
         });
   }
 
+  /// Method to ask users for the new email once they've reauthenticated themselves
   Future<void> _changeEmail() async {
     TextEditingController emailController = TextEditingController();
 
@@ -391,7 +402,6 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // Navigator.of(context).pop();
                   return;
                 },
                 child: const Text('Cancel'),
@@ -424,6 +434,7 @@ class SettingsPageState extends State<SettingsPage> {
         });
   }
 
+  /// Helper method to display a notice with a given message from [content]
   Future<void> noticeDialog(String title, String content) {
     return showDialog(
         context: context,
@@ -453,6 +464,7 @@ class SettingsPageState extends State<SettingsPage> {
         });
   }
 
+  /// Method to start the change password process
   Future<void> _handleChangePasswordPress() async {
     await showDialog(
         context: context,
@@ -461,6 +473,8 @@ class SettingsPageState extends State<SettingsPage> {
         });
   }
 
+  /// Once users has reauthenticated themselves, display a form for
+  /// users to input their new password
   Future<void> _changePassword() async {
     TextEditingController passwordController = TextEditingController();
     TextEditingController confirmPwController = TextEditingController();
@@ -493,7 +507,6 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // Navigator.of(context).pop();
                   return;
                 },
                 child: const Text('Cancel'),

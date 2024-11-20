@@ -32,6 +32,7 @@ class _AddCoursesPage extends State<AddCoursesPage> {
       bubbleCourses.add(filterBubble(text));
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +90,7 @@ class _AddCoursesPage extends State<AddCoursesPage> {
                       autofocus: true,
                       controller: courseController,
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9 ]")),
+                        FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9 ]")), // Allow only letters, numbers, and spaces
                       ],
                       focusNode: focus,
                       onSubmitted: (value) {

@@ -47,25 +47,12 @@ extension SessionExtension on BoothController {
   /// Add the session to the database, the user who made it
   /// automatically joins the session
   Future<void> addSession(Session session, Student owner, {File? file}) async {
-    // We just want name and uid instead all of its fields
+    // We just want name, key, and uid instead all of its fields
     Map studentValues = {
       "name": owner.fullname,
       "key": owner.key,
       "uid": owner.uid,
     };
-
-    // Map sessionValues = {
-    //   "field": session.field,
-    //   "level": session.level,
-    //   "subject": session.subject,
-    //   "title": session.title,
-    //   "description": session.description,
-    //   "time": session.time,
-    //   "locationDescription": session.locationDescription,
-    //   "seatsAvailable": session.seatsAvailable,
-    //   "isPublic": session.isPublic,
-    //   "ownerKey": owner.key,
-    // };
     Map<String, String?> keys =
         await db.addSession(session.toJson(), studentValues);
     String sessionKey = keys["sessionKey"]!;
@@ -105,10 +92,12 @@ extension SessionExtension on BoothController {
     await firestoreDb.deleteSessionChatHistory(key);
   }
 
+  /// Edit session given the session [key] and session [values]
   Future<void> editSession(String key, Map<String, Object?> values) async {
     await db.updateSession(key, values);
   }
 
+  /// Method to get the session object from the database given its [key]
   Future<Map<dynamic, dynamic>> getSession(String key) async {
     Object? json = await db.getSession(key);
     if (json == null) {

@@ -1,7 +1,7 @@
-// Method to manually filter session on user's device since realtime database does not
-// offer any filtering5
 import 'package:Booth/MVC/session_model.dart';
 
+// Method to manually filter session on user's device since realtime database does not
+// offer any filtering
 bool isFiltered(Map filters, Session session) {
     // Hide full sessions
     if (filters.containsKey('hideFull') && filters['hideFull']) {

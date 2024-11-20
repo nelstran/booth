@@ -1,7 +1,10 @@
-import 'package:Booth/MVC/session_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+/// The class will display an overlay to enlarge the given image
+/// The image is received by the [imageUrl] given, which will then
+/// be cached. An [imageDesc] can be given to display text over the 
+/// image to give more information to the user
 class FocusImage extends StatefulWidget {
   final String imageUrl;
   final String? imageDesc;

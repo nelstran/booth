@@ -11,6 +11,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Page for users to create a session, users can take a picture
+/// for others to find them easier as well as sharing their current location.
+/// This page is also used to edit the session
 class CreateSessionPage extends StatefulWidget {
   final BoothController controller;
   final String? sessionKey;
@@ -73,6 +76,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     }
   }
 
+  /// Fetch the image if it is in the cache
   Future<void> fetchImage(String url) async {
     final cacheManager = DefaultCacheManager();
       // No need to check if url is valid since we're in a try/catch
@@ -83,8 +87,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
       });
   }
 
-  // Method to display snackbar warning while also preventing it from
-  // being loaded multiple times when users spam the toggle
+  /// Method to display snackbar warning while also preventing it from
+  /// being loaded multiple times when users spam the toggle
   void displayWarning(String text) {
     if (showingSnack) {
       return;
@@ -98,6 +102,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     });
   }
 
+  /// Method to ask users if they would like to give the app
+  /// location permissinos
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -124,6 +130,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     return true;
   }
 
+  /// Retrieve an address from the given coordinates
   Future<String?> _getAddressFromLatLng(Position position) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -144,6 +151,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     return null;
   }
 
+  /// Method to create/edit a session given the filled text fields
   Future<void> _handleSessionCreation() async {
     // Loading circle
     showDialog(
@@ -175,6 +183,7 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     }
   }
 
+  /// Method to edit the session in the database given the text fields
   Future<void> _updateSession() async {
     String? imageURL;
     if (_shareLocation) {
@@ -228,6 +237,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     await widget.controller.editSession(widget.sessionKey!, values);
   }
 
+  /// Method to create a session from the text fields and 
+  /// kicks the user from their previous session
   Future<void> _createSession() async {
     if (_shareLocation) {
       await Geolocator.getCurrentPosition(
@@ -262,10 +273,20 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
     );
 
     Student student = widget.controller.student;
+    // Check if there are any sessions that they OWN and remove the session
+    if (student.ownedSessionKey != "") {
+      await widget.controller.removeUserFromSession(
+          student.session, student.sessionKey);
+      await widget.controller
+          .removeSession(student.ownedSessionKey);
+    }
+    // Check if they were in a session then kick them out of it
     if (student.session != "") {
       await widget.controller
           .removeUserFromSession(student.session, student.sessionKey);
     }
+
+    // Add their new session
     await widget.controller.addSession(boothSession, student, file: sessionFile);
   }
 
@@ -287,7 +308,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              // const SizedBox(height: 16.0),
               TextFormField(
                 controller: _titleController,
                 maxLength: 40,
@@ -299,7 +319,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _descController,
                 maxLength: 150,
@@ -311,7 +330,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              // const SizedBox(height: 8.0),
               TextFormField(
                 canRequestFocus: false,
                 onTap: (){
@@ -355,7 +373,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _locationController,
                 maxLength: 40,
@@ -385,7 +402,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _seatsController,
                 inputFormatters: [
@@ -405,7 +421,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 },
                 keyboardType: TextInputType.number,
               ),
-              // const SizedBox(height: 8.0),
               TextFormField(
                 controller: _classController,
                 inputFormatters: [
@@ -423,7 +438,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   return null;
                 },
               ),
-              // const SizedBox(height: 8.0),
               DropdownButtonFormField<bool>(
                 value: _isPublic,
                 onChanged: (value) {
@@ -442,7 +456,6 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   ),
                 ],
               ),
-              // const SizedBox(height: 16.0),
               SwitchListTile(
                 title: const Text('Share Location'),
                 value: _shareLocation,
@@ -465,10 +478,8 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                 subtitle:
                     const Text('Allow your Booth to be visible on the map!'),
               ),
-              // const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
-                  // TODO: fix crash
                   if (_formKey.currentState!.validate()) {
                     await _handleSessionCreation();
                   }

@@ -6,6 +6,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:intl/intl.dart';
 
+/// Page that displays a user's usage of Booth, it will
+/// display their weekly time in a session as well as 
+/// the amount of times they were in a session.
+/// Users can see their usage by a week-by-week basis
 class UsagePage extends StatefulWidget {
   final BoothController controller;
   const UsagePage(
@@ -54,6 +58,7 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
                       )
                     ),
                     GestureDetector(
+                      // Remove arrow if at current week
                       child: weeksAwayFromToday == 0 ? const SizedBox(width: 25,) : const Icon(Icons.arrow_forward_ios_rounded),
                       onTap: (){
                         if(weeksAwayFromToday > 0){
@@ -119,6 +124,7 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
         Map subjectsDuration = {};
         double maxSubjectTime = 1;
 
+        // To keep a smooth UIX, have empty visuals when loading in data
         if (snapshot.hasData) {
           weeklyHours = snapshot.data!;
           try{
@@ -182,7 +188,6 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
                     BarChartData(
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
-                          // fitInsideHorizontally: true,
                           fitInsideVertically: true,
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           String weekDay;
@@ -269,7 +274,6 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
                                 toY: data.y,
                                 color: Colors.blue,
                                 width: 25,
-                                // borderRadius: BorderRadius.circular(15),
                                 backDrawRodData: BackgroundBarChartRodData(
                                   show: true,
                                   toY: maxYBar + (.1 * maxYBar),
@@ -400,7 +404,6 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
 
   // Gets the most visited study location of the week
   Future<String> getFreqLocation(int week) async {
-    // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
     String userKey = widget.controller.student.uid;
 
     List<String> locations = [];
@@ -412,7 +415,6 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
           .doc(userKey)
           .collection('session_logs')
           .where('week_of_year', isEqualTo: getWeekNum(week))
-          // .where('week_of_year', isEqualTo: 39)
           .get()
           .then(
         (querySnapshot) {
@@ -449,9 +451,8 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
     }
   }
 
-// Gets the total hours spent in booth sessions per day
+  // Gets the total hours spent in booth sessions per day
   Future<Map<String, dynamic>> getWeeklyHours(int week) async {
-    // String userKey = "wUxLN0owVqZGEIBeMOt9q6lVBzL2";
     String userKey = widget.controller.student.uid;
 
     Map<String, dynamic> weeklyHours = {
@@ -561,6 +562,7 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
     return weekNum;
   }
 
+  /// Get the starting and ending days of the week
   String getStartAndEndWeek(int week){
     var date = Timestamp.now().toDate();
     date = date.subtract(Duration(days: week * 7));
@@ -682,10 +684,8 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
         // Get daily average
         double dailyAverageNum = totalSessions / 7;
 
-        // If 1 digit, shows only 1 digit (ex: 2 instead of 2.0)
         String dailyAverage = dailyAverageNum.round().toString();
 
-        // If 1 digit, shows only 1 digit (ex: 2 instead of 2.0)
         String totalString = totalSessions.round().toString();
 
         double maxYBar = (weeklyBarData.getMax().roundToDouble() + 1);
@@ -995,6 +995,7 @@ class BarData {
 
   List<IndivididualBar> barData = [];
 
+  /// Get the day with the max amount of time
   double getMax() {
     return ([
       sunAmount,

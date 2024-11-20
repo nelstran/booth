@@ -10,6 +10,9 @@ import 'package:Booth/App_Pages/requests_page.dart';
 import 'package:Booth/MVC/friend_extension.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 
+/// UI that will display the list of other users the current user
+/// is friends with, it will also display notify the user
+/// if they have any friend requests
 class FriendsPage extends StatefulWidget {
   const FriendsPage(this.controller, {super.key});
   final BoothController controller;
@@ -27,9 +30,6 @@ class _FriendsPage extends State<FriendsPage> {
     var requestsList = {};
     var friendsList = {};
     return Scaffold(
-        // appBar: AppBar(
-        //   title: const Text('Friends List'),
-        // ),
         body: FutureBuilder(
         future: Future.wait([requests, friends]),
         builder: (context, snapshot) {
@@ -235,60 +235,62 @@ class _FriendsPage extends State<FriendsPage> {
 
   PopupMenuButton<int> friendOptions(bool inASession, BuildContext context, String userName, userKey, String sessionKey) {
     return PopupMenuButton<int>(
-                                //  Popup menu for options (currently remove friend option)
-                                icon: const Icon(Icons.more_vert),
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 1,
-                                    child: Text('Remove Friend'),
-                                  ),
-                                  if (inASession) const PopupMenuItem(
-                                    value: 2,
-                                    child: Text('Go to session')
-                                  )
-                                ],
-                                onSelected: (value) {
-                                  if (value == 1) {
-                                    showConfirmationDialog(
-                                        context, userName, userKey);
-                                  }
-                                  if (value == 2){
-                                    // Navigate to friend's session if they are in one
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ExpandedSessionPage(sessionKey, widget.controller),
-                                      ),
-                                    );
-                                  }
-                                },
-                              );
+      //  Popup menu for options (currently remove friend option)
+      icon: const Icon(Icons.more_vert),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 1,
+          child: Text('Remove Friend'),
+        ),
+        if (inASession) const PopupMenuItem(
+          value: 2,
+          child: Text('Go to session')
+        )
+      ],
+      onSelected: (value) {
+        if (value == 1) {
+          showConfirmationDialog(
+              context, userName, userKey);
+        }
+        if (value == 2){
+          // Navigate to friend's session if they are in one
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  ExpandedSessionPage(sessionKey, widget.controller),
+            ),
+          );
+        }
+      },
+    );
   }
 
   StreamBuilder<DocumentSnapshot<Object?>> profilePicture(userKey, String userName, double pfpRadius, double pfpFontSize) {
     return StreamBuilder(
-                                  stream: widget.controller
-                                      .pfpRef(userKey)
-                                      .snapshots(),
-                                  builder: (context, snapshot) {
-                                    return FutureBuilder(
-                                      future: widget.controller
-                                          .getProfilePictureByKey(userKey, true),
-                                      builder: (context, snapshot) {
-                                        return Padding(
-                                          padding: const EdgeInsets.all(3.0),
-                                          child: CachedProfilePicture(
-                                            name: userName,
-                                            imageUrl: snapshot.data,
-                                            radius: pfpRadius,
-                                            fontSize: pfpFontSize,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  });
+      stream: widget.controller
+          .pfpRef(userKey)
+          .snapshots(),
+      builder: (context, snapshot) {
+        return FutureBuilder(
+          future: widget.controller
+              .getProfilePictureByKey(userKey, true),
+          builder: (context, snapshot) {
+            return Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: CachedProfilePicture(
+                name: userName,
+                imageUrl: snapshot.data,
+                radius: pfpRadius,
+                fontSize: pfpFontSize,
+              ),
+            );
+          },
+        );
+      }
+    );
   }
 
+  /// Method to ask the user to confirm that they want to unfriend the given user
   Future<bool> showConfirmationDialog(
       BuildContext context, String userName, String userId) async {
     bool confirm = false;

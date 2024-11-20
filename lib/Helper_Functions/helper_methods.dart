@@ -2,7 +2,7 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-// Method to display messages to user
+/// Method to display messages to user
 void displayMessageToUser(String message, BuildContext context) {
   showDialog(
     context: context, 
@@ -23,6 +23,7 @@ void displayMessageToUser(String message, BuildContext context) {
   );
 }
 
+/// Method to log the user out upon confirmation
 void logout(BoothController controller, BuildContext context) {
   showDialog(
     context: context, builder: (context){
@@ -41,7 +42,6 @@ void logout(BoothController controller, BuildContext context) {
                       elevation: 0.0,
                       shadowColor: Colors.transparent,
                       backgroundColor: Colors.transparent,
-                      // padding: EdgeInsets.zero
                       ),
                   child: const Text(
                     "Cancel",

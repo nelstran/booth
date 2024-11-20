@@ -17,7 +17,20 @@ import 'package:Booth/App_Pages/usage_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/sample_extension.dart';
 
-/// This is the home page - defaults to the session page
+/// This is the home/main page that holds most of 
+/// the UI components. It contains 4 main pages:
+/// - Sessions
+/// - Map
+/// - Usage
+/// - Profile
+/// MainUIPage is where users navigate 
+/// to other subpages such as 
+/// - Search Page
+/// - Filter Page
+/// - Expanded Session Page
+/// - Create Session Page
+/// - Settings Page
+/// - Edit Profile Page
 class MainUIPage extends StatefulWidget {
   final User? user;
   final bool isLoggingIn;
@@ -55,9 +68,6 @@ class _MainUIPageState extends State<MainUIPage> {
     super.initState();
 
     appSetup(widget.user);
-    // controller.fetchAccountInfo(widget.user!).whenComplete(() {
-    //   accountSpecificSetup();
-    // });
 
     pageController = PageController(initialPage: currPageIndex);
 
@@ -156,8 +166,9 @@ class _MainUIPageState extends State<MainUIPage> {
         });
   }
 
+  
+  /// Method to setup Booth for the user
   Future<void> appSetup(user) async {
-    // String data = await controller.fetchAccountInfo(user);
     await controller.fetchAccountInfo(user);
     accountSpecificSetup();
 
@@ -179,6 +190,7 @@ class _MainUIPageState extends State<MainUIPage> {
     appSetupStream.sink.add(true);
   }
 
+  /// Method to display certain infomation only available when the user logs in   
   void accountSpecificSetup() {
     // Change the appbar depending on what page the user is on
     appBars = [
@@ -202,7 +214,7 @@ class _MainUIPageState extends State<MainUIPage> {
       // Admin app bar
       appBars.add(adminAppBar());
       // Admin page
-      pages.add(AdminPage(ref: _ref, controller: controller));
+      pages.add(AdminPage(controller: controller));
       // Admin icon
       destinations.add(const NavigationDestination(
         icon: Icon(Icons.settings),
@@ -226,9 +238,7 @@ class _MainUIPageState extends State<MainUIPage> {
         shape: const CircleBorder(),
         backgroundColor: Colors.blue,
         onPressed: () {
-          // // Navigate to the create session page
-          // Navigator.pushNamed(context, '/create_session',
-          //     arguments: {'user': controller.student});
+          // Navigate to the create session page
           Navigator.of(context).push(
             MaterialPageRoute(
                 builder: (context) => CreateSessionPage(controller)),
@@ -310,11 +320,6 @@ class _MainUIPageState extends State<MainUIPage> {
             Navigator.of(context).push(MaterialPageRoute(
                 settings: const RouteSettings(name: '/Profile'),
                 builder: (context) => CreateProfilePage(controller)));
-            // await Navigator.pushNamed(
-            //   context,
-            //   '/create_profile',
-            //   arguments: {"user": widget.user, "controller": controller},
-            // );
             // Causes the page to update when user is done
             setState(() {
               currPageIndex = currPageIndex;
@@ -357,47 +362,6 @@ class _MainUIPageState extends State<MainUIPage> {
           child: const Text("Cancel"),
         )
       ],
-    );
-  }
-
-  Future<dynamic> deletionDialog() {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirm Account Deletion"),
-          content: const Text('''Are you sure you want to delete your account? 
-
-This action is permanent and cannot be undone. All your data, settings, and history will be permanently deleted. 
-              
-If you proceed, you will lose access to your account and all associated content.'''),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
-              child: const Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              onPressed: () async {
-                // Deletes the account from FireBase (In Controller)
-                // Await is used so that the user is deleted on FB Auth before the app
-                // tries to delete the user from our realtime database
-                await controller.deleteUserAccountFB(context);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-              child: const Text(
-                "Delete My Account",
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }

@@ -91,7 +91,6 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     User? user = FirebaseAuth.instance.currentUser;
     try{
       if (user != null && widget.previousPage == "Register"){
-      // if (user != null){
         String email = user.email ?? "";
         if (email.isNotEmpty){
           String domain = email.split('@')[1];
@@ -210,37 +209,36 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     return Expanded(
       // Currently searching
       child: loading
-          ? const Center(child: CircularProgressIndicator())
-          : listOfInstitutions.isEmpty
-              ?
-              // Show blank if query is also blank
-              institutionController.text.isEmpty
-                  ? const SizedBox.shrink()
-                  : const Center(child: Text('No results found'))
-              // Display list of colleges once searching is done
-              : ListView.builder(
-                  itemCount: listOfInstitutions.length,
-                  itemBuilder: (context, index) {
-                    var institute = listOfInstitutions[index];
-                    String website = institute['web_pages'];
-                    String logoURL = institute['logo'] ?? '';
+        ? const Center(child: CircularProgressIndicator())
+        : listOfInstitutions.isEmpty
+          ?
+          // Show blank if query is also blank
+          institutionController.text.isEmpty
+            ? const SizedBox.shrink()
+            : const Center(child: Text('No results found'))
+          // Display list of colleges once searching is done
+          : ListView.builder(
+            itemCount: listOfInstitutions.length,
+            itemBuilder: (context, index) {
+              var institute = listOfInstitutions[index];
+              String website = institute['web_pages'];
+              String logoURL = institute['logo'] ?? '';
 
-                    Image logo = Image.network(
-                      logoURL,
-                      fit: BoxFit.contain,
-                      // If no logo is found, use icon instead
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.school,
-                          size: 50,
-                          color: Colors.grey[700],
-                        );
-                      },
-                    );
-                    return schoolTile(
-                        logoURL, logo, institute, website, context);
-                  },
-                ),
+              Image logo = Image.network(
+                logoURL,
+                fit: BoxFit.contain,
+                // If no logo is found, use icon instead
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.school,
+                    size: 50,
+                    color: Colors.grey[700],
+                  );
+                },
+              );
+              return schoolTile(logoURL, logo, institute, website, context);
+            },
+          ),
     );
   }
 
@@ -275,6 +273,7 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     );
   }
 
+  /// Method to ask the user to confirm that they would like the join the selected institution
   Future<dynamic> confirmationDialog(BuildContext context, String logoURL,
       Image logo, Map<dynamic, dynamic> institute) {
     return showDialog(
@@ -507,6 +506,7 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     }
   }
   
+  /// Function to suggest a school given the users email domain name
   Future<void> suggestSchool(String domain) async {
     // Encode the query to be URL-friendly
     var encoded = Uri.encodeFull(domain);
@@ -534,6 +534,7 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
         suggestedInstitute = inst;
       });
 
+      // Give the user about 5 seconds to join or not then disappear the suggestion
       Timer.periodic(const Duration(milliseconds: 10), (expire){
       if(expireSuggestion <= 0){
         if(!mounted) return;

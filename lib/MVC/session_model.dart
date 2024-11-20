@@ -1,3 +1,6 @@
+/// This class represents the session that is displayed
+/// on screen and what is saved in Firebase by converting its values
+/// to a JSON
 class Session {
   late String key; // Session key in database
 

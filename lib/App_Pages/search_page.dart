@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
-import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/block_extension.dart';
 import '../MVC/booth_controller.dart';
 import 'expanded_session_page.dart';
 
+/// Page where users can search for users in Booth or
+/// session in the school, it will not show users that 
+/// you have blocked nor yourself
 class SearchPage extends SearchDelegate<String> {
   late final BoothController controller;
 
@@ -147,6 +149,7 @@ class SearchPage extends SearchDelegate<String> {
     );
   }
 
+  /// Method to get the list of users to display to the user
   Future<Map<dynamic, dynamic>> getUsers(BoothController controller) async {
     Map<dynamic, dynamic> users = await controller.getNonBlockedUsers(controller.student.key);
     Map<String, String> userList = {};
@@ -166,6 +169,7 @@ class SearchPage extends SearchDelegate<String> {
     return userList;
   }
 
+  /// Method to display the list of session in the school 
   Future<Map<dynamic, dynamic>> getSessions(BoothController controller) async {
     Map<dynamic, dynamic> sessions = await controller.getNonBlockedSessions(controller.student.key);
     Map<String, String> sessionList = {};

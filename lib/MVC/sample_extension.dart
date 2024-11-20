@@ -8,6 +8,7 @@ extension SampleExtension on BoothController {
   static String sessionFilePath = 'assets/mock/sessions.json';
   static String locationFilePath = 'assets/mock/location_desc.json';
 
+  /// Create [n] number of random session, this method uses a list of names, subjects, and locations from a files in this project
   Future<void> createNSampleSessions(int n) async {
     var nameJson = await rootBundle.loadString(namesFilePath);
     var sessionjson = await rootBundle.loadString(sessionFilePath);

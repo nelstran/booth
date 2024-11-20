@@ -1,13 +1,13 @@
 import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/block_extension.dart';
 
+/// Page for users to see the list of blocked users
 class BlockedUsersPage extends StatefulWidget {
   const BlockedUsersPage(this.controller, {super.key});
   final BoothController controller;
@@ -149,44 +149,44 @@ class _BlockedUsersPage extends State<BlockedUsersPage> {
 
   ElevatedButton unblockButton(BuildContext context, String userName, userKey) {
     return ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-          shape: StadiumBorder(),
-          ),
-          onPressed: () {
-            showConfirmationDialog(
-            context, userName, userKey);
-          },
-          label: const Text("Unblock"),
-        );
-
+      style: ElevatedButton.styleFrom(
+      shape: const StadiumBorder(),
+      ),
+      onPressed: () {
+        showConfirmationDialog(
+        context, userName, userKey);
+      },
+      label: const Text("Unblock"),
+    );
   }
 
   StreamBuilder<DocumentSnapshot<Object?>> profilePicture(userKey, String userName, double pfpRadius, double pfpFontSize) {
     return StreamBuilder(
-                                  stream: widget.controller
-                                      .pfpRef(userKey)
-                                      .snapshots(),
-                                  builder: (context, snapshot) {
-                                    return FutureBuilder(
-                                      future: widget.controller
-                                          .getProfilePictureByKey(userKey, true),
-                                      builder: (context, snapshot) {
-                                        return Padding(
-                                          padding: const EdgeInsets.all(3.0),
-                                          child: CachedProfilePicture(
-                                            name: userName,
-                                            imageUrl: snapshot.data,
-                                            radius: pfpRadius,
-                                            fontSize: pfpFontSize,
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  });
+      stream: widget.controller
+          .pfpRef(userKey)
+          .snapshots(),
+      builder: (context, snapshot) {
+        return FutureBuilder(
+          future: widget.controller
+              .getProfilePictureByKey(userKey, true),
+          builder: (context, snapshot) {
+            return Padding(
+              padding: const EdgeInsets.all(3.0),
+              child: CachedProfilePicture(
+                name: userName,
+                imageUrl: snapshot.data,
+                radius: pfpRadius,
+                fontSize: pfpFontSize,
+              ),
+            );
+          },
+        );
+      }
+    );
   }
 
   Future<bool> showConfirmationDialog(
-      BuildContext context, String userName, String userId) async {
+    BuildContext context, String userName, String userId) async {
     bool confirm = false;
     await showDialog(
       context: context,
@@ -196,17 +196,17 @@ class _BlockedUsersPage extends State<BlockedUsersPage> {
           content: Text('Are you sure you want to unblock $userName ?'),
           actions: [
             TextButton(
-              child: const Text('Cancel'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
             TextButton(
-              child: const Text('Unblock'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
+              child: const Text('Unblock'),
               onPressed: () {
                 widget.controller.unblockUser(userId);
                 Navigator.pop(context);
@@ -216,8 +216,9 @@ class _BlockedUsersPage extends State<BlockedUsersPage> {
                     content: Text('Removed $userName from blocked users'),
                   ),
                 );
-                setState(() {});
-                confirm = true;
+                setState(() {
+                  confirm = true;
+                });
               },
             ),
           ],
