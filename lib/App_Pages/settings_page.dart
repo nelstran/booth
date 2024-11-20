@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class SettingsPage extends StatefulWidget {
   final BoothController controller;
@@ -27,7 +28,7 @@ class SettingsPageState extends State<SettingsPage> {
   final storage = const FlutterSecureStorage();
   final LocalAuthentication auth = LocalAuthentication();
   final biometricHelper = BiometricAuthHelper();
-  
+
   @override
   void initState() {
     super.initState();
@@ -41,17 +42,20 @@ class SettingsPageState extends State<SettingsPage> {
       // Check both SharedPreferences and secure storage
       final bool prefsEnabled = prefs.getBool('isBiometricEnabled') ?? false;
       const storage = FlutterSecureStorage();
-      final String? storedEmail = await storage.read(key: 'biometric_user_email');
-      final String? storedPassword = await storage.read(key: 'biometric_user_password');
-      
+      final String? storedEmail =
+          await storage.read(key: 'biometric_user_email');
+      final String? storedPassword =
+          await storage.read(key: 'biometric_user_password');
+
       // Only consider biometric as enabled if we have both the preference and stored credentials
-      final bool isActuallyEnabled = prefsEnabled && storedEmail != null && storedPassword != null;
-      
+      final bool isActuallyEnabled =
+          prefsEnabled && storedEmail != null && storedPassword != null;
+
       if (mounted) {
         setState(() {
           isBiometricEnabled = isActuallyEnabled;
         });
-        
+
         // Sync the SharedPreferences with actual state if they're out of sync
         if (prefsEnabled != isActuallyEnabled) {
           await prefs.setBool('isBiometricEnabled', isActuallyEnabled);
@@ -69,13 +73,14 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> saveBiometricPreference(bool isEnabled) async {
-
     if (isEnabled) {
       // Check if biometrics is available on the device
       if (!await biometricHelper.isBiometricsAvailable()) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Biometric authentication not available on this device')),
+            const SnackBar(
+                content: Text(
+                    'Biometric authentication not available on this device')),
           );
         }
         return;
@@ -86,7 +91,8 @@ class SettingsPageState extends State<SettingsPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Enable Biometric Authentication'),
-            content: const Text('By enabling biometric authentication, you can use your fingerprint/face to sign in. Make sure you are on a trusted device, and no one else has access to your biometric data.'),
+            content: const Text(
+                'By enabling biometric authentication, you can use your fingerprint/face to sign in. Make sure you are on a trusted device, and no one else has access to your biometric data.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -113,24 +119,21 @@ class SettingsPageState extends State<SettingsPage> {
                 password: password,
               );
               await widget.user.reauthenticateWithCredential(credential);
-              
+
               // Save credentials using the helper
               final saveSuccess = await biometricHelper.saveCredentials(
-                currentUserEmail, 
-                password
-              );
-              
+                  currentUserEmail, password);
+
               if (mounted) {
                 setState(() {
                   isBiometricEnabled = saveSuccess;
                 });
-                
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(saveSuccess 
-                      ? 'Biometric login enabled successfully'
-                      : 'Failed to enable biometric login'
-                    ),
+                    content: Text(saveSuccess
+                        ? 'Biometric login enabled successfully'
+                        : 'Failed to enable biometric login'),
                   ),
                 );
               }
@@ -140,7 +143,9 @@ class SettingsPageState extends State<SettingsPage> {
                   isBiometricEnabled = false;
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invalid password. Biometric login not enabled.')),
+                  const SnackBar(
+                      content: Text(
+                          'Invalid password. Biometric login not enabled.')),
                 );
               }
             }
@@ -177,7 +182,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<String?> showPasswordConfirmationDialog() async {
     final TextEditingController passwordController = TextEditingController();
-    
+
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -186,7 +191,8 @@ class SettingsPageState extends State<SettingsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Please enter your current password to enable biometric authentication:'),
+              const Text(
+                  'Please enter your current password to enable biometric authentication:'),
               const SizedBox(height: 10),
               TextField(
                 controller: passwordController,
@@ -204,7 +210,8 @@ class SettingsPageState extends State<SettingsPage> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(passwordController.text),
+              onPressed: () =>
+                  Navigator.of(context).pop(passwordController.text),
               child: const Text('Confirm'),
             ),
           ],
@@ -217,12 +224,12 @@ class SettingsPageState extends State<SettingsPage> {
     try {
       // Check if file exists in assets
       final ByteData data = await rootBundle.load('assets/documents/$fileName');
-      
+
       // Store file in temp dir
       final Directory tempDir = await getTemporaryDirectory();
       final String tempPath = tempDir.path;
       final File tempFile = File('$tempPath/$fileName');
-      
+
       // Write file to temp storage
       await tempFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
 
@@ -289,15 +296,13 @@ class SettingsPageState extends State<SettingsPage> {
         ),
         const SizedBox(height: 10),
         ListTile(
-          title: const Text("Change Email"),
-          trailing: const Icon(Icons.arrow_forward_ios),
-          onTap: _handleChangeEmailPress
-        ),
+            title: const Text("Change Email"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: _handleChangeEmailPress),
         ListTile(
-          title: const Text("Change Password"),
-          trailing: const Icon(Icons.arrow_forward_ios),
-          onTap: _handleChangePasswordPress
-        ),
+            title: const Text("Change Password"),
+            trailing: const Icon(Icons.arrow_forward_ios),
+            onTap: _handleChangePasswordPress),
       ],
     );
   }
@@ -306,75 +311,74 @@ class SettingsPageState extends State<SettingsPage> {
     TextEditingController passwordController = TextEditingController();
     String password = '';
     return AlertDialog(
-          title: const Text('Enter Password'),
-          content: TextField(
-            controller: passwordController,
-            obscureText: true,
-            decoration: const InputDecoration(hintText: "Password"),
+      title: const Text('Enter Password'),
+      content: TextField(
+        controller: passwordController,
+        obscureText: true,
+        decoration: const InputDecoration(hintText: "Password"),
+      ),
+      actions: [
+        TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
           ),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                //password = "Cancel";
+          onPressed: () {
+            //password = "Cancel";
+            Navigator.of(context).pop();
+            return;
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () async {
+            password = passwordController.text;
+            try {
+              AuthCredential credential = EmailAuthProvider.credential(
+                  email: FirebaseAuth.instance.currentUser!.email!,
+                  password: password);
+              await FirebaseAuth.instance.currentUser!
+                  .reauthenticateWithCredential(credential);
+              if (mounted) {
                 Navigator.of(context).pop();
-                return;
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                password = passwordController.text;
-                try {
-                  AuthCredential credential = EmailAuthProvider.credential(
-                    email: FirebaseAuth.instance.currentUser!.email!,
-                    password: password);
-                  await FirebaseAuth.instance.currentUser!
-                    .reauthenticateWithCredential(credential);
-                  if(mounted){
-                    Navigator.of(context).pop();
-                  }
-                  // Do action that was passed in
-                  confirmAction();
-                }
-                on FirebaseAuthException catch (e){
-                  // Handles Firebase exceptions during reauthentication
-                  if (e.code == "invalid-credential") {
-                    await noticeDialog("Error", "Wrong Password. Try Again");
-                    // Handle case where the entered password is incorrect
-                  } else if (e.code == "wrong-password") {
-                    await noticeDialog("Error", "Wrong Password. Try Again");
-                  } else {
-                    await noticeDialog("Error", e.code);
-                  }
-                }
-              },
-              child: const Text('Confirm'),
-            ),
-          ],
-        );
+              }
+              // Do action that was passed in
+              confirmAction();
+            } on FirebaseAuthException catch (e) {
+              // Handles Firebase exceptions during reauthentication
+              if (e.code == "invalid-credential") {
+                await noticeDialog("Error", "Wrong Password. Try Again");
+                // Handle case where the entered password is incorrect
+              } else if (e.code == "wrong-password") {
+                await noticeDialog("Error", "Wrong Password. Try Again");
+              } else {
+                await noticeDialog("Error", e.code);
+              }
+            }
+          },
+          child: const Text('Confirm'),
+        ),
+      ],
+    );
   }
+
   Future<void> _handleChangeEmailPress() async {
     await showDialog(
-      context: context,
-      builder: (context) {
-        return _enterCredentials(_changeEmail);
-      }
-    );
+        context: context,
+        builder: (context) {
+          return _enterCredentials(_changeEmail);
+        });
   }
 
   Future<void> _changeEmail() async {
     TextEditingController emailController = TextEditingController();
 
     await showDialog(
-      context: context, 
-      builder: (context){
-        return AlertDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
             title: const Text('Change email'),
             content: TextField(
               controller: emailController,
@@ -397,64 +401,64 @@ class SettingsPageState extends State<SettingsPage> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  try{
-                    if(emailController.text == FirebaseAuth.instance.currentUser!.email){
-                      return noticeDialog("Warning", "New email cannot be old email");
+                  try {
+                    if (emailController.text ==
+                        FirebaseAuth.instance.currentUser!.email) {
+                      return noticeDialog(
+                          "Warning", "New email cannot be old email");
                     }
-                    await FirebaseAuth.instance.currentUser!.verifyBeforeUpdateEmail(emailController.text);
-                    await noticeDialog("Notice", "A verification has been sent to the new email address!");
-                    if(!context.mounted) return;
+                    await FirebaseAuth.instance.currentUser!
+                        .verifyBeforeUpdateEmail(emailController.text);
+                    await noticeDialog("Notice",
+                        "A verification has been sent to the new email address!");
+                    if (!context.mounted) return;
                     Navigator.of(context).pop();
-                  }
-                  on FirebaseAuthException catch(e){
+                  } on FirebaseAuthException catch (e) {
                     await noticeDialog("Error", e.message ?? e.code);
                   }
                 },
                 child: const Text('Confirm'),
               ),
             ],
-        );
-      }
-    );
+          );
+        });
   }
 
-  Future<void> noticeDialog(String title, String content){
+  Future<void> noticeDialog(String title, String content) {
     return showDialog(
-      context: context,
-      builder: (BuildContext ctx) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(title),
-              ),
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(title),
+                ),
+              ],
+            ),
+            content: Text(content),
+            actions: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Ok"),
+              )
             ],
-          ),
-          content: Text(content),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Ok"),
-            )
-          ],
-        );
-      }
-    );
+          );
+        });
   }
-  
+
   Future<void> _handleChangePasswordPress() async {
     await showDialog(
-      context: context,
-      builder: (context) {
-        return _enterCredentials(_changePassword);
-      }
-    );
+        context: context,
+        builder: (context) {
+          return _enterCredentials(_changePassword);
+        });
   }
 
   Future<void> _changePassword() async {
@@ -462,9 +466,9 @@ class SettingsPageState extends State<SettingsPage> {
     TextEditingController confirmPwController = TextEditingController();
 
     await showDialog(
-      context: context, 
-      builder: (context){
-        return AlertDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
             title: const Text('Change Password'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -477,7 +481,8 @@ class SettingsPageState extends State<SettingsPage> {
                 TextField(
                   controller: confirmPwController,
                   obscureText: true,
-                  decoration: const InputDecoration(hintText: "Confirm Password"),
+                  decoration:
+                      const InputDecoration(hintText: "Confirm Password"),
                 ),
               ],
             ),
@@ -498,25 +503,25 @@ class SettingsPageState extends State<SettingsPage> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
-                  try{
-                    if(passwordController.text != confirmPwController.text){
-                      return noticeDialog("Warning", "Mismatch password. Try again.");
+                  try {
+                    if (passwordController.text != confirmPwController.text) {
+                      return noticeDialog(
+                          "Warning", "Mismatch password. Try again.");
                     }
-                    await FirebaseAuth.instance.currentUser!.updatePassword(passwordController.text);
+                    await FirebaseAuth.instance.currentUser!
+                        .updatePassword(passwordController.text);
                     await noticeDialog("Notice", "Password updated!");
-                    if(!context.mounted) return;
+                    if (!context.mounted) return;
                     Navigator.of(context).pop();
-                  }
-                  on FirebaseAuthException catch(e){
+                  } on FirebaseAuthException catch (e) {
                     await noticeDialog("Error", e.message ?? e.code);
                   }
                 },
                 child: const Text('Confirm'),
               ),
             ],
-        );
-      }
-    );
+          );
+        });
   }
 
   // Privacy Settings Section
@@ -534,8 +539,7 @@ class SettingsPageState extends State<SettingsPage> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => BlockedUsersPage(
-                    widget.controller),
+                builder: (context) => BlockedUsersPage(widget.controller),
               ),
             );
           },
@@ -583,7 +587,8 @@ class SettingsPageState extends State<SettingsPage> {
     return Center(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-        child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
+        child:
+            const Text("Delete Account", style: TextStyle(color: Colors.white)),
         onPressed: () {
           deletionDialog();
         },
@@ -630,7 +635,8 @@ This action is permanent and cannot be undone. All your data, settings, and hist
                   await widget.controller.deleteUserAccountFB(context);
                   Navigator.of(context).pop(); // Close dialog
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Account deleted successfully.")),
+                    const SnackBar(
+                        content: Text("Account deleted successfully.")),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -670,21 +676,23 @@ class DocumentViewerPage extends StatelessWidget {
         title: Text(title),
       ),
       body: fileName.toLowerCase().endsWith('.pdf')
-          ? PDFView(
-              filePath: filePath,
-              enableSwipe: true,
-              swipeHorizontal: false,
-              autoSpacing: true,
-              pageFling: true,
-              onError: (error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $error'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
-            )
+          ? Platform.isIOS
+              ? SfPdfViewer.file(File(filePath))
+              : PDFView(
+                  filePath: filePath,
+                  enableSwipe: true,
+                  swipeHorizontal: false,
+                  autoSpacing: true,
+                  pageFling: true,
+                  onError: (error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $error'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  },
+                )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: FutureBuilder<String>(
