@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:Booth/App_Pages/expanded_session_page.dart';
 import 'package:Booth/MVC/session_extension.dart';
@@ -19,6 +20,16 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
+import 'package:flutter_google_maps_webservices/directions.dart';
+// import 'package:flutter_google_maps_webservices/distance.dart';
+import 'package:flutter_google_maps_webservices/geocoding.dart';
+import 'package:flutter_google_maps_webservices/geolocation.dart';
+import 'package:flutter_google_maps_webservices/places.dart';
+import 'package:flutter_google_maps_webservices/staticmap.dart';
+import 'package:flutter_google_maps_webservices/timezone.dart';
+
+const kGoogleApiKey = 'AIzaSyAEhRGkjRnPgfTO4ujnw3q0VNv1fnzvYR8';
+final places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
 
 /// This class is the main page for the map view.
 /// It displays a Google Map with markers for each session.
@@ -37,11 +48,34 @@ class MapPage extends StatefulWidget {
 }
 
 class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
+  CameraPosition? currentLocation;
+
   @override
   void initState() {
     super.initState();
+    initializeLocation();
     isInThisSession = false;
     updateState();
+  }
+
+  /// Initialize the map's camera position to the institution's coordinates.
+  Future<void> initializeLocation() async {
+    try {
+      final school =
+          await getInstitutionLatLng(widget.controller.studentInstitution);
+      if (school != null) {
+        setState(() {
+          currentLocation = CameraPosition(
+            target: LatLng(school['latitude']!, school['longitude']!),
+            zoom: 15,
+          );
+        });
+      } else {
+        debugPrint("Failed to retrieve institution coordinates.");
+      }
+    } catch (e) {
+      debugPrint("Error initializing location: $e");
+    }
   }
 
   // This function is called when the user joins or leave a session
@@ -71,11 +105,12 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   StreamController<bool> lockStream = StreamController<bool>.broadcast();
   StreamController<Map<String, Marker>> markerStream =
       StreamController<Map<String, Marker>>();
-  // Puts the CameraPosition at their location
-  static const CameraPosition currentLocation = CameraPosition(
-    target: LatLng(40.763444, -111.844182),
-    zoom: 15,
-  );
+  // Future<Map<String, double>?> school = getInstitutionLatLng("Place");
+
+  // static CameraPosition currentLocation = CameraPosition(
+  //   target: LatLng(school['latitude']!, school['longitude']!),
+  //   zoom: 15,
+  // );
 
   /// This Displays the users pfp that are in the session
   /// Creates a row of profile picture widgets with optional member count overflow display.
@@ -473,6 +508,20 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     return null;
   }
 
+  Future<Map<String, double>?> getInstitutionLatLng(String place) async {
+    PlacesSearchResponse response = await places.searchByText(place);
+    if (response.isOkay) {
+      final location = response.results[0].geometry!.location;
+      return {
+        'latitude': location.lat,
+        'longitude': location.lng,
+      };
+    } else {
+      print('Failed to load data: ${response.errorMessage}');
+      return null;
+    }
+  }
+
   /// Retrieves the user's current position, checks for location service and permission status,
   /// and updates the camera position on a Google Map based on the user's location.
   ///
@@ -525,15 +574,20 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   /// Centers the Google Map camera on the user's home institution.
   void goToHomeSchool() {
-    googleMapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        const CameraPosition(
-          // University of Utah
-          target: LatLng(40.763444, -111.844182),
-          zoom: 15,
-        ),
-      ),
-    );
+    getInstitutionLatLng(widget.controller.studentInstitution).then((latLng) {
+      if (latLng != null) {
+        googleMapController.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(latLng['latitude']!, latLng['longitude']!),
+              zoom: 15,
+            ),
+          ),
+        );
+      } else {
+        print('Failed to get institution location.');
+      }
+    });
   }
 
   @override
@@ -543,6 +597,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     return StreamBuilder<DatabaseEvent>(
         stream: widget.controller.profileRef.onValue,
         builder: (profCon, profSnap) {
+          goToHomeSchool();
           // Get all existing sessions and add to map
           if (profSnap.hasData) {
             // Reset map
@@ -623,25 +678,27 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   Stack mapUI(BuildContext context, Set<Marker> markers) {
     return Stack(
       children: <Widget>[
-        GoogleMap(
-          mapType: MapType.hybrid,
-          initialCameraPosition: currentLocation,
-          padding: const EdgeInsets.only(bottom: 80),
-          markers: markers,
-          myLocationButtonEnabled: false,
-          myLocationEnabled: true,
-          onMapCreated: (GoogleMapController controller) {
-            customInfoWindowController.googleMapController = controller;
-            googleMapController = controller;
-          },
-          onTap: (location) {
-            customInfoWindowController.hideInfoWindow!();
-          },
-          onCameraMove: (position) {
-            customInfoWindowController.onCameraMove!();
-          },
-          zoomControlsEnabled: false,
-        ),
+        currentLocation == null
+            ? const Center(child: CircularProgressIndicator())
+            : GoogleMap(
+                mapType: MapType.hybrid,
+                initialCameraPosition: currentLocation!,
+                padding: const EdgeInsets.only(bottom: 80),
+                markers: markers,
+                myLocationButtonEnabled: false,
+                myLocationEnabled: true,
+                onMapCreated: (GoogleMapController controller) {
+                  customInfoWindowController.googleMapController = controller;
+                  googleMapController = controller;
+                },
+                onTap: (location) {
+                  customInfoWindowController.hideInfoWindow!();
+                },
+                onCameraMove: (position) {
+                  customInfoWindowController.onCameraMove!();
+                },
+                zoomControlsEnabled: false,
+              ),
         CustomInfoWindow(
           controller: customInfoWindowController,
           height: 300,
@@ -649,8 +706,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           offset: 50,
         ),
         Positioned(
-          top: 16,
-          right: 16,
+          top: 8,
+          left: 15,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -699,8 +756,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           ),
         ),
         Positioned(
-          top: 60,
-          right: 16,
+          top: 8,
+          left: 140,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -734,8 +791,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           ),
         ),
         Positioned(
-          top: 104,
-          right: 16,
+          top: 8,
+          right: 15,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -753,7 +810,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'The U: ',
+                      'School: ',
                       style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                     SizedBox(width: 3),
