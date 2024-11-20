@@ -283,39 +283,19 @@ class _MainUIPageState extends State<MainUIPage> {
           ),
         ),
       ),
-      actions: [
-        IconButton(
-          onPressed: () => logout(controller, context),
-          icon: const Icon(Icons.logout),
-        ),
-      ],
       leadingWidth: 200,
     );
   }
 
   AppBar mapAppBar() {
     return AppBar(
-      title: const Text("Booth"),
-      actions: [
-        // This button is linked to the logout method
-        IconButton(
-          onPressed: () => logout(controller, context),
-          icon: const Icon(Icons.logout),
-        ),
-      ],
+      title: const Text("Booth")
     );
   }
 
   AppBar usageAppBar() {
     return AppBar(
       title: const Text("Weekly Report"),
-      actions: [
-        // This button is linked to the logout method
-        IconButton(
-          onPressed: () => logout(controller, context),
-          icon: const Icon(Icons.logout),
-        ),
-      ],
     );
   }
 
@@ -362,13 +342,6 @@ class _MainUIPageState extends State<MainUIPage> {
   AppBar adminAppBar() {
     return AppBar(
       title: const Text("Admin Page"),
-      actions: [
-        // This button is linked to the logout method
-        IconButton(
-          onPressed: () => logout(controller, context),
-          icon: const Icon(Icons.logout),
-        ),
-      ],
     );
   }
 
