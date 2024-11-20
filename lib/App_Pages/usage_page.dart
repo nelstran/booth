@@ -17,83 +17,86 @@ class UsagePage extends StatefulWidget {
   State<UsagePage> createState() => _UsagePageState();
 }
 
-class _UsagePageState extends State<UsagePage> {
+class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   int weeksAwayFromToday = 0;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return DefaultTabController(
       length: 2,
       child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            flex:1,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    child: const Icon(Icons.arrow_back_ios_rounded),
-                    onTap: (){
-                      setState(() {
-                        weeksAwayFromToday += 1;
-                      });
-                    }
-                  ),
-                  Text(
-                    getStartAndEndWeek(weeksAwayFromToday),
-                    style: const TextStyle(
-                      fontSize: 20
-                    )
-                  ),
-                  GestureDetector(
-                    child: weeksAwayFromToday == 0 ? const SizedBox(width: 25,) : const Icon(Icons.arrow_forward_ios_rounded),
-                    onTap: (){
-                      if(weeksAwayFromToday > 0){
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+              flex:1,
+              child: Padding(
+                padding: const EdgeInsets.only(top:16.0, left: 16, right: 16, bottom: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      child: const Icon(Icons.arrow_back_ios_rounded),
+                      onTap: (){
                         setState(() {
-                          weeksAwayFromToday -= 1;
+                          weeksAwayFromToday += 1;
                         });
                       }
-                    }
-                  ),
-                ],
+                    ),
+                    Text(
+                      getStartAndEndWeek(weeksAwayFromToday),
+                      style: const TextStyle(
+                        fontSize: 20
+                      )
+                    ),
+                    GestureDetector(
+                      child: weeksAwayFromToday == 0 ? const SizedBox(width: 25,) : const Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: (){
+                        if(weeksAwayFromToday > 0){
+                          setState(() {
+                            weeksAwayFromToday -= 1;
+                          });
+                        }
+                      }
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
             const Expanded(
-            flex: 1,
-            child: TabBar(
-              indicatorColor: Colors.blue,
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              labelPadding: EdgeInsets.only(bottom:10),
-              unselectedLabelColor: Color.fromARGB(255, 68, 68, 68),
-              labelColor: Colors.white,
-              tabs: [
-                Icon(Icons.access_time),
-                Icon(Icons.bar_chart_rounded)
-              ]
-            ),
-          ),
-          Expanded(
-            flex: 9,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical:10),
-              child: TabBarView(
-                children: [
-                  weeklyBarGraph(),
-                  sessionData()
+              flex: 1,
+              child: TabBar(
+                indicatorColor: Colors.blue,
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                // labelPadding: EdgeInsets.only(bottom:10),
+                unselectedLabelColor: Color.fromARGB(255, 68, 68, 68),
+                labelColor: Colors.white,
+                tabs: [
+                  Icon(Icons.access_time),
+                  Icon(Icons.bar_chart_rounded)
                 ]
               ),
             ),
-          ),
+            Expanded(
+              flex: 13,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical:10),
+                child: TabBarView(
+                  children: [
+                    weeklyBarGraph(),
+                    sessionData()
+                  ]
+                ),
+              ),
+            ),
 
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -179,6 +182,8 @@ class _UsagePageState extends State<UsagePage> {
                     BarChartData(
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
+                          // fitInsideHorizontally: true,
+                          fitInsideVertically: true,
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           String weekDay;
                           switch (group.x.toInt()) {
@@ -698,7 +703,9 @@ class _UsagePageState extends State<UsagePage> {
                     BarChartData(
                       barTouchData: BarTouchData(
                         touchTooltipData: BarTouchTooltipData(
+                          fitInsideVertically: true,
                             getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                              
                           String weekDay;
                           switch (group.x.toInt()) {
                             case 0:
@@ -930,7 +937,7 @@ TextSpan tooltipTextTime(yval){
           );
 }
 
-TextSpan totalHoursText(totalHours){
+TextSpan totalHoursText(double totalHours){
   int hour = totalHours.floor();
   int min = ((totalHours - hour) * 60).round();
 
@@ -941,31 +948,23 @@ TextSpan totalHoursText(totalHours){
 
 TextSpan tooltipText(yval){
   // If 1 digit, shows only 1 digit (ex: 2 instead of 2.0)
-  String yvalString = yval.toStringAsPrecision(1);
-  // If 2 digits, show up to 2 digits
-  if(yval > 9){
-    yvalString = yval.round().toStringAsPrecision(2);
-  }
-  String tooltipText = '${yvalString} Sessions';
-  // Removes plural 's' if 1 session
-  if(yval == 1){
-    tooltipText = '${yvalString} Session';
-  }
+  String yvalString = yval.round().toString();
+  String tooltipText = '$yvalString Sessions';
   return  TextSpan(
-            text: '${tooltipText}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          );
+    text: tooltipText,
+    style: const TextStyle(
+      color: Colors.white,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+    ),
+  );
 }
 
 TextSpan checkPlural(totalString, totalSessions){
-  String text = "${totalString} Sessions";
+  String text = "$totalString Sessions";
   // Removes plural 's' if 1 session
-  if(totalSessions == 1){
-    text = "${totalString} Session";
+  if(totalSessions == 1.0){
+    text = "$totalString Session";
   }
   return TextSpan(
             text: text
