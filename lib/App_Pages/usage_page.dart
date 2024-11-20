@@ -117,15 +117,14 @@ class _UsagePageState extends State<UsagePage> {
         double maxSubjectTime = 1;
 
         if (snapshot.hasData) {
-          weeklyHours = snapshot.data! as Map<String, dynamic>;
+          weeklyHours = snapshot.data!;
           try{
             subjects = (weeklyHours["Subjects"] as Map).keys.toList();
-            subjectsDuration = weeklyHours.remove("Subjects");
+            subjectsDuration = weeklyHours["Subjects"];
             subjects.sort((a, b) => subjectsDuration[b].inMinutes - subjectsDuration[a].inMinutes);
             maxSubjectTime = subjectsDuration[subjects[0]].inMinutes / 60;
           }
           catch (e){
-            print(e);
             // No idea why subject isnt in the map
           }
         }
@@ -173,7 +172,7 @@ class _UsagePageState extends State<UsagePage> {
             Expanded(
               flex:2,
               child: Padding(
-                padding: const EdgeInsets.all(25.0),
+                padding: const EdgeInsets.all(20.0),
                 child: SizedBox(
                   height: 200,
                   child: BarChart(
@@ -298,7 +297,7 @@ class _UsagePageState extends State<UsagePage> {
                       Flexible(
                         flex: 2,
                         child: Padding(
-                          padding: const EdgeInsets.only(top: .0, bottom: 20.0),
+                          padding: const EdgeInsets.only(top: .0, bottom: 10.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -355,27 +354,30 @@ class _UsagePageState extends State<UsagePage> {
                             int minutes = (((duration - hours) * 60).round());
                             // Show only classes that have more than 0hr and 0m
                             if(duration != 0){
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(subject),
-                                      Text("$hours hr $minutes m")
-                                    ],
-                                  ),
-                                  LinearProgressIndicator(
-                                    borderRadius: BorderRadius.circular(8),
-                                    minHeight: 10,
-                                    value:(duration / maxSubjectTime),
-                                    backgroundColor: Colors.transparent,
-                                    color: Colors.blue,
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(subject),
+                                        Text("$hours hr $minutes m")
+                                      ],
                                     ),
-                                ],
-                              ),
-                            );
+                                    LinearProgressIndicator(
+                                      borderRadius: BorderRadius.circular(8),
+                                      minHeight: 10,
+                                      value:(duration / maxSubjectTime),
+                                      backgroundColor: Colors.transparent,
+                                      color: Colors.blue,
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }
+                            else{
+                              return const SizedBox.shrink();
                             }
                           },
                         ),
@@ -633,7 +635,7 @@ class _UsagePageState extends State<UsagePage> {
           mostFreqLoc = snapshot.data![1] as String;
           try{
             subjects = (weeklySessions["Subjects"] as Map).keys.toList();
-            subjectsCount = weeklySessions.remove("Subjects");
+            subjectsCount = weeklySessions["Subjects"];
             subjects.sort((a, b) => subjectsCount[b] - subjectsCount[a]);
             maxSubjectCount = subjectsCount[subjects[0]];
           }
@@ -676,20 +678,10 @@ class _UsagePageState extends State<UsagePage> {
         double dailyAverageNum = totalSessions / 7;
 
         // If 1 digit, shows only 1 digit (ex: 2 instead of 2.0)
-        String dailyAverage = dailyAverageNum.round().toStringAsPrecision(1);
-
-        // If 2 digits, show up to 2 digits
-        if(dailyAverageNum > 9){
-          dailyAverage = dailyAverageNum.round().toStringAsPrecision(2);
-        }
+        String dailyAverage = dailyAverageNum.round().toString();
 
         // If 1 digit, shows only 1 digit (ex: 2 instead of 2.0)
-        String totalString = totalSessions.round().toStringAsPrecision(1);
-
-        // If 2 digits, show up to 2 digits
-        if(totalSessions > 9){
-          totalString = totalSessions.round().toStringAsPrecision(2);
-        }
+        String totalString = totalSessions.round().toString();
 
         double maxYBar = (weeklyBarData.getMax().roundToDouble() + 1);
         return 
@@ -815,7 +807,7 @@ class _UsagePageState extends State<UsagePage> {
                       Flexible(
                         flex: 2,
                         child: Padding(
-                          padding: const EdgeInsets.only(top: .0, bottom: 20.0),
+                          padding: const EdgeInsets.only(top: .0, bottom: 10.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -824,7 +816,7 @@ class _UsagePageState extends State<UsagePage> {
                                 text: TextSpan(
                                   children: [
                                     TextSpan(
-                                      text:"$dailyAverage",
+                                      text: dailyAverage,
                                       style: const TextStyle(
                                         fontSize: 30,
                                         fontWeight: FontWeight.w500
@@ -905,6 +897,9 @@ class _UsagePageState extends State<UsagePage> {
                                 ],
                               ),
                             );
+                            }
+                            else {
+                              return const SizedBox.shrink();
                             }
                           },
                         ),

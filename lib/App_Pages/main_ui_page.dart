@@ -183,7 +183,7 @@ class _MainUIPageState extends State<MainUIPage> {
     // Change the appbar depending on what page the user is on
     appBars = [
       sessionAppBar(), // Session
-      mainAppBar(), // Map
+      mapAppBar(), // Map
       usageAppBar(), // Usage
       profileAppBar(), // Profile
     ];
@@ -293,9 +293,9 @@ class _MainUIPageState extends State<MainUIPage> {
     );
   }
 
-  AppBar mainAppBar() {
+  AppBar mapAppBar() {
     return AppBar(
-      title: Text("Booth | Welcome ${controller.student.fullname}!"),
+      title: const Text("Booth"),
       actions: [
         // This button is linked to the logout method
         IconButton(
