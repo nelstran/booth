@@ -873,7 +873,7 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
                        flex: 7,
                         child: ListView.builder(
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: subjects.length >= 5 ? 5 : subjects.length,
+                          itemCount: subjects.length >= 4 ? 4 : subjects.length,
                           itemBuilder: (context, index) {
                             String subject = subjects[index];
                             int subCount = subjectsCount[subject];
