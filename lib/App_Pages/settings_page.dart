@@ -676,23 +676,24 @@ class DocumentViewerPage extends StatelessWidget {
         title: Text(title),
       ),
       body: fileName.toLowerCase().endsWith('.pdf')
-          ? SfPdfViewer.file(File(filePath))
-          // PDFView(
-          //     filePath: filePath,
-          //     enableSwipe: true,
-          //     swipeHorizontal: false,
-          //     autoSpacing: true,
-          //     pageFling: true,
-          //     fitPolicy: FitPolicy.HEIGHT,
-          //     onError: (error) {
-          //       ScaffoldMessenger.of(context).showSnackBar(
-          //         SnackBar(
-          //           content: Text('Error: $error'),
-          //           backgroundColor: Colors.red,
-          //         ),
-          //       );
-          //     },
-          //   )
+          ? 
+          Platform.isIOS ? SfPdfViewer.file(File(filePath)) : 
+          PDFView(
+              filePath: filePath,
+              enableSwipe: true,
+              swipeHorizontal: false,
+              autoSpacing: true,
+              pageFling: true,
+              // fitPolicy: FitPolicy.,
+              onError: (error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $error'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              },
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: FutureBuilder<String>(
