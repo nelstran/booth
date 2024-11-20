@@ -105,12 +105,6 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   StreamController<bool> lockStream = StreamController<bool>.broadcast();
   StreamController<Map<String, Marker>> markerStream =
       StreamController<Map<String, Marker>>();
-  // Future<Map<String, double>?> school = getInstitutionLatLng("Place");
-
-  // static CameraPosition currentLocation = CameraPosition(
-  //   target: LatLng(school['latitude']!, school['longitude']!),
-  //   zoom: 15,
-  // );
 
   /// This Displays the users pfp that are in the session
   /// Creates a row of profile picture widgets with optional member count overflow display.
