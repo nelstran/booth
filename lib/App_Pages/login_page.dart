@@ -226,10 +226,13 @@ class _LoginPageState extends State<LoginPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          "Forgot Password?",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary
+                        GestureDetector(
+                          onTap: _forgotPassword,
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary
+                            ),
                           ),
                         ),
                       ],
@@ -287,6 +290,83 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _forgotPassword() async {
+    TextEditingController emailController = TextEditingController();
+
+    await showDialog(
+      context: context, 
+      builder: (context){
+        return AlertDialog(
+            title: const Text('Forgot password?'),
+            content: TextField(
+              controller: emailController,
+              decoration: const InputDecoration(hintText: "Email"),
+            ),
+            actions: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Navigator.of(context).pop();
+                  return;
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  try{
+                    await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text);
+                    await noticeDialog("Success", "If account exists, an email will be sent to reset your password");
+                    if(!context.mounted) return;
+                    Navigator.of(context).pop();
+                  }
+                  on FirebaseAuthException catch(e){
+                    await noticeDialog("Error", e.message ?? e.code);
+                  }
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
+        );
+      }
+    );
+  }
+
+  Future<void> noticeDialog(String title, String content){
+    return showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(title),
+              ),
+            ],
+          ),
+          content: Text(content),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Ok"),
+            )
+          ],
+        );
+      }
     );
   }
 
