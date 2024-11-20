@@ -950,6 +950,9 @@ TextSpan tooltipText(yval){
   // If 1 digit, shows only 1 digit (ex: 2 instead of 2.0)
   String yvalString = yval.round().toString();
   String tooltipText = '$yvalString Sessions';
+  if(yval == 1.0){
+    tooltipText = "$yvalString Session";
+  }
   return  TextSpan(
     text: tooltipText,
     style: const TextStyle(
