@@ -625,13 +625,23 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             },
             child: SizedBox(
               height: 40,
-              width: 40,
+              width: 100,
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 22, 22, 22),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.filter_list, color: Colors.white),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Filter: ',
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                    SizedBox(width: 3),
+                    Icon(Icons.filter_list, color: Colors.blue),
+                  ],
+                ),
               ),
             ),
           ),
@@ -646,16 +656,26 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             },
             child: SizedBox(
               height: 40,
-              width: 40,
+              width: 100,
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 22, 22, 22),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Transform.rotate(
-                  angle: 0.75,
-                  child: const Icon(Icons.navigation_outlined,
-                      color: Colors.white),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Locate: ',
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                    const SizedBox(width: 3),
+                    Transform.rotate(
+                      angle: 0.75,
+                      child: const Icon(Icons.navigation_outlined,
+                          color: Colors.blue),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -671,13 +691,23 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             },
             child: SizedBox(
               height: 40,
-              width: 40,
+              width: 100,
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 22, 22, 22),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.school_outlined, color: Colors.white),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'The U: ',
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
+                    SizedBox(width: 3),
+                    Icon(Icons.school_outlined, color: Colors.red),
+                  ],
+                ),
               ),
             ),
           ),
