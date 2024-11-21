@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:Booth/App_Pages/expanded_session_page.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:Booth/App_Pages/filter_ui.dart';
 import 'package:Booth/MVC/profile_extension.dart';
@@ -20,16 +17,8 @@ import 'package:Booth/MVC/booth_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
-import 'package:flutter_google_maps_webservices/directions.dart';
-// import 'package:flutter_google_maps_webservices/distance.dart';
-import 'package:flutter_google_maps_webservices/geocoding.dart';
-import 'package:flutter_google_maps_webservices/geolocation.dart';
-import 'package:flutter_google_maps_webservices/places.dart';
-import 'package:flutter_google_maps_webservices/staticmap.dart';
-import 'package:flutter_google_maps_webservices/timezone.dart';
 
-const kGoogleApiKey = 'AIzaSyAEhRGkjRnPgfTO4ujnw3q0VNv1fnzvYR8';
-final places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
+// final places = GoogleMapsPlaces(apiKey: kGoogleApiKey);
 
 /// This class is the main page for the map view.
 /// It displays a Google Map with markers for each session.
@@ -60,22 +49,28 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   /// Initialize the map's camera position to the institution's coordinates.
   Future<void> initializeLocation() async {
-    try {
-      final school =
-          await getInstitutionLatLng(widget.controller.studentInstitution);
-      if (school != null) {
-        setState(() {
-          currentLocation = CameraPosition(
-            target: LatLng(school['latitude']!, school['longitude']!),
-            zoom: 15,
-          );
-        });
-      } else {
-        debugPrint("Failed to retrieve institution coordinates.");
-      }
-    } catch (e) {
-      debugPrint("Error initializing location: $e");
-    }
+    setState((){
+    currentLocation = const CameraPosition(
+        target: LatLng(40.763444, -111.844182),
+        zoom: 15,
+      );
+    });
+    // try {
+    //   final school =
+    //       await getInstitutionLatLng(widget.controller.studentInstitution);
+    //   if (school != null) {
+    //     setState(() {
+    //       currentLocation = CameraPosition(
+    //         target: LatLng(school['latitude']!, school['longitude']!),
+    //         zoom: 15,
+    //       );
+    //     });
+    //   } else {
+    //     debugPrint("Failed to retrieve institution coordinates.");
+    //   }
+    // } catch (e) {
+    //   debugPrint("Error initializing location: $e");
+    // }
   }
 
   // This function is called when the user joins or leave a session
@@ -86,7 +81,6 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   @override
   bool get wantKeepAlive => true;
-  Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   late GoogleMapController googleMapController;
   late BoothController controller = widget.controller;
   final customInfoWindowController = CustomInfoWindowController();
@@ -502,19 +496,19 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     return null;
   }
 
-  Future<Map<String, double>?> getInstitutionLatLng(String place) async {
-    PlacesSearchResponse response = await places.searchByText(place);
-    if (response.isOkay) {
-      final location = response.results[0].geometry!.location;
-      return {
-        'latitude': location.lat,
-        'longitude': location.lng,
-      };
-    } else {
-      print('Failed to load data: ${response.errorMessage}');
-      return null;
-    }
-  }
+  // Future<Map<String, double>?> getInstitutionLatLng(String place) async {
+  //   PlacesSearchResponse response = await places.searchByText(place);
+  //   if (response.isOkay) {
+  //     final location = response.results[0].geometry!.location;
+  //     return {
+  //       'latitude': location.lat,
+  //       'longitude': location.lng,
+  //     };
+  //   } else {
+  //     print('Failed to load data: ${response.errorMessage}');
+  //     return null;
+  //   }
+  // }
 
   /// Retrieves the user's current position, checks for location service and permission status,
   /// and updates the camera position on a Google Map based on the user's location.
@@ -566,23 +560,23 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  /// Centers the Google Map camera on the user's home institution.
-  void goToHomeSchool() {
-    getInstitutionLatLng(widget.controller.studentInstitution).then((latLng) {
-      if (latLng != null) {
-        googleMapController.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: LatLng(latLng['latitude']!, latLng['longitude']!),
-              zoom: 15,
-            ),
-          ),
-        );
-      } else {
-        print('Failed to get institution location.');
-      }
-    });
-  }
+  // /// Centers the Google Map camera on the user's home institution.
+  // void goToHomeSchool() {
+  //   getInstitutionLatLng(widget.controller.studentInstitution).then((latLng) {
+  //     if (latLng != null) {
+  //       googleMapController.animateCamera(
+  //         CameraUpdate.newCameraPosition(
+  //           CameraPosition(
+  //             target: LatLng(latLng['latitude']!, latLng['longitude']!),
+  //             zoom: 15,
+  //           ),
+  //         ),
+  //       );
+  //     } else {
+  //       print('Failed to get institution location.');
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -591,7 +585,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
     return StreamBuilder<DatabaseEvent>(
         stream: widget.controller.profileRef.onValue,
         builder: (profCon, profSnap) {
-          goToHomeSchool();
+          // goToHomeSchool();
           // Get all existing sessions and add to map
           if (profSnap.hasData) {
             // Reset map
@@ -784,37 +778,37 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             ),
           ),
         ),
-        Positioned(
-          top: 8,
-          right: 15,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              goToHomeSchool();
-            },
-            child: SizedBox(
-              height: 40,
-              width: 100,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 22, 22, 22),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'School: ',
-                      style: TextStyle(color: Colors.white, fontSize: 15),
-                    ),
-                    SizedBox(width: 3),
-                    Icon(Icons.school_outlined, color: Colors.red),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+        // Positioned(
+        //   top: 8,
+        //   right: 15,
+        //   child: GestureDetector(
+        //     behavior: HitTestBehavior.translucent,
+        //     onTap: () {
+        //       goToHomeSchool();
+        //     },
+        //     child: SizedBox(
+        //       height: 40,
+        //       width: 100,
+        //       child: Container(
+        //         decoration: BoxDecoration(
+        //           color: const Color.fromARGB(255, 22, 22, 22),
+        //           borderRadius: BorderRadius.circular(8),
+        //         ),
+        //         child: const Row(
+        //           mainAxisAlignment: MainAxisAlignment.center,
+        //           children: [
+        //             Text(
+        //               'School: ',
+        //               style: TextStyle(color: Colors.white, fontSize: 15),
+        //             ),
+        //             SizedBox(width: 3),
+        //             Icon(Icons.school_outlined, color: Colors.red),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
