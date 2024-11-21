@@ -49,8 +49,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
 
   /// Initialize the map's camera position to the institution's coordinates.
   Future<void> initializeLocation() async {
-    setState((){
-    currentLocation = const CameraPosition(
+    setState(() {
+      currentLocation = const CameraPosition(
         target: LatLng(40.763444, -111.844182),
         zoom: 15,
       );
@@ -744,8 +744,8 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
           ),
         ),
         Positioned(
-          top: 8,
-          left: 140,
+          top: 55,
+          left: 15,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
