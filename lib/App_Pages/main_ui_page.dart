@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:Booth/Helper_Functions/helper_methods.dart';
+import 'package:Booth/MVC/profile_extension.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -311,7 +312,12 @@ class _MainUIPageState extends State<MainUIPage> {
 
   AppBar profileAppBar() {
     return AppBar(
-      title: Text(controller.student.fullname),
+      title: StreamBuilder(
+        stream: controller.profileRef.onValue.asBroadcastStream(),
+        builder: (context, snapshot) {
+          return Text(controller.student.fullname);
+        }
+      ),
       actions: [
         // Edit Button
         IconButton(

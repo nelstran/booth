@@ -4,11 +4,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 extension SavedSessionsExtension on BoothController {
 
+  CollectionReference get savedSessionRef => firestoreDb.db
+    .collection("users")
+    .doc(student.uid)
+    .collection("saved_sessions");
+
   /// Creates a document in Firestore that stores the session the user wants to save
   Future<void> saveSession(String userKey, Session session) async {
       session.key = "";
+      session.ownerKey = "";
+      session.latitude = null;
+      session.longitude = null;
+      session.address = null;
+      session.imageURL = null;
+      
       Map<String, dynamic> valuesToLog = session.toJson();
-
       var endTime = Timestamp.now();
       var filename = endTime.millisecondsSinceEpoch.toString();
       await firestoreDb.saveSession(userKey, valuesToLog, filename);

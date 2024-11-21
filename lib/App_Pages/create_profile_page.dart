@@ -177,19 +177,21 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 if (_coursesController.text.isNotEmpty){
                   courses = _coursesController.text.split(", ").asMap();
                 }
+
                 // Add user details to database
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
+                  String name = capitalizeWord(_nameController.text.trim());
                   Map<String, Object?> values = {
-                    "name": _nameController.text.trim(),
-                    "major": _majorController.text.trim(),
+                    "name": name,
+                    "major": capitalizeWord(_majorController.text.trim()),
                     "year": _yearController.text.trim(),
                     "courses": courses.isNotEmpty ? courses : null,
                     "studyPref": _studyPrefController.text.trim(),
                     "availability": _availabilityController.text.trim()
                   };
                   widget.controller.updateUserProfile(values);
-                  widget.controller.updateUserEntry({"name": _nameController.text.trim()});
+                  widget.controller.updateUserEntry({"name": name});
                   Navigator.pop(context);
                 }
               },
@@ -244,5 +246,12 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
         setState(() {});
       },
     );
+  }
+
+  String capitalizeWord(String text) {
+    return text.split(' ').map((word) {
+      if (word.isEmpty) return '';
+      return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+    }).join(' ');
   }
 }

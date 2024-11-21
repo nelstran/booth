@@ -173,7 +173,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
                 return GestureDetector(
                   onTap: () {
                     if (memberKeys[index].isEmpty){
-                      displayWarning("Cannot find ${memberNames[index]}'s profile!");
+                      displaySnackbar("Cannot find ${memberNames[index]}'s profile!");
                       return;
                     }
                     if (showingSnack) {
@@ -364,6 +364,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
         }
         else if (action){
           await widget.controller.saveSession(controller.student.uid, session);
+          displaySnackbar("Session archived!");
         }
         await _deleteOwnedSession(session, key);
       }
@@ -451,7 +452,7 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
   }
 
   /// Method to display a snackbar with the given [text]
-  void displayWarning(String text) {
+  void displaySnackbar(String text) {
     if (showingSnack) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
     }
