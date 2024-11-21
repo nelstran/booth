@@ -9,7 +9,7 @@ import PDFKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GMSServices.provideAPIKey("AIzaSyAEhRGkjRnPgfTO4ujnw3q0VNv1fnzvYR8")
+    GMSServices.provideAPIKey("AIzaSyCghyq-5xbGzu9ZQqydHHfNU-IX5bLRFOM")
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
