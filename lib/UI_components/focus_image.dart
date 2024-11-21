@@ -30,6 +30,7 @@ class _FocusImageState extends State<FocusImage> {
         },
         child: SizedBox(
           width: double.infinity,
+          height: MediaQuery.of(context).size.height,
           child: Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(

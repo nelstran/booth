@@ -100,7 +100,7 @@ class SearchPage extends SearchDelegate<String> {
               // Filter the suggestions based on the query
               final filteredSuggestions = suggestionList.entries
                   .where((entry) =>
-                      entry.value.toLowerCase().contains(query.toLowerCase()))
+                      (entry.value as String).toLowerCase().startsWith(query.toLowerCase())).take(25)
                   .toList();
 
               if (query.isEmpty) {
