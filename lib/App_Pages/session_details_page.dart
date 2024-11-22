@@ -358,16 +358,18 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
     await lock.synchronized(() async {
       // Delete/Archive owned session
       if (controller.student.ownedSessionKey != "") {
-        bool? action = await _askToArchive();
-        if (action == null){
-          return;
-        }
-        else if (action){
-          await widget.controller.saveSession(controller.student.uid, session);
-          displaySnackbar("Session archived!");
+        if(controller.student.ownedSessionKey == key){
+          bool? action = await _askToArchive();
+          if (action == null){
+            return;
+          }
+          else if (action){
+            await widget.controller.saveSession(controller.student.uid, session);
+            displaySnackbar("Session archived!");
+          }
         }
         await _deleteOwnedSession(session, key);
-      }
+      } 
       // Kicks user of old session when joining new one
       if (isInThisSession) {
         await controller.removeUserFromSession(
