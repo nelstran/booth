@@ -30,9 +30,9 @@ class BoothController extends ValueNotifier {
   }
 
   // Used for disposing streams
-  late StreamSubscription<DatabaseEvent> entryStream;
-  late StreamSubscription<DatabaseEvent> schoolStream;
-  late StreamSubscription<DatabaseEvent> profileStream;
+  late StreamSubscription<DatabaseEvent> _entryStream;
+  late StreamSubscription<DatabaseEvent> _schoolStream;
+  late StreamSubscription<DatabaseEvent> _profileStream;
 
   final Map _isOfflineForDatabase = {
       'isOnline': false,
@@ -46,9 +46,9 @@ class BoothController extends ValueNotifier {
   @override
   void dispose(){
     super.dispose();
-    entryStream.cancel();
-    schoolStream.cancel();
-    profileStream.cancel();
+    _entryStream.cancel();
+    _schoolStream.cancel();
+    _profileStream.cancel();
   }
 
   // Constructor
