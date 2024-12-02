@@ -6,11 +6,31 @@ extension BlockExtension on BoothController {
 
   /// Method to block a user given a user's [key]
   void blockUser(String key) async {
-    // Remove them from friends list if they are friends
+    
     Map<dynamic, dynamic> friends = await getFriends();
+    Map<dynamic, dynamic> requests = await getRequests(false);
+    Map<dynamic, dynamic> blockedUserInfo = await getUserEntry(key);
+
+    // Remove them from friends list if they are friends
     if (friends.containsKey(key)) {
       db.removeFriend(student.key, key);
     }
+
+    // Remove them from requests list if they sent a request
+    if(requests.containsKey(key)){
+      db.declineFriendRequest(student.key, key);
+    }
+
+    // If the session of the user to block is equal to the session that the student is in, remove the student from that session
+    if(blockedUserInfo["session"] == student.session){
+      // If the session of the user to block is equal to the session the student owns, remove the user to block from that session
+      if(blockedUserInfo["session"] == student.ownedSessionKey){
+        removeUserFromSession(blockedUserInfo["session"], blockedUserInfo["sessionKey"]);
+      }else{
+        removeUserFromSession(student.session, student.sessionKey);
+      }
+    }
+
     // Add them to the blocked list
     db.addToBlocked(student.key, key);
   }
