@@ -342,6 +342,8 @@ class BoothController extends ValueNotifier {
   /// - The list of users that are recorded in the DB
   /// - From any Friends list they are apart of
   Future<void> deleteUserAccountEverywhere(Student student) async {
+    studentRef().child("onlineStatus").onDisconnect().cancel();
+    
     // First Check to see if the user is apart of any study sessions
     // If so, remove from study session
     if (student.session != "") {

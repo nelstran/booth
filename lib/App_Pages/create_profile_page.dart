@@ -211,6 +211,10 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               Center(
                 child: GestureDetector(
                   onTap: () {
+                    Map<String, Object?> values = {
+                      "name": widget.controller.student.fullname,
+                    };
+                    widget.controller.updateUserProfile(values);
                     Navigator.pop(context);
                   },
                   child: const Text(
