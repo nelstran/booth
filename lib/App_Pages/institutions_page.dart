@@ -476,7 +476,9 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     switch (widget.previousPage) {
       // Pop current page to go back to Profile creation page
       case 'Profile':
-        Navigator.of(context).popUntil(ModalRoute.withName("/Profile"));
+        // Navigator.of(context).popUntil(ModalRoute.withName("/Profile"));
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
         break;
       case 'Register':
         // Pop current page and go to main page
