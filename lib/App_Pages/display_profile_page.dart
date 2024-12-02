@@ -64,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage>
     super.initState();
     // Initialize with data from widget
     profileName =
-        "${widget.data["name"] ?? widget.controller.student.fullname}";
+        "${widget.data["name"] ?? "John Doe"}";
     profileRadius = 60;
     fontSize = 40;
     profileImg = null;
@@ -79,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage>
     super.build(context);
     String? profilePicture;
     profileName =
-        "${widget.data["name"] ?? widget.controller.student.fullname}";
+        "${widget.data["name"] ?? "John Doe"}";
     String institution = widget.data["institution"];
     String major = widget.data["major"] ?? "";
     major = major.isEmpty ? "Undecided" : major;
