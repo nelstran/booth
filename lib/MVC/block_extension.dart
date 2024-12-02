@@ -1,6 +1,7 @@
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/friend_extension.dart';
+import 'package:Booth/MVC/student_model.dart';
 
 extension BlockExtension on BoothController {
 
@@ -10,6 +11,7 @@ extension BlockExtension on BoothController {
     Map<dynamic, dynamic> friends = await getFriends();
     Map<dynamic, dynamic> requests = await getRequests(false);
     Map<dynamic, dynamic> blockedUserInfo = await getUserEntry(key);
+    Student blocked = Student.fromJson(blockedUserInfo);
 
     // Remove them from friends list if they are friends
     if (friends.containsKey(key)) {
@@ -21,12 +23,13 @@ extension BlockExtension on BoothController {
       db.declineFriendRequest(student.key, key);
     }
 
-    // If the session of the user to block is equal to the session that the student is in, remove the student from that session
-    if(blockedUserInfo["session"] == student.session){
-      // If the session of the user to block is equal to the session the student owns, remove the user to block from that session
-      if(blockedUserInfo["session"] == student.ownedSessionKey){
-        removeUserFromSession(blockedUserInfo["session"], blockedUserInfo["sessionKey"]);
-      }else{
+    // Kick the appropriate user out of whoever owns the session if they are in the same one
+    if(blocked.session == student.session){
+      // If logged in user owns the session, kick the blocked user out
+      if(student.session == student.ownedSessionKey){
+        removeUserFromSession(student.ownedSessionKey, blocked.sessionKey, key);
+      }
+      else{ // Remove the logged in user if session is not theirs
         removeUserFromSession(student.session, student.sessionKey);
       }
     }
