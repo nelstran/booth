@@ -1,16 +1,39 @@
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/MVC/friend_extension.dart';
+import 'package:Booth/MVC/student_model.dart';
 
 extension BlockExtension on BoothController {
 
   /// Method to block a user given a user's [key]
   void blockUser(String key) async {
-    // Remove them from friends list if they are friends
+    
     Map<dynamic, dynamic> friends = await getFriends();
+    Map<dynamic, dynamic> requests = await getRequests(false);
+    Map<dynamic, dynamic> blockedUserInfo = await getUserEntry(key);
+    Student blocked = Student.fromJson(blockedUserInfo);
+
+    // Remove them from friends list if they are friends
     if (friends.containsKey(key)) {
       db.removeFriend(student.key, key);
     }
+
+    // Remove them from requests list if they sent a request
+    if(requests.containsKey(key)){
+      db.declineFriendRequest(student.key, key);
+    }
+
+    // Kick the appropriate user out of whoever owns the session if they are in the same one
+    if(blocked.session == student.session){
+      // If logged in user owns the session, kick the blocked user out
+      if(student.session == student.ownedSessionKey){
+        removeUserFromSession(student.ownedSessionKey, blocked.sessionKey, key);
+      }
+      else{ // Remove the logged in user if session is not theirs
+        removeUserFromSession(student.session, student.sessionKey);
+      }
+    }
+
     // Add them to the blocked list
     db.addToBlocked(student.key, key);
   }

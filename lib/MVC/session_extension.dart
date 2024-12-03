@@ -35,11 +35,14 @@ extension SessionExtension on BoothController {
     db.updateUser(user.key, {'sessionKey': key});
   }
 
-  /// Remove the logged in user (student) from the session
+  /// Remove the user from [userKey] from the session, given from [sessionKey].
+  /// 
+  /// Defaults to logged in user if not [userKey] is not specified
   Future<void> removeUserFromSession(
-      String sessionKey, String userSessionKey) async {
+      String sessionKey, String userSessionKey, [String? userKey]) async {
+        userKey = userKey ?? student.key;
     await db.updateUser(
-        student.key, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
+        userKey, {"session": "", "sessionKey": "", "ownedSessionKey": ""});
     await db.removeStudentFromSession(sessionKey, userSessionKey);
     await endSessionLogging(student.uid);
   }

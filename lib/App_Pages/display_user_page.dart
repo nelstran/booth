@@ -138,25 +138,26 @@ class _UserProfilePage extends State<UserProfilePage> {
                 context: context,
                 builder: (context) {
                   return SizedBox(
-                      height: 95,
+                      height: 75,
                       child:
                           // Block user button
-                          ListTile(
-                              onTap: () {
-                                widget.controller.blockUser(widget.userKey);
-                              },
-                              contentPadding:
-                                  const EdgeInsets.only(left: 16, right: 8),
-                              title: const Text("Block",
-                                  style: TextStyle(
-                                      color: Colors.red, fontSize: 20)),
-                              leading: const Icon(Icons.block, color: Colors.red)));
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            child: ListTile(
+                                onTap: () {
+                                  confirmBlockDialog(context, profileName, widget.userKey);
+                                },
+                                contentPadding:
+                                    const EdgeInsets.only(left: 16, right: 8),
+                                title: const Text("Block",
+                                    style: TextStyle(
+                                        color: Colors.red, fontSize: 20)),
+                                leading: const Icon(Icons.block, color: Colors.red)),
+                          ));
                 });
           },
           icon: const Icon(Icons.more_vert))
     ];
-
-
   }
 
   @override
@@ -404,13 +405,13 @@ class _UserProfilePage extends State<UserProfilePage> {
         )
       ),
       onPressed: () {
-        showConfirmationDialog(context, userName, userKey);
+        confirmUnblockDialog(context, userName, userKey);
       },
     );
   }
 
   /// Method to display a dialog to confirm that users want to block the viewed user
-  Future<bool> showConfirmationDialog(
+  Future<bool> confirmUnblockDialog(
       BuildContext context, String userName, String userId) async {
     bool confirm = false;
     await showDialog(
@@ -418,7 +419,7 @@ class _UserProfilePage extends State<UserProfilePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm Unblock'),
-          content: Text('Are you sure you want to unblock $userName ?'),
+          content: Text('Are you sure you want to unblock $userName?'),
           actions: [
             TextButton(
               style: TextButton.styleFrom(
@@ -434,11 +435,64 @@ class _UserProfilePage extends State<UserProfilePage> {
               child: const Text('Unblock'),
               onPressed: () {
                 widget.controller.unblockUser(userId);
+
+                // Pop dialog
+                Navigator.pop(context);
+                // Pop screen
                 Navigator.pop(context);
                 // Show snackbar for confirmation (optional)
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Removed $userName from blocked users'),
+                  ),
+                );
+                setState(() {});
+                confirm = true;
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return confirm;
+  }
+
+  /// Method to display a dialog to confirm that users want to block the viewed user
+  Future<bool> confirmBlockDialog(
+      BuildContext context, String userName, String userId) async {
+    bool confirm = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Block user?'),
+          content: Text('Are you sure you want to unblock $userName?'),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Block'),
+              onPressed: () {
+                widget.controller.blockUser(userId);
+
+                // Pop dialog
+                Navigator.pop(context);
+                // Pop modal
+                Navigator.pop(context);
+                // Pop screen
+                Navigator.pop(context);
+                // Show snackbar for confirmation (optional)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Blocked $userName'),
                   ),
                 );
                 setState(() {});
