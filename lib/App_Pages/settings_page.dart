@@ -646,11 +646,9 @@ This action is permanent and cannot be undone. All your data, settings, and hist
               onPressed: () async {
                 try {
                   await widget.controller.deleteUserAccountFB(context);
+                  if(!context.mounted) return;
                   Navigator.of(context).pop(); // Close dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Account deleted successfully.")),
-                  );
+                  
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Failed to delete account.")),

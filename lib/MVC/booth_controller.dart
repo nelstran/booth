@@ -237,6 +237,10 @@ class BoothController extends ValueNotifier {
 
                   // Deletes the user from everywhere on our app
                   deleteUserAccountEverywhere(student);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Account deleted successfully.")),
+                  );
                 } on FirebaseAuthException catch (e) {
                   logger.e(e);
                   // Handles Firebase exceptions during reauthentication
