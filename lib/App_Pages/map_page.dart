@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:Booth/App_Pages/expanded_session_page.dart';
+import 'package:Booth/MVC/block_extension.dart';
 import 'package:Booth/MVC/session_extension.dart';
 import 'package:Booth/UI_components/cached_profile_picture.dart';
 import 'package:custom_info_window/custom_info_window.dart';
@@ -97,8 +98,9 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   StreamSubscription schoolSubscription = const Stream.empty().listen((_) {});
   StreamSubscription sessionSubscription = const Stream.empty().listen((_) {});
   StreamController<bool> lockStream = StreamController<bool>.broadcast();
-  StreamController<Map<String, Marker>> markerStream =
-      StreamController<Map<String, Marker>>();
+  StreamController<Map<String, Marker>> markerStream = StreamController<Map<String, Marker>>();
+  List blockedList = [];
+  List blockedFromList = [];
 
   /// This Displays the users pfp that are in the session
   /// Creates a row of profile picture widgets with optional member count overflow display.
@@ -180,6 +182,7 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
       Session session = Session.fromJson(json as Map);
 
       if (!isFiltered(filters, session) &&
+          !isBlockedUserinSession(json, blockedList, blockedFromList) &&
           session.latitude != null &&
           session.longitude != null) {
         const BitmapDescriptor customIcon = BitmapDescriptor.defaultMarker;
@@ -190,6 +193,11 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
             session.ownerKey, sessionLocation, session, customIcon, sessionID);
         // Fetch owner profile picture
         addOwnerPfp(json, session, sessionID);
+      }
+      else{
+        markers.remove(json["ownerKey"]);
+        markerStream.add(markers);
+        // customInfoWindowController.hideInfoWindow!();
       }
     } catch (e) {
       // Skip if it causes any problems
@@ -581,72 +589,94 @@ class MapPageState extends State<MapPage> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // Update map when changing schools
+    // Update map when changing schools or blocking occurs
     return StreamBuilder<DatabaseEvent>(
         stream: widget.controller.profileRef.onValue,
         builder: (profCon, profSnap) {
-          // goToHomeSchool();
-          // Get all existing sessions and add to map
-          if (profSnap.hasData) {
-            // Reset map
-            markers.clear();
-            markerStream.add(markers);
-
-            // Get new existing session
-            widget.controller
-                .getSessions(
-                    (profSnap.data!.snapshot.value as Map)["institution"])
-                .then((sessions) {
-              for (var json in sessions.entries) {
-                _addSession(json.key, json.value);
-              }
-            });
-          }
-
-          // Update map when sessions are added
-          return StreamBuilder<DatabaseEvent>(
-              stream: widget.controller.sessionRef.onChildAdded,
-              builder: (addedCon, addedSnap) {
-                // Add new session to map, we have to wait for ownerKey to be initialized
-                if (addedSnap.hasData) {
-                  String sessionKey = addedSnap.data!.snapshot.key!;
-                  widget.controller.sessionRef
-                      .child(addedSnap.data!.snapshot.key!)
-                      .onValue
-                      .listen((event) {
-                    if (!event.snapshot.exists) {
-                      return;
-                    }
-                    Map json = event.snapshot.value as Map;
-                    if (json["ownerKey"] != "") {
-                      _addSession(sessionKey, json);
-                    }
-                  });
-                }
-                // Update map when sessions are removed
-                return StreamBuilder<DatabaseEvent>(
-                    stream: widget.controller.sessionRef.onChildRemoved,
-                    builder: (removedCon, removedSnap) {
-                      // Remove marker from deleted sessions
-                      if (removedSnap.hasData) {
-                        String id = (removedSnap.data!.snapshot.value
-                            as Map)["ownerKey"];
-                        markers.remove(id);
-                        markerStream.add(markers);
+          return StreamBuilder(
+            stream: controller.studentRef().child("blocked").onValue,
+            builder: (context, snapshot) {
+              return StreamBuilder(
+                stream: controller.studentRef().child("blocked_from").onValue,
+                builder: (context, snapshot) {
+                  return FutureBuilder(
+                    future: Future.wait([
+                      widget.controller.getBlockedUsers(widget.controller.student.key),
+                      widget.controller.getBlockedFromUsers(widget.controller.student.key)
+                    ]),
+                    builder:(context, listSnapshot) {
+                      if(listSnapshot.hasData){
+                        blockedList = listSnapshot.data![0].keys.toList();
+                        blockedFromList = listSnapshot.data![1].keys.toList();
                       }
-                      // Update map when markers are added
-                      return StreamBuilder<Map<String, Marker>>(
-                          stream: markerStream.stream,
-                          builder: (context, snapshot) {
-                            Set<Marker> localMarkers = Set.identity();
-                            if (snapshot.hasData) {
-                              localMarkers = snapshot.data!.values.toSet();
-                            }
-                            return mapUI(context, localMarkers);
-                          });
+                  // goToHomeSchool();
+                  // Get all existing sessions and add to map
+                  if (profSnap.hasData) {
+                    // Reset map
+                    markers.clear();
+                    markerStream.add(markers);
+                  
+                    // Get new existing session
+                    widget.controller
+                        .getSessions(
+                            (profSnap.data!.snapshot.value as Map)["institution"])
+                        .then((sessions) {
+                      for (var json in sessions.entries) {
+                        _addSession(json.key, json.value);
+                      }
                     });
-              });
-        });
+                  }
+                  
+                  // Update map when sessions are added
+                  return StreamBuilder<DatabaseEvent>(
+                      stream: widget.controller.sessionRef.onChildAdded,
+                      builder: (addedCon, addedSnap) {
+                        // Add new session to map, we have to wait for ownerKey to be initialized
+                        if (addedSnap.hasData) {
+                          String sessionKey = addedSnap.data!.snapshot.key!;
+                          widget.controller.sessionRef
+                              .child(addedSnap.data!.snapshot.key!)
+                              .onValue
+                              .listen((event) {
+                            if (!event.snapshot.exists) {
+                              return;
+                            }
+                            Map json = event.snapshot.value as Map;
+                            if (json["ownerKey"] != "") {
+                              _addSession(sessionKey, json);
+                            }
+                          });
+                        }
+                        // Update map when sessions are removed
+                        return StreamBuilder<DatabaseEvent>(
+                            stream: widget.controller.sessionRef.onChildRemoved,
+                            builder: (removedCon, removedSnap) {
+                              // Remove marker from deleted sessions
+                              if (removedSnap.hasData) {
+                                String id = (removedSnap.data!.snapshot.value
+                                    as Map)["ownerKey"];
+                                markers.remove(id);
+                                markerStream.add(markers);
+                              }
+                              // Update map when markers are added
+                              return StreamBuilder<Map<String, Marker>>(
+                                  stream: markerStream.stream,
+                                  builder: (context, snapshot) {
+                                    Set<Marker> localMarkers = Set.identity();
+                                    if (snapshot.hasData) {
+                                      localMarkers = snapshot.data!.values.toSet();
+                                    }
+                                    return mapUI(context, localMarkers);
+                                  });
+                            });
+                      });
+                          });
+                }
+              );
+            }
+          );
+                    },
+          );
   }
 
   /// Builds the map user interface (UI) with Google Map, custom info window, and action buttons.

@@ -51,3 +51,22 @@ bool isFiltered(Map filters, Session session) {
     }
     return false;
   }
+
+  /// Method to hide sessions that contain blocked users
+  bool isBlockedUserinSession(Map<dynamic, dynamic> json, List blockedList, List blockedFromList) {
+    // Look at all students in a session
+    List usersInSession = json['users'].values.toList();
+    for (var i = 0; i < usersInSession.length; i++) {
+      // If a student in a session is blocked, hide that session
+      if (blockedList.contains(usersInSession[i]['key'])) {
+        return true;
+      }
+
+      // If the student who has blocked the blocked user is in a session,
+      // hide that session from the blocked user
+      if (blockedFromList.contains(usersInSession[i]['key'])) {
+        return true;
+      }
+    }
+    return false;
+  }

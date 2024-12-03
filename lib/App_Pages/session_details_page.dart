@@ -187,6 +187,19 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
   }
 
   Expanded sessionLobby(List<String> memberNames, Map<dynamic, dynamic> json) {
+    List<String> memberUIDs = [];
+    List<String> memberKeys = [];
+    Map<String, dynamic> usersInFS =
+        Map<String, dynamic>.from(json['users']);
+    usersInFS.forEach((key, value) {
+      memberUIDs.add(value['uid']);
+      if ((value as Map).containsKey('key')){
+        memberKeys.add(value['key']);
+    }
+    else{
+        memberKeys.add("");
+    }
+    });
     return Expanded(
     flex: 3,
     child: Column(
@@ -203,19 +216,6 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
             child: ListView.builder(
               itemCount: memberNames.length,
               itemBuilder: (context, index) {
-                List<String> memberUIDs = [];
-                List<String> memberKeys = [];
-                Map<String, dynamic> usersInFS =
-                    Map<String, dynamic>.from(json['users']);
-                usersInFS.forEach((key, value) {
-                  memberUIDs.add(value['uid']);
-                  if ((value as Map).containsKey('key')){
-                    memberKeys.add(value['key']);
-                }
-                else{
-                    memberKeys.add("");
-                }
-                });
                 return GestureDetector(
                   onTap: () {
                     if (memberKeys[index].isEmpty){
