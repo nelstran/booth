@@ -1,6 +1,8 @@
+import 'package:Booth/App_Pages/blocked_users_page.dart';
 import 'package:Booth/App_Pages/create_session_page.dart';
 import 'package:Booth/App_Pages/display_user_page.dart';
 import 'package:Booth/MVC/analytics_extension.dart';
+import 'package:Booth/MVC/block_extension.dart';
 import 'package:Booth/MVC/booth_controller.dart';
 import 'package:Booth/MVC/profile_extension.dart';
 import 'package:Booth/MVC/saved_sessions_extension.dart';
@@ -78,63 +80,102 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
+        // Update when session changes
         child: StreamBuilder(
           stream: controller.sessionRef.child(widget.sessionKey).onValue,
           builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-              Map<dynamic, dynamic> json =
-                  snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-
-              try{
-                Session session = Session.fromJson(json);
-                List<String> memberNames = json["users"]
-                    .values
-                    .map<String>((value) => value['name'] as String)
-                    .toList();
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Details of session
-                    sessionDetails(session, context),
-                    // List of students in the session
-                    sessionLobby(memberNames, json),
-                    // Button to join and leave the session
-                    Expanded(
-                        flex: 1,
-                        child: joinLeaveButton(snapshot.data!.snapshot.key!, session)
-                        ),
-                  ],
+            // Update when blocking users
+            return StreamBuilder(
+              stream: controller.studentRef().child("blocked").onValue,
+              builder: (context, blockedSnaps) {
+                // Update when getting blocked
+                return StreamBuilder(
+                  stream: controller.studentRef().child("blocked_from").onValue,
+                  builder: (context, fromSnaps) {
+                    return FutureBuilder(
+                      future: Future.wait([
+                        widget.controller.getBlockedUsers(widget.controller.student.key),
+                        widget.controller.getBlockedFromUsers(widget.controller.student.key)
+                      ]),
+                      builder: (context, listSnapshot) {
+                        var blockedUsersList = [];
+                        if(listSnapshot.hasData){
+                          blockedUsersList = listSnapshot.data![0].keys.toList();
+                          blockedUsersList.addAll(listSnapshot.data![1].keys.toList());
+                        }
+                        if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
+                      Map<dynamic, dynamic> json =
+                          snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+                      try{
+                        Session session = Session.fromJson(json);
+                        String ownerKey = json["users"][session.ownerKey]["key"];
+                        if (blockedUsersList.contains(ownerKey)){
+                          return const Center(
+                            child: Text(
+                              "This session has been hidden",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold
+                              )
+                            )
+                          );
+                        }
+                        List<String> memberNames = json["users"]
+                            .values
+                            .map<String>((value) => value['name'] as String)
+                            .toList();
+                
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Details of session
+                            sessionDetails(session, context),
+                            // List of students in the session
+                            sessionLobby(memberNames, json),
+                            // Button to join and leave the session
+                            Expanded(
+                                flex: 1,
+                                child: joinLeaveButton(snapshot.data!.snapshot.key!, session)
+                                ),
+                          ],
+                        );
+                      } catch(e){
+                        return const Center(
+                          child: Text(
+                            "There is a problem with this session",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold
+                            )
+                          )
+                        );
+                      }              
+                    } else if (snapshot.hasData && !snapshot.data!.snapshot.exists){
+                      return const Center(
+                        child: Text(
+                          "This session no longer exists",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                          )
+                        )
+                      );
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                      }
+                    );
+                  },
                 );
-              } catch(e){
-                return const Center(
-                  child: Text(
-                    "There is a problem with this session",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold
-                    )
-                  )
-                );
-              }              
-            } else if (snapshot.hasData && !snapshot.data!.snapshot.exists){
-              return const Center(
-                child: Text(
-                  "This session no longer exists",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  )
-                )
-              );
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
-          },
+              }
+            );
+          }
         ),
       ),
     );
