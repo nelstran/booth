@@ -129,7 +129,14 @@ class _FriendsPage extends State<FriendsPage> {
 
           try {
             sessionKey = json['session'];
-            inASession = sessionKey.isNotEmpty;
+            bool sameSchool = false;
+            try{
+              sameSchool = json['profile']['institution'] == widget.controller.studentInstitution;
+            }
+            catch (e){
+              // just in case
+            }
+            inASession = sessionKey.isNotEmpty && sameSchool;
           }
           catch (e) {
             // User does not have session tag in database
