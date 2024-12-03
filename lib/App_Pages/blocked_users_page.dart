@@ -19,57 +19,61 @@ class BlockedUsersPage extends StatefulWidget {
 class _BlockedUsersPage extends State<BlockedUsersPage> {
   @override
   Widget build(BuildContext context) {
-    Future<Map<dynamic, dynamic>> blockedUsers = widget.controller.getBlockedUsersName(widget.controller.student.key);
     var blockedUsersList = {};
     return Scaffold(
         appBar: AppBar(
           title: const Text('Blocked Users List'),
         ),
-        body: FutureBuilder(
-        future: blockedUsers,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          blockedUsersList = snapshot.data!;
-
-          double pfpRadius = 25;
-          double pfpFontSize = 20;
-
-          return Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Blocked Users",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+        body: StreamBuilder(
+          stream: widget.controller.studentRef().child("blocked").onValue,
+          builder: (context, snapshot) {
+            return FutureBuilder(
+            future: widget.controller.getBlockedUsersName(widget.controller.student.key),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              blockedUsersList = snapshot.data!;
+            
+              double pfpRadius = 25;
+              double pfpFontSize = 20;
+            
+              return Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Blocked Users",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              if (blockedUsersList.isNotEmpty)
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: blockedUsersList.length,
-                    itemBuilder: (context, index) {
-                      final userKey = blockedUsersList.keys.elementAt(index);
-                      final userName = blockedUsersList[userKey] as String;
-                      return blockedUserTile(userKey, userName, pfpRadius, pfpFontSize);
-                    }
-                  ),
-                )
-              else
-                const Center(child: Text('No blocked users found'))
-            ],
-          );
-        }
-      )
+                  if (blockedUsersList.isNotEmpty)
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: blockedUsersList.length,
+                        itemBuilder: (context, index) {
+                          final userKey = blockedUsersList.keys.elementAt(index);
+                          final userName = blockedUsersList[userKey] as String;
+                          return blockedUserTile(userKey, userName, pfpRadius, pfpFontSize);
+                        }
+                      ),
+                    )
+                  else
+                    const Center(child: Text('No blocked users found'))
+                ],
+              );
+            }
+                  );
+          }
+        )
     );
   }
 
