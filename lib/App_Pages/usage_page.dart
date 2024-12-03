@@ -25,6 +25,7 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
   @override
   bool get wantKeepAlive => true;
   int weeksAwayFromToday = 0;
+  int maxWeeksAway = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +45,13 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     GestureDetector(
-                      child: const Icon(Icons.arrow_back_ios_rounded),
+                      child: maxWeeksAway <= weeksAwayFromToday ? const SizedBox(width: 25,) : const Icon(Icons.arrow_back_ios_rounded),
                       onTap: (){
-                        setState(() {
-                          weeksAwayFromToday += 1;
-                        });
+                        if(maxWeeksAway > weeksAwayFromToday){
+                          setState(() {
+                            weeksAwayFromToday += 1;
+                          });
+                        }
                       }
                     ),
                     Text(
