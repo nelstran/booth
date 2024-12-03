@@ -98,12 +98,6 @@ class _SessionPage extends State<SessionPage>
                               .child("blocked_from")
                               .onValue,
                           builder: (c, s) {
-                            if (s.connectionState == ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            } else if (s.hasError) {
-                              return Center(child: Text('Error: ${s.error}'));
-                            }
                             // Get list of blocked from users when it updates
                             Map? blockedFromEntry = {};
                             if (s.hasData && s.data!.snapshot.value != null) {
@@ -117,14 +111,6 @@ class _SessionPage extends State<SessionPage>
                                     .child("blocked")
                                     .onValue,
                                 builder: (c, s) {
-                                  if (s.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  } else if (s.hasError) {
-                                    return Center(
-                                        child: Text('Error: ${s.error}'));
-                                  }
                                   // Get list of blocked users when it updates
                                   Map? blockedEntry = {};
                                   if (s.hasData &&
