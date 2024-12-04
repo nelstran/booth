@@ -35,6 +35,12 @@ class SessionDatabase {
   /// Add user to database given a set of values
   Future<void> addUser(Map values) async {
     final newRef = ref.child('users').push();
+    try{
+    updateProfile(newRef.key!, {"name": values["name"]});
+    }
+    catch(e){
+      // Just in case
+    }
     await newRef.set(values);
   }
 

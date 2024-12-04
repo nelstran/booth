@@ -494,7 +494,7 @@ class _UsagePageState extends State<UsagePage> with AutomaticKeepAliveClientMixi
               Duration newDur = value + sessionDuration;
               (weeklyHours["Subjects"] as Map).update(json["subject"], 
                 (value) => value + sessionDuration,
-                ifAbsent: () => newDur);
+                ifAbsent: () => sessionDuration);
               return newDur;
             });
           

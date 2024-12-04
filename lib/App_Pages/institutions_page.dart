@@ -90,7 +90,7 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     );
     User? user = FirebaseAuth.instance.currentUser;
     try{
-      if (user != null && widget.previousPage == "Register"){
+      if (user != null && widget.controller.studentInstitution.isEmpty){
         String email = user.email ?? "";
         if (email.isNotEmpty){
           String domain = email.split('@')[1];
