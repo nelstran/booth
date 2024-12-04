@@ -466,7 +466,7 @@ class _UserProfilePage extends State<UserProfilePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Block user?'),
-          content: Text('Are you sure you want to unblock $userName?'),
+          content: Text('Are you sure you want to block $userName?'),
           actions: [
             TextButton(
               style: TextButton.styleFrom(
