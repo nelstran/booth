@@ -24,88 +24,87 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPage extends State<FriendsPage> {
   @override
   Widget build(BuildContext context) {
-    Future<Map<dynamic, dynamic>> requests =
-        widget.controller.getRequests(false);
-    Future<Map<dynamic, dynamic>> friends = widget.controller.getFriends();
     var requestsList = {};
     var friendsList = {};
     return Scaffold(
-        body: FutureBuilder(
-        future: Future.wait([requests, friends]),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+        body: StreamBuilder(
+          stream: widget.controller.studentRef().onValue.asBroadcastStream(),
+          builder: (context, snapshot) {
+            return FutureBuilder(
+            future: Future.wait([widget.controller.getRequests(false), widget.controller.getFriends()]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              requestsList = snapshot.data![0];
+              friendsList = snapshot.data![1];
+            
+              double pfpRadius = 25;
+              double pfpFontSize = 20;
+            
+              return Column(
+                children: [
+                  // Requests header
+                  if (snapshot.data![0].isNotEmpty)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        // Navigate to the RequestsPage
+                        await Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) =>
+                                RequestsPage(widget.controller),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Requests (${requestsList.length})",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Icon(Icons.keyboard_arrow_right),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 20,),
+                  // Friends header
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Friends",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (snapshot.data![1].isNotEmpty)
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: friendsList.length,
+                        itemBuilder: (context, index) {
+                          final userKey = friendsList.keys.elementAt(index);
+                          final userName = friendsList[userKey] as String;
+                          return friendTile(userKey, userName, pfpRadius, pfpFontSize);
+                        }
+                      ),
+                    )
+                  else
+                    const Center(child: Text('No friends found'))
+                ],
+              );
+            }
+                  );
           }
-          requestsList = snapshot.data![0];
-          friendsList = snapshot.data![1];
-
-          double pfpRadius = 25;
-          double pfpFontSize = 20;
-
-          return Column(
-            children: [
-              // Requests header
-              if (snapshot.data![0].isNotEmpty)
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () async {
-                    // Navigate to the RequestsPage
-                    await Navigator.push(
-                      context,
-                      CupertinoPageRoute(
-                        builder: (context) =>
-                            RequestsPage(widget.controller),
-                      ),
-                    );
-                    setState(() {
-                      requests = widget.controller.getRequests(false);
-                    });
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Requests (${requestsList.length})",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Icon(Icons.keyboard_arrow_right),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 20,),
-              // Friends header
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Friends",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              if (snapshot.data![1].isNotEmpty)
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: friendsList.length,
-                    itemBuilder: (context, index) {
-                      final userKey = friendsList.keys.elementAt(index);
-                      final userName = friendsList[userKey] as String;
-                      return friendTile(userKey, userName, pfpRadius, pfpFontSize);
-                    }
-                  ),
-                )
-              else
-                const Center(child: Text('No friends found'))
-            ],
-          );
-        }
-      )
+        )
     );
   }
 

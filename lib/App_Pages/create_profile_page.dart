@@ -182,6 +182,9 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
                   String name = capitalizeWord(_nameController.text.trim());
+                  if (name.isEmpty){
+                    name = widget.controller.student.fullname;
+                  }
                   Map<String, Object?> values = {
                     "name": name,
                     "major": capitalizeWord(_majorController.text.trim()),
@@ -208,6 +211,10 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               Center(
                 child: GestureDetector(
                   onTap: () {
+                    Map<String, Object?> values = {
+                      "name": widget.controller.student.fullname,
+                    };
+                    widget.controller.updateUserProfile(values);
                     Navigator.pop(context);
                   },
                   child: const Text(

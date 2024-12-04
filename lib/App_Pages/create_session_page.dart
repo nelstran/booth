@@ -408,14 +408,14 @@ class _CreateSessionPageState extends State<CreateSessionPage> {
                   FilteringTextInputFormatter.allow(RegExp("[0-9]")),
                 ],
                 maxLength: 3,
-                decoration: const InputDecoration(labelText: 'Seats Available'),
+                decoration: const InputDecoration(labelText: 'Seats Available (2-999)'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the number of seats available';
                   }
                   final seats = int.tryParse(value);
-                  if (seats == null || seats <= 0) {
-                    return 'Please enter a valid number of seats';
+                  if (seats == null || seats <= 1) {
+                    return 'Enter a valid seat count (2-999)';
                   }
                   return null;
                 },

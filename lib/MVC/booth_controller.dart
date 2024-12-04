@@ -30,9 +30,9 @@ class BoothController extends ValueNotifier {
   }
 
   // Used for disposing streams
-  late StreamSubscription<DatabaseEvent> entryStream;
-  late StreamSubscription<DatabaseEvent> schoolStream;
-  late StreamSubscription<DatabaseEvent> profileStream;
+  late StreamSubscription<DatabaseEvent> _entryStream;
+  late StreamSubscription<DatabaseEvent> _schoolStream;
+  late StreamSubscription<DatabaseEvent> _profileStream;
 
   final Map _isOfflineForDatabase = {
       'isOnline': false,
@@ -46,9 +46,9 @@ class BoothController extends ValueNotifier {
   @override
   void dispose(){
     super.dispose();
-    entryStream.cancel();
-    schoolStream.cancel();
-    profileStream.cancel();
+    _entryStream.cancel();
+    _schoolStream.cancel();
+    _profileStream.cancel();
   }
 
   // Constructor
@@ -237,6 +237,10 @@ class BoothController extends ValueNotifier {
 
                   // Deletes the user from everywhere on our app
                   deleteUserAccountEverywhere(student);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Account deleted successfully.")),
+                  );
                 } on FirebaseAuthException catch (e) {
                   logger.e(e);
                   // Handles Firebase exceptions during reauthentication
@@ -342,6 +346,8 @@ class BoothController extends ValueNotifier {
   /// - The list of users that are recorded in the DB
   /// - From any Friends list they are apart of
   Future<void> deleteUserAccountEverywhere(Student student) async {
+    studentRef().child("onlineStatus").onDisconnect().cancel();
+    
     // First Check to see if the user is apart of any study sessions
     // If so, remove from study session
     if (student.session != "") {

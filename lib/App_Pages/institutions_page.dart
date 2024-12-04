@@ -90,7 +90,7 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     );
     User? user = FirebaseAuth.instance.currentUser;
     try{
-      if (user != null && widget.previousPage == "Register"){
+      if (user != null && widget.controller.studentInstitution.isEmpty){
         String email = user.email ?? "";
         if (email.isNotEmpty){
           String domain = email.split('@')[1];
@@ -476,7 +476,9 @@ class _InstituionsPage extends State<InstitutionsPage> with TickerProviderStateM
     switch (widget.previousPage) {
       // Pop current page to go back to Profile creation page
       case 'Profile':
-        Navigator.of(context).popUntil(ModalRoute.withName("/Profile"));
+        // Navigator.of(context).popUntil(ModalRoute.withName("/Profile"));
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
         break;
       case 'Register':
         // Pop current page and go to main page

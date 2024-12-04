@@ -98,12 +98,6 @@ class _SessionPage extends State<SessionPage>
                               .child("blocked_from")
                               .onValue,
                           builder: (c, s) {
-                            if (s.connectionState == ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            } else if (s.hasError) {
-                              return Center(child: Text('Error: ${s.error}'));
-                            }
                             // Get list of blocked from users when it updates
                             Map? blockedFromEntry = {};
                             if (s.hasData && s.data!.snapshot.value != null) {
@@ -117,14 +111,6 @@ class _SessionPage extends State<SessionPage>
                                     .child("blocked")
                                     .onValue,
                                 builder: (c, s) {
-                                  if (s.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  } else if (s.hasError) {
-                                    return Center(
-                                        child: Text('Error: ${s.error}'));
-                                  }
                                   // Get list of blocked users when it updates
                                   Map? blockedEntry = {};
                                   if (s.hasData &&
@@ -173,7 +159,7 @@ class _SessionPage extends State<SessionPage>
                                         bool isFriends = isFriendsWithHost(
                                             json, friendsList);
                                         bool isBlocked = isBlockedUserinSession(
-                                            json, blockedList);
+                                            json, blockedList, blockedFromList);
 
                                         // Always show the session the user is in, otherwise check if session should be visible to user
                                         if (!isInSession &&
@@ -491,25 +477,6 @@ class _SessionPage extends State<SessionPage>
         }
       } catch (e) {
         return false;
-      }
-    }
-    return false;
-  }
-
-  /// Method to hide sessions that contain blocked users
-  bool isBlockedUserinSession(Map<dynamic, dynamic> json, List blockedList) {
-    // Look at all students in a session
-    List usersInSession = json['users'].values.toList();
-    for (var i = 0; i < usersInSession.length; i++) {
-      // If a student in a session is blocked, hide that session
-      if (blockedList.contains(usersInSession[i]['key'])) {
-        return true;
-      }
-
-      // If the student who has blocked the blocked user is in a session,
-      // hide that session from the blocked user
-      if (blockedFromList.contains(usersInSession[i]['key'])) {
-        return true;
       }
     }
     return false;
