@@ -9,7 +9,8 @@ extension BlockExtension on BoothController {
   void blockUser(String key) async {
     
     Map<dynamic, dynamic> friends = await getFriends();
-    Map<dynamic, dynamic> requests = await getRequests(false);
+    Map<dynamic, dynamic> incomingReqs = await getRequests(false);
+    Map<dynamic, dynamic> outgoingReqs = await getRequests(true);
     Map<dynamic, dynamic> blockedUserInfo = await getUserEntry(key);
     Student blocked = Student.fromJson(blockedUserInfo);
 
@@ -19,8 +20,11 @@ extension BlockExtension on BoothController {
     }
 
     // Remove them from requests list if they sent a request
-    if(requests.containsKey(key)){
+    if(incomingReqs.containsKey(key)){
       db.declineFriendRequest(student.key, key);
+    }
+    if(outgoingReqs.containsKey(key)){
+      db.declineFriendRequest(key, student.key);
     }
 
     // Kick the appropriate user out of whoever owns the session if they are in the same one

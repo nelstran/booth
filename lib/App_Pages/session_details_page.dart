@@ -108,20 +108,25 @@ class _SessionDetailsPage extends State<SessionDetailsPage> {
                           snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
                       try{
                         Session session = Session.fromJson(json);
+                        Map users = json['users'];
                         try{
-                          String ownerKey = json["users"][session.ownerKey]["key"];
-                          if (blockedUsersList.contains(ownerKey)){
-                            return const Center(
-                              child: Text(
-                                "This session has been hidden",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold
-                                )
-                              )
-                            );
+                          if(blockedUsersList.isNotEmpty){
+                            for (String userKey in users.keys){
+                              String key = users[userKey]["key"];
+                              if (blockedUsersList.contains(key)){
+                                return const Center(
+                                  child: Text(
+                                    "This session has been hidden",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold
+                                    )
+                                  )
+                                );
+                              }
+                            }
                           }
                         }
                         catch(e){
