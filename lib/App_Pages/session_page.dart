@@ -121,19 +121,21 @@ class _SessionPage extends State<SessionPage>
                                   blockedList = blockedEntry.keys.toList();
                                   // --------------------------------------------------------------------------
                                   return FirebaseAnimatedList(
+                                    physics: const PositionRetainedScrollPhysics(),
                                     key: Key(institution),
                                     query: widget.controller.sessionRef,
                                     sort: (a, b) {
                                       if (a.key ==
                                           widget.controller.student.session) {
-                                        return -1;
+                                        return 1;
                                       }
                                       if (b.key ==
                                           widget.controller.student.session) {
-                                        return 1;
+                                        return -1;
                                       }
                                       return 0;
                                     },
+                                    reverse: true,
                                     // Build each item in the list view
                                     itemBuilder: (BuildContext context,
                                         DataSnapshot snapshot,
@@ -189,130 +191,134 @@ class _SessionPage extends State<SessionPage>
                                         fullness = sessionColor[
                                             session.seatsTaken /
                                                 session.seatsAvailable];
-                                        return Column(
-                                          children: [
-                                            if (isInSession)
-                                              const Padding(
-                                                padding: EdgeInsets.all(8.0),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Divider(),
-                                                    ),
-                                                    Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal:
-                                                                    8.0),
-                                                        child:
-                                                            Text("My session")),
-                                                    Expanded(child: Divider())
-                                                  ],
-                                                ),
-                                              )
-                                            else
-                                              const SizedBox.shrink(),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Card(
-                                                elevation: 2,
-                                                child: ClipPath(
-                                                  clipper: ShapeBorderClipper(
-                                                    shape:
-                                                      RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(10)
-                                                        )
+                                        return SizeTransition(
+                                          key: UniqueKey(),
+                                          sizeFactor: animation,
+                                          child: Column(
+                                            children: [
+                                              if (isInSession)
+                                                const Padding(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Divider(),
                                                       ),
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                        border: Border(
-                                                            left: BorderSide(
-                                                      color: fullness,
-                                                      width: 10,
-                                                    ))),
-                                                    child: ListTile(
-                                                      // Display title and description
-                                                      title: Text(
-                                                        title,
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                      Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal:
+                                                                      8.0),
+                                                          child:
+                                                              Text("My session")),
+                                                      Expanded(child: Divider())
+                                                    ],
+                                                  ),
+                                                )
+                                              else
+                                                const SizedBox.shrink(),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Card(
+                                                  elevation: 2,
+                                                  child: ClipPath(
+                                                    clipper: ShapeBorderClipper(
+                                                      shape:
+                                                        RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(10)
+                                                          )
+                                                        ),
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                          border: Border(
+                                                              left: BorderSide(
+                                                        color: fullness,
+                                                        width: 10,
+                                                      ))),
+                                                      child: ListTile(
+                                                        // Display title and description
+                                                        title: Text(
+                                                          title,
+                                                          style: const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        subtitle: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          // Show list and the people in that session represented by their pfp
+                                                          children: [
+                                                            Text(session
+                                                                .locationDescription),
+                                                            const SizedBox(
+                                                                height: 2),
+                                                            rowOfPFPs(
+                                                                memberNames,
+                                                                numOfPFPs,
+                                                                memberUIDs)
+                                                          ],
+                                                        ),
+                                                        trailing: Text(
+                                                            "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style:
+                                                                const TextStyle(
+                                                                    fontSize:
+                                                                        14)),
+                                                        onTap: () {
+                                                          // Expand session
+                                                          Navigator.of(context)
+                                                              .push(
+                                                            MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  ExpandedSessionPage(
+                                                                      snapshot
+                                                                          .key!,
+                                                                      widget
+                                                                          .controller),
+                                                            ),
+                                                          );
+                                                        },
                                                       ),
-                                                      subtitle: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        // Show list and the people in that session represented by their pfp
-                                                        children: [
-                                                          Text(session
-                                                              .locationDescription),
-                                                          const SizedBox(
-                                                              height: 2),
-                                                          rowOfPFPs(
-                                                              memberNames,
-                                                              numOfPFPs,
-                                                              memberUIDs)
-                                                        ],
-                                                      ),
-                                                      trailing: Text(
-                                                          "[ ${session.seatsTaken} / ${session.seatsAvailable} ]",
-                                                          textAlign: TextAlign
-                                                              .center,
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontSize:
-                                                                      14)),
-                                                      onTap: () {
-                                                        // Expand session
-                                                        Navigator.of(context)
-                                                            .push(
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                ExpandedSessionPage(
-                                                                    snapshot
-                                                                        .key!,
-                                                                    widget
-                                                                        .controller),
-                                                          ),
-                                                        );
-                                                      },
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            if (isInSession)
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8.0),
-                                                child: Row(
-                                                  children: [
-                                                    const Expanded(
-                                                      child: Divider(),
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: !friendsOnly
-                                                          ? Text(
-                                                              '${widget.controller.studentInstitution} sessions')
-                                                          : const Text(
-                                                              'Friends\' sessions'),
-                                                    ),
-                                                    const Expanded(
-                                                        child: Divider())
-                                                  ],
-                                                ),
-                                              )
-                                            else
-                                              const SizedBox.shrink()
-                                          ],
+                                              if (isInSession)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 8.0),
+                                                  child: Row(
+                                                    children: [
+                                                      const Expanded(
+                                                        child: Divider(),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                                8.0),
+                                                        child: !friendsOnly
+                                                            ? Text(
+                                                                '${widget.controller.studentInstitution} sessions')
+                                                            : const Text(
+                                                                'Friends\' sessions'),
+                                                      ),
+                                                      const Expanded(
+                                                          child: Divider())
+                                                    ],
+                                                  ),
+                                                )
+                                              else
+                                                const SizedBox.shrink()
+                                            ],
+                                          ),
                                         );
                                       } catch (e) {
                                         // Skip
@@ -480,5 +486,44 @@ class _SessionPage extends State<SessionPage>
       }
     }
     return false;
+  }
+  
+}
+
+class PositionRetainedScrollPhysics extends ScrollPhysics {
+  final bool shouldRetain;
+  const PositionRetainedScrollPhysics({super.parent, this.shouldRetain = true});
+
+  @override
+  PositionRetainedScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return PositionRetainedScrollPhysics(
+      parent: buildParent(ancestor),
+      shouldRetain: shouldRetain,
+    );
+  }
+
+  @override
+  double adjustPositionForNewDimensions({
+    required ScrollMetrics oldPosition,
+    required ScrollMetrics newPosition,
+    required bool isScrolling,
+    required double velocity,
+  }) {
+    final position = super.adjustPositionForNewDimensions(
+      oldPosition: oldPosition,
+      newPosition: newPosition,
+      isScrolling: isScrolling,
+      velocity: velocity,
+    );
+
+    final diff = newPosition.maxScrollExtent - oldPosition.maxScrollExtent;
+
+    if (oldPosition.pixels > oldPosition.minScrollExtent &&
+        diff > 0 &&
+        shouldRetain) {
+      return position + diff;
+    } else {
+      return position;
+    }
   }
 }
